@@ -8,7 +8,7 @@ class owObjectsMaster
 	
 	const LOGFILE = "var/log/owObjectsMaster.log";
 	const INIPATH = "extension/connectezsugar/settings/";
-	const INIFILE = "sugarcrm.ini.append.php";
+	const INIFILE = "owobjectsmaster.ini.append.php";
 	
 	/*
 	 * PROPRIÉTÉS
@@ -75,7 +75,11 @@ class owObjectsMaster
 		
 		
 		// properties_structure ***
-		$properties_structure = array(	'class_attributes' => array('name')
+		$properties_structure = array( 'class_attributes' 	=> array('class_identifier' => array(	'name',
+																									'datatype',
+																									'required'
+																									) ),
+										'object_attributes'	=> array('attribut_identifier' => 'from_string_value')
 									);
 		
 		
@@ -96,7 +100,7 @@ class owObjectsMaster
 																		'object_name'		=> false
 																	)
 										);
-		
+		self::$parameters_per_function = $parameters_per_function;
 										
 										
 		// tableau complet *******
@@ -456,7 +460,6 @@ class owObjectsMaster
 		{
 			if(in_array($name,self::$properties_list))
 			{
-				$this->verifyPropertiesStructure($properties);
 				$this->properties[$name] = $value;
 			}
 			else
@@ -485,7 +488,7 @@ class owObjectsMaster
 
 		// parametres necessaires à la function
 		$parameters = self::$parameters_per_function[$function_name];
-		
+
 		// verifie si on a passé le parametre $args à la function $function_name
 		if(is_null($args)) // si non
 		{
@@ -507,13 +510,18 @@ class owObjectsMaster
 			{
 				if( !isset($args[$name]) and $required )
 				{
-					$error = $function_name . " : " . $name . " n'est pas reinsegné !";
-					self::$logger->writeTimedString($error);
-					return false;
+					if(!isset($this->properties[$name]))
+					{
+						$error = $function_name . " : " . $name . " n'est pas reinsegné !";
+						self::$logger->writeTimedString($error);
+						return false;
+					}
 				}
-				
-				// set property
-				$this->properties[$name] = $args[$name];
+				elseif( isset($args[$name]) )
+				{
+					// set property
+					$this->properties[$name] = $args[$name];
+				}
 			}
 		}
 		
@@ -521,13 +529,11 @@ class owObjectsMaster
 		
 	}
 	
+
 	
-	protected function verifyPropertiesStructure($properties)
-	{
-		// $class_attributes[identifier(string)] = array( name=>(string),datatype=>(string),required=>(bool) );
-	}
-	
-	
+	/*
+	 * $class_attributes[identifier(string)] = array( name=>(string),datatype=>(string),required=>(bool) );
+	 */
 	public function createClassEz($args = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
@@ -567,6 +573,7 @@ class owObjectsMaster
 		$ingroup->store();
 		
 		// crée les attributs de la class EZ
+		// $class_attributes[identifier(string)] = array( name=>(string),datatype=>(string),required=>(bool) );
 		foreach( $this->properties['class_attributes'] as $identifier => $attrs )
 		{
 			$new_attribute = eZContentClassAttribute::create( $ClassID, $attrs['datatype'] );
@@ -599,20 +606,19 @@ class owObjectsMaster
 			return false;
 		
 		$class = eZContentClass::fetch($this->properties['class_id']);
-		$class_datamap = $class->dataMap();
+		//$class_datamap = $class->dataMap();
 		
-		/*if(isset($this->properties['class_attributes']))
+		foreach($this->properties['object_attributes'] as $attr => $value)
 		{
-			echo("class_attributes\n");
-			exit(var_dump($this->properties['class_attributes']));
-		}*/
-		
-		$class_attributes = array();
-		foreach($class_datamap as $attr => $values)
-		{
-			
+			if( is_null( $class->fetchAttributeByIdentifier($attr,false) ) )
+			{
+				$error = "verifyObjectAttributes() : " . $attr . " non trouvé parmi les attributes de la class " . $class->attribute('identifier');
+				self::$logger->writeTimedString($error);
+				return false;
+			}
+				
 		}
-		exit(var_dump($class_datamap));
+
 	}
 	
 	public function createObjectEz($args = null)
@@ -623,9 +629,9 @@ class owObjectsMaster
 			return false;
 	
 		// verifie si le tableau des attributes de l'objet est coherant aux attributes de la class
-		$this->verifyObjectAttributes();
-		if(!$verify)
-			return false;
+		//$verify = $this->verifyObjectAttributes();
+		//if(!$verify)
+			//return false;
 		
 		// retrouve l'identifiant de la class
 		$class_identifier = eZContentClass::classIdentifierByID($this->properties['class_id']);
@@ -657,9 +663,9 @@ class owObjectsMaster
 		$verify = $this->verifyArgsForFunction("updateObjectEz", $args);
 		if(!$verify)
 			return false;
-		
+			
 		// verifie si le tableau des attributes de l'objet est coherant aux attributes de la class
-		$this->verifyObjectAttributes();
+		$verify = $this->verifyObjectAttributes();
 		if(!$verify)
 			return false;
 			

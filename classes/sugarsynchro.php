@@ -58,11 +58,12 @@ class SugarSynchro
 	public static function definition()
 	{
 		// inidata_list ***
-		$inidata_list = array(	'mapping_tables'	=> array( 'block' => "Mapping", 'var' => "mapping_tables" ),
-								'exclude_fields'	=> array( 'block' => "Mapping", 'var' => "exclude_fields" ),
-								'mapping_types'		=> array( 'block' => "Mapping", 'var' => "mapping_types" ),
-								'prefixRemove'		=> array( 'block' => "Names", 'var' => "prefixRemove" ),
-								'prefixString'		=> array( 'block' => "Names", 'var' => "prefixString" ),
+		$inidata_list = array(	'mapping_names'			=> array( 'block' => "Mapping", 'var' => "mapping_names" ),
+								'mapping_identifiers'	=> array( 'block' => "Mapping", 'var' => "mapping_identifiers" ),
+								'exclude_fields'		=> array( 'block' => "Mapping", 'var' => "exclude_fields" ),
+								'mapping_types'			=> array( 'block' => "Mapping", 'var' => "mapping_types" ),
+								'prefixRemove'			=> array( 'block' => "Names", 'var' => "prefixRemove" ),
+								'prefixString'			=> array( 'block' => "Names", 'var' => "prefixString" ),
 							); 
 		self::$inidata_list = $inidata_list;
 		
@@ -72,6 +73,7 @@ class SugarSynchro
 									'sugar_attributes',
 									'sugar_attributes_values',
 									'class_name',
+									'class_identifier',
 									'class_attributes'
 								);
 		self::$properties_list = $properties_list;
@@ -136,6 +138,8 @@ class SugarSynchro
 				}
 			}
 			
+			//exit(var_dump(self::$inidata));
+			
 			if( $err > 0 )
 				return false;
 			
@@ -147,6 +151,7 @@ class SugarSynchro
 			self::$logger->writeTimedString("Erreur getIniData() : " . $error);
 			return false;
 		}
+		
 	}
 	
 	/*
@@ -229,13 +234,18 @@ class SugarSynchro
 			{
 				if( !isset($args[$name]) and $required )
 				{
-					$error = $function_name . " : " . $name . " n'est pas reinsegné !";
-					self::$logger->writeTimedString($error);
-					return false;
+					if(!isset($this->properties[$name]))
+					{
+						$error = $function_name . " : " . $name . " n'est pas reinsegné !";
+						self::$logger->writeTimedString($error);
+						return false;
+					}
 				}
-				
-				// set property
-				$this->properties[$name] = $args[$name];
+				elseif( isset($args[$name]) )
+				{
+					// set property
+					$this->properties[$name] = $args[$name];
+				}
 			}
 		}
 		
@@ -247,16 +257,46 @@ class SugarSynchro
 	
 	public function defClassName($module_name)
 	{
-		if(self::$inidata['prefixRemove'] == "true" and strpos($module_name, self::$inidata['prefixString']) !== false )
+		if(isset(self::$inidata['mapping_names'][$module_name]))
+		{
+			$class_name = self::$inidata['mapping_names'][$module_name];
+		}
+		elseif(self::$inidata['prefixRemove'] == "true" and strpos($module_name, self::$inidata['prefixString']) !== false )
 		{
 			$prefixlen = strlen(self::$inidata['prefixString']);
 			$class_name = substr($module_name,$prefixlen);
 		}
+		else
+			$class_name = $module_name;
 		
 		$this->properties['class_name'] = $class_name;
 		
 		return $class_name;
 	}
+	
+	public function defClassIdentifier($module_name)
+	{
+		if(isset(self::$inidata['mapping_identifiers'][$module_name]))
+		{
+			$class_identifier = self::$inidata['mapping_identifiers'][$module_name];
+		}
+		elseif(isset($this->properties['class_name']))
+		{
+			$class_identifier = owObjectsMaster::normalizeIdentifiers($this->properties['class_name']);
+		}
+		elseif(self::$inidata['prefixRemove'] == "true" and strpos($module_name, self::$inidata['prefixString']) !== false )
+		{
+			$prefixlen = strlen(self::$inidata['prefixString']);
+			$class_identifier = substr($module_name,$prefixlen);
+		}
+		else
+			$class_identifier = owObjectsMaster::normalizeIdentifiers($module_name);
+		
+		$this->properties['class_identifier'] = $class_identifier;
+		
+		return $class_identifier;
+	}
+	
 	
 	/*
 	 * ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'attr_1', 'datatype' => 'ezstring', 'required' => 1 ),

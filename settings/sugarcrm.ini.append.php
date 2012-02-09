@@ -5,29 +5,40 @@ ServerUrl=sugarcrm.local
 ServerPath=/soap.php
 ServerNamespace=http://www.sugarcrm.com/sugarcrm
 
-[Users]
-# ID de l'Admin User
-AdminID=14
-# je sais pas si c'est utile ....
-DefaultGroupID=112
-
-[Tree]
-# ID du node parent par default pour la création des objets
-DefaultParentNodeID=2
-# ID de la section par default pour la création des objets
-DefaultSectionID=1
-
 [Names]
-# si il y a un prefix à enlever du nom de module SUGAR pour nommer une class EZ
+# si il y a un prefix à enlever du nom de module SUGAR pour nommer une class EZ en absence de mapping
 prefixRemove=true
 # le prefix eventuel du nom de module SUGAR
 prefixString=test_
 
-[Mapping]
+[RemoteIdModel]
+# liste de variables pour le model de remote_id
+var_list[]
+var_list[]=ez_class_identifier
+var_list[]=ez_class_name
+var_list[]=sugar_object_id
+var_list[]=sugar_module_name
+var_list[]=sugar_module_libelle
+
+# modele de remote_id EZ en fonction de données SUGAR
+# le remote_id est construit avec la concatenation consecutive des elements du tableau "remote_id_model[]"
+# les valeurs possibles doivent faire partie de "var_list[]"
+remote_id_model[]
+remote_id_model[]=ez_class_identifier
+remote_id_model[]=_
+remote_id_model[]=sugar_object_id
+
 # mapping des correspondances des tables SUGAR avec les objets EZ
-# ex.: mapping_tables[nom_module_sugar]=prefix_remoteID_ez/class_identifier_ez
-mapping_tables[]
-mapping_tables[test_Hotel]=hotel
+[Mapping]
+# mapping des correspondances des noms de modules SUGAR avec les noms des classes EZ
+# ex.: mapping_names[nom_module_sugar]=class_name_ez
+mapping_names[]
+mapping_names[test_Hotel]=Hotel
+
+# mapping des correspondances des noms de modules SUGAR avec les identifiers des classes EZ
+# ex.: mapping_identifiers[nom_module_sugar]=class_identifier_ez
+mapping_identifiers[]
+mapping_identifiers[test_Hotel]=hotel
 
 # champs des tables SUGAR (field name) à ignorer pour les objets EZ
 exclude_fields[]
