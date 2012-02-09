@@ -512,6 +512,12 @@ class owObjectsMaster
 			
 	}
 	
+	// @TODO : upadate de la class
+	public function updateClassEz($args = null)
+	{
+		
+	}
+	
 	protected function verifyObjectAttributes()
 	{
 		/*if(!eZContentClass::exists($this->properties['class_id']))

@@ -97,7 +97,15 @@ else
 			$result = $createClass;
 	}
 	else
-	{
+	{	
+		// @TODO : verifier si la strucuture du model SUGAR n'a pas changé 
+		
+		// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		// MET À JOUR LA CLASS EZ EXISTANT ***
+		// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		
+		// @TODO : update de la class dans le cas d'une modification du model SUGAR
+		
 		// debug notice
 		eZDebug::writeNotice("ezclassID : ". $ezclassID);
 		// continue l'execution du script
