@@ -48,6 +48,7 @@ else
 	//									'attr_2' => array( 'name' => 'Attr 2', 'datatype' => 'eztext', 'required' => 0 ) );
 	$sugar_attributes = $sugarSynchro->getSynchroFields($sugar_properties);
 	
+	// @TODO : verifier si existe un mapping avant de reinsegner les class_attributes
 	// reinsegne la propriété 'class_attributes' après avoir normalisé les identifiants
 	$class_attributes = owObjectsMaster::normalizeIdentifiers($sugar_attributes);
 	$ez_properties['class_attributes'] = $class_attributes;
@@ -130,6 +131,7 @@ else
 		// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
 		$sugar_attributes_values = $sugarSynchro->getSynchroFieldsValues($sugar_properties);
 
+		// @TODO : verifier si existe un mapping avant de reinsegner les object_attributes
 		// reinsegne la propriété 'object_attributes' après avoir normalisé les identifiants
 		$object_attributes = owObjectsMaster::normalizeIdentifiers($sugar_attributes_values);
 		$ez_properties['object_attributes'] = $object_attributes;
