@@ -59,6 +59,7 @@ class owObjectsMaster
 							); 
 		self::$inidata_list = $inidata_list;
 		
+		
 		// properties_list ***
 		$properties_list = array(	'class_name',
 									'class_attributes',
@@ -72,8 +73,15 @@ class owObjectsMaster
 								);
 		self::$properties_list = $properties_list;
 		
+		
+		// properties_structure ***
+		$properties_structure = array(	'class_attributes' => array('name')
+									);
+		
+		
 		// parameters_per_function ***
 		$parameters_per_function = array(	'createClassEz' => array(	'class_name' 		=> true,
+																		'class_identifier' 	=> false,
 																		'class_attributes' 	=> true,
 																		'class_object_name'	=> false
 																	),
@@ -89,6 +97,8 @@ class owObjectsMaster
 																	)
 										);
 		
+										
+										
 		// tableau complet *******
 		$definition = array('properties_list' => $properties_list,
 							'parameters_per_function' => $parameters_per_function,
@@ -374,6 +384,57 @@ class owObjectsMaster
     }
 	
     
+    
+	/*
+	 * transforme la chaine en parametres selon des regles de normalisation d'un identifier EZ
+	 * -- enleve les espaces en début et fin de chaine
+	 * -- tout en minuscule
+	 * -- remplace les espaces par des underscores
+	 * -- @TODO : d'autres regles à rajouter ?
+	 * @param $string string
+	 * @return $string string
+	 */
+	public static function normalizeIdentifier($string)
+	{
+		// si le parametre n'est pas de type string on ne fait rien
+		if(!is_string($string))
+			return $string;
+		
+		// enleve les espaces en début et fin de chaine
+		$string = trim($string);
+		
+		// tout en minuscule
+		$string = mb_strtolower($string, 'UTF-8');
+		
+		// remplace les espaces par des underscores
+		$espaces = array(" ", "  ", "   ", "    ", "     "); // de 1 à 5 espaces...
+		$string = str_replace($espaces, "_", $string);
+		
+		return $string;
+	}
+	
+	/*
+	 * applique la fonction self::normalizeIdentifier($string)
+	 * à toutes les clés du tableau donné en parametre
+	 * 
+	 */
+	public static function normalizeIdentifiers($array)
+	{
+		// si le parametre n'est pas de type array on ne fait rien
+		if(!is_array($array))
+			return $array;
+			
+		$normalarray = array();
+		foreach($array as $key => $value)
+		{
+			$normalkey = self::normalizeIdentifier($key);
+			$normalarray[$normalkey] = $value;
+		}
+		
+		return $normalarray;
+	}
+    
+	
 	/*
 	 * CONSTRUCTEUR
 	 * on ne peut pas faire un new owObjectsMaster() en dehors de la class ou des classes qui l'etende
@@ -394,7 +455,10 @@ class owObjectsMaster
 		foreach( $properties as $name => $value )
 		{
 			if(in_array($name,self::$properties_list))
+			{
+				$this->verifyPropertiesStructure($properties);
 				$this->properties[$name] = $value;
+			}
 			else
 			{	
 				$error = "Propriété " . $name . " non trouvé parmi les propriétés d'un objet " . get_class();
@@ -457,6 +521,13 @@ class owObjectsMaster
 		
 	}
 	
+	
+	protected function verifyPropertiesStructure($properties)
+	{
+		// $class_attributes[identifier(string)] = array( name=>(string),datatype=>(string),required=>(bool) );
+	}
+	
+	
 	public function createClassEz($args = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
@@ -468,6 +539,10 @@ class owObjectsMaster
 		$userID = self::$inidata['AdminID'];
 		$newClass =  eZContentClass::create( $userID );	
 		
+		// identifier de la class
+		if(!isset($this->properties['class_identifier']))
+			$this->properties['class_identifier'] = self::normalizeIdentifier($this->properties['class_name']);
+		
 		// modele de nom pour les objets
 		$contentobject_name = ( isset($this->properties['class_object_name']) )? $this->properties['class_object_name'] : "new " . $this->properties['class_name'];
 		
@@ -475,7 +550,7 @@ class owObjectsMaster
 		// 'is_container' (en dur pour l'instant!!)
 		$newClass->setAttribute( 'version', 0);
 		$newClass->setAttribute( 'name', $this->properties['class_name']);
-		$newClass->setAttribute( 'identifier', strtolower($this->properties['class_name']) );
+		$newClass->setAttribute( 'identifier', $this->properties['class_identifier'] );
 		$newClass->setAttribute( 'is_container', 1 ); // en dur pour l'instant !!
 		$newClass->setAttribute( 'contentobject_name', "<" . $contentobject_name . ">" );
 		 
@@ -492,16 +567,16 @@ class owObjectsMaster
 		$ingroup->store();
 		
 		// crée les attributs de la class EZ
-		foreach( $this->properties['class_attributes'] as $name => $attrs )
+		foreach( $this->properties['class_attributes'] as $identifier => $attrs )
 		{
 			$new_attribute = eZContentClassAttribute::create( $ClassID, $attrs['datatype'] );
 			 
 			$new_attribute->setAttribute( 'version', $ClassVersion);
-			$new_attribute->setAttribute( 'name', $name );
+			$new_attribute->setAttribute( 'name', $attrs['name'] );
 			$new_attribute->setAttribute( 'is_required', $attrs['required'] );
 			$new_attribute->setAttribute( 'is_searchable', 1 );
 			$new_attribute->setAttribute( 'can_translate', 1 );
-			$new_attribute->setAttribute( 'identifier', strtolower($name) );
+			$new_attribute->setAttribute( 'identifier', $identifier );
 			 
 			$dataType = $new_attribute->dataType();
 			$dataType->initializeClassAttribute( $new_attribute );
@@ -520,11 +595,24 @@ class owObjectsMaster
 	
 	protected function verifyObjectAttributes()
 	{
-		/*if(!eZContentClass::exists($this->properties['class_id']))
+		if(!eZContentClass::exists($this->properties['class_id']))
 			return false;
+		
 		$class = eZContentClass::fetch($this->properties['class_id']);
 		$class_datamap = $class->dataMap();
-		exit(var_dump($class_datamap));*/
+		
+		/*if(isset($this->properties['class_attributes']))
+		{
+			echo("class_attributes\n");
+			exit(var_dump($this->properties['class_attributes']));
+		}*/
+		
+		$class_attributes = array();
+		foreach($class_datamap as $attr => $values)
+		{
+			
+		}
+		exit(var_dump($class_datamap));
 	}
 	
 	public function createObjectEz($args = null)

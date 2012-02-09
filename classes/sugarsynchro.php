@@ -277,9 +277,10 @@ class SugarSynchro
 		{
 			if( !in_array($modulefield['name'], self::$inidata['exclude_fields']) )
 			{
-				$sugar_attributes[$modulefield['name']] = array( 	'name' 		=> $modulefield['name'],
-																	'datatype'	=> self::$inidata['mapping_types'][$modulefield['type']],
-																	'required'	=> (int)$modulefield['required']
+				// $sugar_attributes[name] = array(name=>label,datatype=>type,required=>required);
+				$sugar_attributes[$modulefield['name']] = array('name' 		=> $modulefield['label'],
+																'datatype'	=> self::$inidata['mapping_types'][$modulefield['type']],
+																'required'	=> (int)$modulefield['required']
 																);
 			}
 				

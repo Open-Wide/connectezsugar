@@ -11,7 +11,7 @@ if(isset($Params["identifier"]))
 elseif( isset($type) and $type == "class")
 	$identifier = "hotel";
 elseif( isset($type) and $type == "object")
-	$identifier = "Hotel_df72c261-9645-ec3a-d369-4f2a6ca53650";
+	$identifier = "hotel_df72c261-9645-ec3a-d369-4f2a6ca53650";
 else
 	$identifier = null;
 

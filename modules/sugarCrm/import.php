@@ -35,23 +35,28 @@ else
 	// si il faut enlever le prefix du nom du module SUGAR pour la class EZ on le fait
 	$class_name = $sugarSynchro->defClassName($sugarmodule);
 	
+	// reinsegne la propriété 'class_name' 'class_identifier'
+	$ez_properties['class_name'] = $class_name;
+	$class_identifier = owObjectsMaster::normalizeIdentifier($class_name);
+	$ez_properties['class_identifier'] = $class_identifier;
+	
 	// reinsegne la propriété 'sugar_module'
 	$sugar_properties['sugar_module'] = $sugarmodule;
 	
 	// get des attributes de la table sugar à synchroniser
 	// ex.: $class_attributes = array(	'attr_1' => array( 'name' => 'attr_1', 'datatype' => 'ezstring', 'required' => 1 ),
 	//									'attr_2' => array( 'name' => 'attr_2', 'datatype' => 'eztext', 'required' => 0 ) );
-	$class_attributes = $sugarSynchro->getSynchroFields($sugar_properties);
+	$sugar_attributes = $sugarSynchro->getSynchroFields($sugar_properties);
 	
-	// reinsegne les propriétés 'class_attributes', 'sugar_attributes'
+	// reinsegne la propriété 'class_attributes' après avoir normalisé les identifiants
+	$class_attributes = owObjectsMaster::normalizeIdentifiers($sugar_attributes);
 	$ez_properties['class_attributes'] = $class_attributes;
-	$sugar_properties['sugar_attributes'] = $class_attributes;
 	
-	$ezclassID = eZContentClass::classIDByIdentifier(strtolower($class_name));
+	$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
 	if(!$ezclassID)
 	{
 		// debug notice
-		eZDebug::writeNotice("class de contenu EZ " . $class_name . " non trouvé.\n Procede à la creation de la class.");
+		eZDebug::writeNotice("class de contenu EZ " . $class_identifier . " non trouvé.\n Procede à la creation de la class.");
 		
 		// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		// CRÉE UNE NOUVELLE CLASS EZ ***
@@ -73,9 +78,6 @@ else
 				$ez_properties['class_object_name'] = $ezstringsattr[0];
 		}
 		
-		// reinsegne la propriété 'class_name'
-		$ez_properties['class_name'] = $class_name;
-		
 		// nouvelle instance de owObjectsMaster()
 		$objectsMaster = owObjectsMaster::instance($ez_properties);
 		//debug notice
@@ -84,9 +86,9 @@ else
 		$createClass = $objectsMaster->createClassEz($ez_properties);
 		if($createClass)
 		{
-			$result = "La class " . $class_name . " a été creé avec succes!";
+			$result = "La class " . $class_identifier . " a été creé avec succes!";
 			// get de l'id de la class crée
-			$ezclassID = eZContentClass::classIDByIdentifier(strtolower($class_name));
+			$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
 			// continue l'execution du script
 			$continue = true;
 			//$continue = false;
@@ -116,7 +118,7 @@ else
 	if($continue)
 	{
 		// le remote_id des objet a la forme '$sugarmodule_$sugarid' !
-		$remoteID = $class_name . '_' . $sugarid;
+		$remoteID = $class_identifier . '_' . $sugarid;
 		
 		// reinsegne les propriétés 'class_id', 'object_remote_id', 'sugar_id'
 		$ez_properties['class_id'] = $ezclassID;
@@ -124,8 +126,11 @@ else
 		$sugar_properties['sugar_id'] = $sugarid;
 		
 		// get des valeurs des attributes de la table sugar
-		// ex.: $object_attributes = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
-		$object_attributes = $sugarSynchro->getSynchroFieldsValues($sugar_properties);
+		// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
+		$sugar_attributes_values = $sugarSynchro->getSynchroFieldsValues($sugar_properties);
+		
+		// reinsegne la propriété 'object_attributes' après avoir normalisé les identifiants
+		$object_attributes = owObjectsMaster::normalizeIdentifiers($sugar_attributes_values);
 		$ez_properties['object_attributes'] = $object_attributes;
 		
 		// si $objectsMaster n'existe pas on crée une nouvelle instance
