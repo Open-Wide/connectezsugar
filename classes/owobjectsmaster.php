@@ -389,6 +389,25 @@ class owObjectsMaster
 	
     
     
+    /*
+     * fonction pour remplacer tous les character accentué par de non accentué
+     */
+	public static function unaccent($texte) 
+	{
+	    $accent='ÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöøÈÉÊËéèêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ';
+	    $noaccent='AAAAAAaaaaaaOOOOOOooooooEEEEeeeeCcIIIIiiiiUUUUuuuuyNn';
+	    
+		if (mb_detect_encoding($texte, 'UTF-8', true))
+		{
+			$texte = utf8_decode($texte);
+		}
+		
+	    $texte = strtr($texte,utf8_decode($accent),$noaccent);
+	    
+	    return $texte;
+	}
+    
+    
 	/*
 	 * transforme la chaine en parametres selon des regles de normalisation d'un identifier EZ
 	 * -- enleve les espaces en début et fin de chaine
@@ -413,6 +432,8 @@ class owObjectsMaster
 		// remplace les espaces par des underscores
 		$espaces = array(" ", "  ", "   ", "    ", "     "); // de 1 à 5 espaces...
 		$string = str_replace($espaces, "_", $string);
+		
+		$string = self::unaccent($string);
 		
 		return $string;
 	}
