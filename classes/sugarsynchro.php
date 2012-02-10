@@ -8,6 +8,7 @@ class SugarSynchro
 	const LOGFILE = "var/log/SugarSynchro.log";
 	const INIPATH = "extension/connectezsugar/settings/";
 	const INIFILE = "sugarcrm.ini.append.php";
+	const MAPPINGINIFILE = "mappingezsugar.ini.append.php";
 	
 	/*
 	 * PROPRIÉTÉS
@@ -79,11 +80,13 @@ class SugarSynchro
 		self::$properties_list = $properties_list;
 		
 		// parameters_per_function *** 
-		$parameters_per_function = array(	'getSynchroFields' 		=> array(	'sugar_module' 	=> true
+		$parameters_per_function = array(	'getSugarFields' 		=> array(	'sugar_module' 	=> true
 																		),
-											'getSynchroFieldsValues' => array(	'sugar_module' 		=> true,
+											'getSugarFieldsValues' => array(	'sugar_module' 		=> true,
 																				'sugar_id'			=> true,
 																				'sugar_attributes' 	=> true
+																		),
+											'synchronizeFieldsNames' => array(	'sugar_module' 	=> true
 																		)
 										);
 		self::$parameters_per_function = $parameters_per_function;
@@ -302,10 +305,10 @@ class SugarSynchro
 	 * ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'attr_1', 'datatype' => 'ezstring', 'required' => 1 ),
 	 *									'attr_2' => array( 'name' => 'attr_2', 'datatype' => 'eztext', 'required' => 0 ) );
 	 */
-	public function getSynchroFields($args = null)
+	public function getSugarFields($args = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
-		$verify = $this->verifyArgsForFunction("getSynchroFields", $args);
+		$verify = $this->verifyArgsForFunction("getSugarFields", $args);
 		if(!$verify)
 			return false;
 		
@@ -335,10 +338,10 @@ class SugarSynchro
 	/*
 	 * ex.: $attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
 	 */
-	public function getSynchroFieldsValues($args = null)
+	public function getSugarFieldsValues($args = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
-		$verify = $this->verifyArgsForFunction("getSynchroFieldsValues", $args);
+		$verify = $this->verifyArgsForFunction("getSugarFieldsValues", $args);
 		if(!$verify)
 			return false;
 			
@@ -357,6 +360,85 @@ class SugarSynchro
 		$this->properties['sugar_attributes_values'] = $attributes_values;
 		return $this->properties['sugar_attributes_values'];
 		
+	}
+	
+	/*
+	 * synchronizeFieldsValues
+	 * @ TODO : rendre parametrable la normalisation des identifiers EZ (true/false)
+	 * @param $input_array array
+	 * @return $output_array array OR false
+	 */
+	public function synchronizeFieldsNames($input_array)
+	{
+		if( !isset($this->properties['sugar_module']) )
+		{
+			$error = "synchronizeFieldsNames : \$this->properties['sugar_module'] n'est pas reinsegné !";
+			self::$logger->writeTimedString($error);
+			return false;
+		}
+
+		$output_array = array();
+			
+		$check_map =  $this->checkMappingForModule($this->properties['sugar_module']);
+		if($check_map)
+		{
+			// @TODO : rendre parametrables le noms des variables du fichier ini ('sugarez','exclude_fields')
+			// @TODO : rajouter 'exclude_fields'
+			foreach( $input_array as $name => $values )
+			{
+				if(isset($this->properties['sugarez'][$name]))
+					$attr_identifier = $this->properties['sugarez'][$name];
+				else 
+					$attr_identifier = owObjectsMaster::normalizeIdentifier( $name );
+				
+				$output_array[$attr_identifier] = $values;
+			}
+		}
+		else
+		{
+			// definie $object_attributes après avoir normalisé les identifiants
+			$output_array = owObjectsMaster::normalizeIdentifiers( $input_array );
+		}
+		//exit(var_dump($output_array));
+		return $output_array;
+	}
+	
+	/*
+	 * @TODO : rendre parametrables les noms des variables du fichier ini ('sugarez','exclude_fields')
+	 * @TODO : rajouter 'exclude_fields'
+	 */
+	public function checkMappingForModule($module_name)
+	{
+		// verifie si self::INIFILE existe dans self::INIPATH
+	   	$initest = eZINI::exists(self::MAPPINGINIFILE, self::INIPATH);
+		if($initest)
+		{
+			$inimap = eZINI::instance(self::MAPPINGINIFILE, self::INIPATH);
+			
+			if( !$inimap->hasGroup($module_name) )
+				return false;
+			
+			$sugarez = $inimap->variable($module_name, "sugarez");
+			
+			if( !$sugarez )
+			{
+				$error = "block " . $module_name . " trouvé mais pas de tableau sugarez[] trouvé !";
+				self::$logger->writeTimedString("Erreur checkMappingForModule() : " . $error);
+				$err++;
+				return false;
+			}
+
+			$this->properties['sugarez'] = $sugarez;
+			
+			return true;
+			
+		}
+		else
+		{
+			$error = self::MAPPINGINIFILE . " IN " . self::INIPATH . " NON TROUVÉ !";
+			self::$logger->writeTimedString("Erreur checkMappingForModule() : " . $error);
+			return false;
+		}
 	}
 	
 	

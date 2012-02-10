@@ -14,7 +14,13 @@ else
 $notice = null;
 $result = null;
 $continue = false;
-   
+
+//iconv_set_encoding("input_encoding", "UTF-8");
+//iconv_set_encoding("output_encoding", "UTF-8");
+//iconv_set_encoding("internal_encoding", "UTF-8");
+//exit(var_dump(iconv_get_encoding('all')));
+//exit(mb_http_output());
+
 if( is_null($sugarmodule) or is_null($sugarid) )
 {
 	$notice = "sugarclass et/ou sugarid manquant !!!";
@@ -43,14 +49,20 @@ else
 	// reinsegne la propriété 'sugar_module'
 	$sugar_properties['sugar_module'] = $sugarmodule;
 	
+	// @TODO : substituer les exit()
 	// get des attributes de la table sugar à synchroniser
 	// ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'Attr 1', 'datatype' => 'ezstring', 'required' => 1 ),
 	//									'attr_2' => array( 'name' => 'Attr 2', 'datatype' => 'eztext', 'required' => 0 ) );
-	$sugar_attributes = $sugarSynchro->getSynchroFields($sugar_properties);
+	$sugar_attributes = $sugarSynchro->getSugarFields($sugar_properties);
+	if(!$sugar_attributes)
+		exit("\$sugarSynchro->getSugarFields(\$sugar_properties) return false !!!");
 	
-	// @TODO : verifier si existe un mapping avant de reinsegner les class_attributes
 	// reinsegne la propriété 'class_attributes' après avoir normalisé les identifiants
-	$class_attributes = owObjectsMaster::normalizeIdentifiers($sugar_attributes);
+	$class_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes);
+	if(!$class_attributes)
+		exit("\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes) return false !!!");
+			
+	//$class_attributes = owObjectsMaster::normalizeIdentifiers($sugar_attributes);
 	$ez_properties['class_attributes'] = $class_attributes;
 	
 	$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
@@ -127,13 +139,17 @@ else
 		$ez_properties['object_remote_id'] = $remoteID;
 		$sugar_properties['sugar_id'] = $sugarid;
 		
+		// @TODO : substituer les exit()
 		// get des valeurs des attributes de la table sugar
 		// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
-		$sugar_attributes_values = $sugarSynchro->getSynchroFieldsValues($sugar_properties);
+		$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties);
+		if(!$sugar_attributes_values)
+			exit("\$sugarSynchro->getSugarFieldsValues(\$sugar_properties) return false !!!");
 
-		// @TODO : verifier si existe un mapping avant de reinsegner les object_attributes
-		// reinsegne la propriété 'object_attributes' après avoir normalisé les identifiants
-		$object_attributes = owObjectsMaster::normalizeIdentifiers($sugar_attributes_values);
+		$object_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes_values);
+		if(!$object_attributes)
+			exit("\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes_values) return false !!!");
+		
 		$ez_properties['object_attributes'] = $object_attributes;
 		
 		// si $objectsMaster n'existe pas on crée une nouvelle instance
@@ -162,7 +178,7 @@ else
 			if($createObject)
 				$result[] = "L'objet avec remote_id " . $remoteID . " a été creé avec succes!";
 			else
-				$result[] = $createObject;
+				$result[] = array( 'createObjectEz()' => $createObject );
 		}
 		else
 		{
@@ -178,12 +194,12 @@ else
 			$objectsMaster->setProperties($ez_properties);
 			
 			//debug notice
-			$notice = $objectsMaster->getProperties();
+			$notice = $objectsMaster->getProperty('object_attributes');
 			
 		    // met à jour l'objet EZ existant
 		    $updateObject = $objectsMaster->updateObjectEz();
 		    
-		    $result[] = $updateObject;
+		    $result[] = array( 'updateObjectEz()' => $updateObject );
 		}
 	}
 	

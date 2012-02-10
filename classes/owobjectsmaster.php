@@ -501,6 +501,14 @@ class owObjectsMaster
 		$this->init($properties);
 	}
 	
+	public function getProperty($name)
+	{
+		if( isset($this->properties[$name]) )
+			return $this->properties[$name];
+		else
+			return null;
+	}
+	
 	protected function verifyArgsForFunction($function_name, $args)
 	{
 		// load definition si ce n'est pas dèjà fait
@@ -621,13 +629,17 @@ class owObjectsMaster
 		
 	}
 	
+	/*
+	 * @TODO : verifier la coherance de la valeur de l'attribut avec la valeur attende par la mèthode fromString() du datatype 
+	 */
 	protected function verifyObjectAttributes()
 	{
 		if(!eZContentClass::exists($this->properties['class_id']))
 			return false;
 		
 		$class = eZContentClass::fetch($this->properties['class_id']);
-		//$class_datamap = $class->dataMap();
+		
+		//exit(var_dump($this->properties['object_attributes']));
 		
 		foreach($this->properties['object_attributes'] as $attr => $value)
 		{
@@ -637,9 +649,10 @@ class owObjectsMaster
 				self::$logger->writeTimedString($error);
 				return false;
 			}
-				
+			
 		}
-
+		
+		return true;
 	}
 	
 	public function createObjectEz($args = null)
@@ -650,15 +663,16 @@ class owObjectsMaster
 			return false;
 	
 		// verifie si le tableau des attributes de l'objet est coherant aux attributes de la class
-		//$verify = $this->verifyObjectAttributes();
-		//if(!$verify)
-			//return false;
+		$verify = $this->verifyObjectAttributes();
+		if(!$verify)
+			return false;
 		
-		// retrouve l'identifiant de la class
-		$class_identifier = eZContentClass::classIdentifierByID($this->properties['class_id']);
+		// retrouve l'identifiant de la class si n'est pas déjà dans les propriété de l'instance
+		if( !isset($this->properties['class_identifier']) )
+			$this->properties['class_identifier'] = eZContentClass::classIdentifierByID($this->properties['class_id']);
 		
     	$params = array();
-		$params['class_identifier'] = $class_identifier; 
+		$params['class_identifier'] = $this->properties['class_identifier']; 
 		$params['creator_id'] = self::$inidata['AdminID'];
 		$params['parent_node_id'] = self::$inidata['DefaultParentNodeID'];
 		$params['section_id'] = self::$inidata['DefaultSectionID'];
@@ -690,11 +704,12 @@ class owObjectsMaster
 		if(!$verify)
 			return false;
 			
-		// retrouve l'identifiant de la class
-		$class_identifier = eZContentClass::classIdentifierByID($this->properties['class_id']);
+		// retrouve l'identifiant de la class si n'est pas déjà dans les propriété de l'instance
+		if( !isset($this->properties['class_identifier']) )
+			$this->properties['class_identifier'] = eZContentClass::classIdentifierByID($this->properties['class_id']);
 			
 		$params = array();
-		$params['class_identifier'] = $class_identifier; 
+		$params['class_identifier'] = $this->properties['class_identifier']; 
 		$params['creator_id'] = self::$inidata['AdminID'];
 		$params['parent_node_id'] = self::$inidata['DefaultParentNodeID'];
 		$params['section_id'] = self::$inidata['DefaultSectionID'];	
