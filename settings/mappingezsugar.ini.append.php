@@ -12,6 +12,7 @@ sugarez[name]=name
 sugarez[description]=description_changed
 sugarez[deleted]=deleted
 
+# @TODO voir comment faire un merge de exclude_fields generic et le specifique par module
 # champs de la table SUGAR (field name) à ignorer pour cet module SUGAR
 # si il y en a en plus par rapport aux exclude_fields[] dans sugarcrm.ini
 #exclude_fields[]

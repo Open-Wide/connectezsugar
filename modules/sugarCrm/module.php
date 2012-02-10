@@ -49,4 +49,8 @@ $ViewList['querysugar'] = array(
     'script' => 'querysugar.php',
     'params' => array('query','sugarmodule','sugarid'));
 
+$ViewList['updateclass'] = array(
+    'script' => 'updateclass.php',
+    'params' => array('sugarmodule'));
+
 ?>

@@ -207,6 +207,16 @@ class SugarSynchro
 		$this->init($properties);
 	}
 	
+	
+	public function getProperty($name)
+	{
+		if( isset($this->properties[$name]) )
+			return $this->properties[$name];
+		else
+			return null;
+	}
+	
+	
 	protected function verifyArgsForFunction($function_name, $args)
 	{
 		// load definition si ce n'est pas dèjà fait
@@ -370,6 +380,13 @@ class SugarSynchro
 	 */
 	public function synchronizeFieldsNames($input_array)
 	{
+		if(!is_array($input_array))
+		{
+			$error = "synchronizeFieldsNames : \$input_array n'est pas un tableau mais : " . gettype($input_array);
+			self::$logger->writeTimedString($error);
+			return false;
+		}
+		
 		if( !isset($this->properties['sugar_module']) )
 		{
 			$error = "synchronizeFieldsNames : \$this->properties['sugar_module'] n'est pas reinsegné !";
@@ -378,8 +395,12 @@ class SugarSynchro
 		}
 
 		$output_array = array();
-			
-		$check_map =  $this->checkMappingForModule($this->properties['sugar_module']);
+		
+		if( !isset($this->properties['sugarez']) )
+			$check_map =  $this->checkMappingForModule($this->properties['sugar_module']);
+		else
+			$check_map = true;
+		
 		if($check_map)
 		{
 			// @TODO : rendre parametrables le noms des variables du fichier ini ('sugarez','exclude_fields')
@@ -418,6 +439,7 @@ class SugarSynchro
 			if( !$inimap->hasGroup($module_name) )
 				return false;
 			
+			// sugarez[]
 			$sugarez = $inimap->variable($module_name, "sugarez");
 			
 			if( !$sugarez )

@@ -84,21 +84,27 @@ class owObjectsMaster
 		
 		
 		// parameters_per_function ***
-		$parameters_per_function = array(	'createClassEz' => array(	'class_name' 		=> true,
-																		'class_identifier' 	=> false,
-																		'class_attributes' 	=> true,
-																		'class_object_name'	=> false
-																	),
-											'createObjectEz' => array(	'class_id' 			=> true,
-																		'object_attributes' => true,
-																		'object_remote_id'	=> false,
-																		'object_name'		=> false
-																	),
-											'updateObjectEz' => array(	'class_id' 			=> true,
-																		'object_attributes' => true,
-																		'content_object'	=> true,
-																		'object_name'		=> false
-																	)
+		$parameters_per_function = array('createClassEz' => array(	'class_name' 		=> true,
+																	'class_identifier' 	=> false,
+																	'class_attributes' 	=> true,
+																	'class_object_name'	=> false
+																),
+										'createObjectEz' => array(	'class_id' 			=> true,
+																	'object_attributes' => true,
+																	'object_remote_id'	=> false,
+																	'object_name'		=> false
+																),
+										'updateObjectEz' => array(	'class_id' 			=> true,
+																	'object_attributes' => true,
+																	'content_object'	=> true,
+																	'object_name'		=> false
+																),
+										'verifyObjectAttributes' => array(	'class_id' 			=> true,
+																			'object_attributes' => true
+																		),
+										'verifyClassAttributes' => array(	'class_id' 			=> true,
+																			'class_attributes' => true
+																		),
 										);
 		self::$parameters_per_function = $parameters_per_function;
 										
@@ -215,6 +221,7 @@ class owObjectsMaster
             return $resultArray[0]['main_node_id'];
 
 	}
+	
 	
 	/*
      Fetch all attributes of all versions belongs to a contentObject.
@@ -413,7 +420,7 @@ class owObjectsMaster
 	 * -- enleve les espaces en début et fin de chaine
 	 * -- tout en minuscule
 	 * -- remplace les espaces par des underscores
-	 * -- @TODO : d'autres regles à rajouter ?
+	 * -- self::unaccent()
 	 * @param $string string
 	 * @return $string string
 	 */
@@ -632,8 +639,42 @@ class owObjectsMaster
 	/*
 	 * @TODO : verifier la coherance de la valeur de l'attribut avec la valeur attende par la mèthode fromString() du datatype 
 	 */
-	protected function verifyObjectAttributes()
+	protected function verifyClassAttributes()
 	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("createObjectEz", $args);
+		if(!$verify)
+			return false;
+		
+		if(!eZContentClass::exists($this->properties['class_id']))
+			return false;
+		
+		$class = eZContentClass::fetch($this->properties['class_id']);
+		
+		foreach($this->properties['class_attributes'] as $attr => $value)
+		{
+			if( is_null( $class->fetchAttributeByIdentifier($attr,false) ) )
+			{
+				$error = "verifyClassAttributes() : " . $attr . " non trouvé parmi les attributes de la class " . $class->attribute('identifier');
+				self::$logger->writeTimedString($error);
+				return false;
+			}
+			
+		}
+		
+		return true;
+	}
+	
+	/*
+	 * @TODO : verifier la coherance de la valeur de l'attribut avec la valeur attende par la mèthode fromString() du datatype 
+	 */
+	protected function verifyObjectAttributes($args = null)
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("createObjectEz", $args);
+		if(!$verify)
+			return false;
+		
 		if(!eZContentClass::exists($this->properties['class_id']))
 			return false;
 		
