@@ -73,6 +73,7 @@ class SugarSynchro
 									'sugar_id',
 									'sugar_attributes',
 									'sugar_attributes_values',
+									'class_id',
 									'class_name',
 									'class_identifier',
 									'class_attributes'
@@ -87,6 +88,10 @@ class SugarSynchro
 																				'sugar_attributes' 	=> true
 																		),
 											'synchronizeFieldsNames' => array(	'sugar_module' 	=> true
+																		),
+											'verifyClassAttributes' => array(	'class_id' 			=> true,
+																				'class_attributes' 	=> true,
+																				'sugar_module'		=> true
 																		)
 										);
 		self::$parameters_per_function = $parameters_per_function;
@@ -217,6 +222,21 @@ class SugarSynchro
 	}
 	
 	
+	
+	public function setProperty($name,$value)
+	{
+		if(in_array($name,self::$properties_list))
+		{
+			$this->properties[$name] = $value;
+		}
+		else
+		{	
+			$error = "Propriété " . $name . " non trouvé parmi les propriétés d'un objet " . get_class();
+			self::$logger->writeTimedString($error);
+		}
+	}
+	
+	
 	protected function verifyArgsForFunction($function_name, $args)
 	{
 		// load definition si ce n'est pas dèjà fait
@@ -257,7 +277,7 @@ class SugarSynchro
 				elseif( isset($args[$name]) )
 				{
 					// set property
-					$this->properties[$name] = $args[$name];
+					$this->properties[$name] = $args[$name]; //var_dump($this->properties);
 				}
 			}
 		}
@@ -295,7 +315,7 @@ class SugarSynchro
 		}
 		elseif(isset($this->properties['class_name']))
 		{
-			$class_identifier = owObjectsMaster::normalizeIdentifiers($this->properties['class_name']);
+			$class_identifier = owObjectsMaster::normalizeIdentifier($this->properties['class_name']);
 		}
 		elseif(self::$inidata['prefixRemove'] == "true" and strpos($module_name, self::$inidata['prefixString']) !== false )
 		{
@@ -303,7 +323,7 @@ class SugarSynchro
 			$class_identifier = substr($module_name,$prefixlen);
 		}
 		else
-			$class_identifier = owObjectsMaster::normalizeIdentifiers($module_name);
+			$class_identifier = owObjectsMaster::normalizeIdentifier($module_name);
 		
 		$this->properties['class_identifier'] = $class_identifier;
 		
@@ -331,7 +351,8 @@ class SugarSynchro
 			if( !in_array($modulefield['name'], self::$inidata['exclude_fields']) )
 			{
 				// $sugar_attributes[name] = array(name=>label,datatype=>type,required=>required);
-				$sugar_attributes[$modulefield['name']] = array('name' 		=> $modulefield['label'],
+				$sugar_attributes[$modulefield['name']] = array('identifier'=> $modulefield['name'],
+																'name' 		=> $modulefield['label'],
 																'datatype'	=> self::$inidata['mapping_types'][$modulefield['type']],
 																'required'	=> (int)$modulefield['required']
 																);
@@ -380,6 +401,7 @@ class SugarSynchro
 	 */
 	public function synchronizeFieldsNames($input_array)
 	{
+		// si $input_array n'est pas un tableau on ne peut pas proceder au traitement
 		if(!is_array($input_array))
 		{
 			$error = "synchronizeFieldsNames : \$input_array n'est pas un tableau mais : " . gettype($input_array);
@@ -387,6 +409,7 @@ class SugarSynchro
 			return false;
 		}
 		
+		// il faut que la propriété 'sugar_module' soit reinsegné !
 		if( !isset($this->properties['sugar_module']) )
 		{
 			$error = "synchronizeFieldsNames : \$this->properties['sugar_module'] n'est pas reinsegné !";
@@ -394,13 +417,16 @@ class SugarSynchro
 			return false;
 		}
 
+		// init $output_array
 		$output_array = array();
 		
+		// si un mapping existe pour le module on le recupere
 		if( !isset($this->properties['sugarez']) )
 			$check_map =  $this->checkMappingForModule($this->properties['sugar_module']);
 		else
 			$check_map = true;
 		
+		// construit le tableau de sortie en nommant les attributs selon le mapping
 		if($check_map)
 		{
 			// @TODO : rendre parametrables le noms des variables du fichier ini ('sugarez','exclude_fields')
@@ -409,24 +435,32 @@ class SugarSynchro
 			{
 				if(isset($this->properties['sugarez'][$name]))
 					$attr_identifier = $this->properties['sugarez'][$name];
-				else 
-					$attr_identifier = owObjectsMaster::normalizeIdentifier( $name );
+				// OPTION 2 : ne change pas l'identifier de l'attribut
+				else
+					$attr_identifier = $name;
+				// OPTION 1 : normalise les identifiers
+				//else 
+					//$attr_identifier = owObjectsMaster::normalizeIdentifier( $name );
 				
 				$output_array[$attr_identifier] = $values;
 			}
 		}
 		else
 		{
-			// definie $object_attributes après avoir normalisé les identifiants
-			$output_array = owObjectsMaster::normalizeIdentifiers( $input_array );
+			// OPTION 1 : definie $object_attributes après avoir normalisé les identifiants
+			//$output_array = owObjectsMaster::normalizeIdentifiers( $input_array );
+			
+			// OPTION 2 : ne chnage rien au tableau
+			$output_array = $input_array;
 		}
+		
 		//exit(var_dump($output_array));
 		return $output_array;
 	}
 	
 	/*
 	 * @TODO : rendre parametrables les noms des variables du fichier ini ('sugarez','exclude_fields')
-	 * @TODO : rajouter 'exclude_fields'
+	 * @TODO : rajouter 'exclude_fields' (specifique au module SUGAR concerné)
 	 */
 	public function checkMappingForModule($module_name)
 	{
@@ -462,6 +496,60 @@ class SugarSynchro
 			return false;
 		}
 	}
+	
+	
+	
+	/*
+	 * Verify la coherance entre le tableu $this->properties['class_attributes'] et la structure de la class EZ
+	 * @TODO : verifier la coherance de la valeur de l'attribut avec la valeur attende par la mèthode fromString() du datatype 
+	 * @param $args (voir self::definition())
+	 * @return boolean -> si tout va bien ou si il y a un erreur qui empeche le deroulement de la fonction
+	 * @return $changes array -> si des attributes dans le tableau en entrée $this->properties['class_attributes'] ne sont pas trouvé parmi les attributes de la class EZ
+	 */
+	public function verifyClassAttributes($args = null)
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("verifyClassAttributes", $args);
+		if(!$verify)
+			return false;
+		
+		if(!eZContentClass::exists($this->properties['class_id']))
+			return false;
+		
+		$class = eZContentClass::fetch($this->properties['class_id']);
+		$data_map = $class->dataMap();
+		
+		$changes = array();
+		
+		foreach($this->properties['class_attributes'] as $attr => $value)
+		{
+			if( is_null( $class->fetchAttributeByIdentifier($attr,false) ) )
+			{
+				$error[] = "ERROR verifyClassAttributes() : " . $attr . " non trouvé parmi les attributes de la class " . $class->attribute('identifier');
+				$changes[$attr] = $value;
+			}
+		}
+		
+		foreach( $data_map as $identifier => $class_attr )
+		{
+			if( !array_key_exists($identifier, $this->properties['class_attributes']) )
+			{
+				$alert[] = "ALERTE verifyClassAttributes() : " . $identifier . " non trouvé parmi les attributes du module SUGAR " . $this->properties['sugar_module'];
+			}
+		}
+		
+		if(isset($alert))
+			self::$logger->writeTimedString($alert);
+		
+		if(isset($error))
+		{
+			self::$logger->writeTimedString($error);
+			return $changes;
+		}
+		
+		return true;
+	}
+	
 	
 	
 }// fin de class

@@ -74,19 +74,16 @@ class owObjectsMaster
 		self::$properties_list = $properties_list;
 		
 		
-		// properties_structure ***
-		$properties_structure = array( 'class_attributes' 	=> array('class_identifier' => array(	'name',
-																									'datatype',
-																									'required'
-																									) ),
-										'object_attributes'	=> array('attribut_identifier' => 'from_string_value')
-									);
-		
-		
 		// parameters_per_function ***
 		$parameters_per_function = array('createClassEz' => array(	'class_name' 		=> true,
 																	'class_identifier' 	=> false,
 																	'class_attributes' 	=> true,
+																	'class_object_name'	=> false
+																),
+										'updateClassEz' => array(	'class_id'			=> true,
+																	'class_attributes' 	=> true,
+																	'class_name' 		=> false,
+																	'class_identifier' 	=> false,
 																	'class_object_name'	=> false
 																),
 										'createObjectEz' => array(	'class_id' 			=> true,
@@ -104,7 +101,7 @@ class owObjectsMaster
 																		),
 										'verifyClassAttributes' => array(	'class_id' 			=> true,
 																			'class_attributes' => true
-																		),
+																		)
 										);
 		self::$parameters_per_function = $parameters_per_function;
 										
@@ -460,6 +457,10 @@ class owObjectsMaster
 		foreach($array as $key => $value)
 		{
 			$normalkey = self::normalizeIdentifier($key);
+			if( is_array($value) and isset( $value['identifier'] ))
+			{
+				$value['identifier'] = $normalkey;
+			}
 			$normalarray[$normalkey] = $value;
 		}
 		
@@ -514,6 +515,19 @@ class owObjectsMaster
 			return $this->properties[$name];
 		else
 			return null;
+	}
+	
+	public function setProperty($name,$value)
+	{
+		if(in_array($name,self::$properties_list))
+		{
+			$this->properties[$name] = $value;
+		}
+		else
+		{	
+			$error = "Propriété " . $name . " non trouvé parmi les propriétés d'un objet " . get_class();
+			self::$logger->writeTimedString($error);
+		}
 	}
 	
 	protected function verifyArgsForFunction($function_name, $args)
@@ -630,19 +644,59 @@ class owObjectsMaster
 			
 	}
 	
+	
 	// @TODO : upadate de la class
 	public function updateClassEz($args = null)
 	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("updateClassEz", $args);
+		if(!$verify)
+			return false;
+			
 		
+			
 	}
 	
 	/*
+	 * createClassAttribute
+	 * @!! attention quand on appele cette fonction il faut que certains proprieté soient reinsegnées !!!
+	 * 
+	 * @param $attr array('identifier','name','datatype','required','is_searchable'=1,'can_translate'=1)
+	 */
+	public function createClassAttribute($attr)
+	{
+		//exit(var_dump($this->properties));
+		$class = eZContentClass::fetch($this->properties['class_id']);
+		
+		$new_attribute = eZContentClassAttribute::create( $this->properties['class_id'], $attr['datatype'] );
+			 
+		$new_attribute->setAttribute( 'version', 0);
+		$new_attribute->setAttribute( 'name', $attr['name'] );
+		$new_attribute->setAttribute( 'identifier', $attr['identifier'] );
+		$new_attribute->setAttribute( 'is_required', $attr['required'] );
+		
+		$is_searchable = ( isset($attr['is_searchable']) )? $attr['is_searchable'] : 1;
+		$new_attribute->setAttribute( 'is_searchable', $is_searchable );
+		
+		$can_translate = ( isset($attr['can_translate']) )? $attr['can_translate'] : 1;
+		$new_attribute->setAttribute( 'can_translate', 1 );
+		
+		
+		$dataType = $new_attribute->dataType();
+		$dataType->initializeClassAttribute( $new_attribute );
+		$new_attribute->store();
+
+	}
+	
+	
+	/*
+	 * Verify la coherance entre le tableu $this->properties['class_attributes'] et la structure de la class 
 	 * @TODO : verifier la coherance de la valeur de l'attribut avec la valeur attende par la mèthode fromString() du datatype 
 	 */
-	protected function verifyClassAttributes()
+	protected function verifyClassAttributes($args = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
-		$verify = $this->verifyArgsForFunction("createObjectEz", $args);
+		$verify = $this->verifyArgsForFunction("verifyClassAttributes", $args);
 		if(!$verify)
 			return false;
 		
@@ -651,19 +705,25 @@ class owObjectsMaster
 		
 		$class = eZContentClass::fetch($this->properties['class_id']);
 		
+		$unrecognized = array();
+		
 		foreach($this->properties['class_attributes'] as $attr => $value)
 		{
 			if( is_null( $class->fetchAttributeByIdentifier($attr,false) ) )
 			{
-				$error = "verifyClassAttributes() : " . $attr . " non trouvé parmi les attributes de la class " . $class->attribute('identifier');
-				self::$logger->writeTimedString($error);
-				return false;
+				$error[] = "verifyClassAttributes() : " . $attr . " non trouvé parmi les attributes de la class " . $class->attribute('identifier');
 			}
-			
+		}
+		
+		if(isset($error))
+		{
+			self::$logger->writeTimedString($error);
+			return false;
 		}
 		
 		return true;
 	}
+	
 	
 	/*
 	 * @TODO : verifier la coherance de la valeur de l'attribut avec la valeur attende par la mèthode fromString() du datatype 

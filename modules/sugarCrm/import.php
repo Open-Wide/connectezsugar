@@ -24,11 +24,11 @@ $logger = owLogger::CreateForAdd("var/log/sugarCrm_import.log");
 
 if( is_null($sugarmodule) or is_null($sugarid) )
 {
-	$notice = "sugarclass et/ou sugarid manquant !!!";
+	$result[] = "sugarmodule et/ou sugarid manquant !!!";
 }
 else
 {  
-	eZDebug::writeNotice("Sugar Class : ". $sugarmodule);
+	eZDebug::writeNotice("Sugar Module : ". $sugarmodule);
 	eZDebug::writeNotice("Sugar Identifiant : ". $sugarid);
 	
 	// initialise les tableaux $ez_properties et $sugar_properties
@@ -67,8 +67,13 @@ else
 	
 	if($continue)
 	{
+		// OPTION 1 : definie $class_attributes après avoir normalisé les identifiants
 		//$class_attributes = owObjectsMaster::normalizeIdentifiers($sugar_attributes);
+		// OPTION 2 : ne change rien au tableau
 		$ez_properties['class_attributes'] = $class_attributes;
+		
+		// nouvelle instance de owObjectsMaster()
+		$objectsMaster = owObjectsMaster::instance($ez_properties);
 		
 		$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
 		if(!$ezclassID)
@@ -96,10 +101,11 @@ else
 					$ez_properties['class_object_name'] = $ezstringsattr[0];
 			}
 			
-			// nouvelle instance de owObjectsMaster()
-			$objectsMaster = owObjectsMaster::instance($ez_properties);
+			$objectsMaster->setProperty('class_object_name',$ez_properties['class_object_name']);
+			
 			//debug notice
-			$notice = $objectsMaster->getProperties();
+			$notice['objectsMaster->getProperties()'] = $objectsMaster->getProperties();
+			
 			// crée la nouvelle class de contenu EZ
 			$createClass = $objectsMaster->createClassEz($ez_properties);
 			if($createClass)
@@ -107,30 +113,50 @@ else
 				$result[] = "La class " . $class_identifier . " a été creé avec succes!";
 				// get de l'id de la class crée
 				$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
+				// reinsegne la propriété 'class_id'
+				$ez_properties['class_id'] = $ezclassID;
 				// continue l'execution du script
 				$continue = true;
 				//$continue = false;
 			}	
 			else
-				//$result = "Problème rencontré dans la création de la class " . $sugarmodule
-					//		. ". Voir le log pour plus de details.";
-				$result[] = $createClass;
+				$result['createClassEz()'] = $createClass;
 		}
 		else
 		{	
-			// @TODO : verifier si la strucuture du model SUGAR n'a pas changé 
-			
-			// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			// MET À JOUR LA CLASS EZ EXISTANT ***
-			// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			
-			// @TODO : update de la class dans le cas d'une modification du model SUGAR
-			
 			// debug notice
 			eZDebug::writeNotice("ezclassID : ". $ezclassID);
-			// continue l'execution du script
-			$continue = true;
 			
+			// reinsegne la propriété 'class_id'
+			$ez_properties['class_id'] = $ezclassID;
+			
+			// verifie si la strucuture du model SUGAR n'a pas changé
+			$verif  = $sugarSynchro->verifyClassAttributes($ez_properties);
+			if(!$verif)
+				$continue = false;
+			elseif( is_array($verif) )
+			{
+				// OPTION 1 : si un attribute SUGAR n'existe pas chez EZ on ne met pas à jour l'objet
+				// et on log les divergences. @TODO : anvoyer un mail d'alerte
+				$result['verifyClassAttributes'] = "ERROR : il y a des divergences entre les attributes de la class EZ et SUGAR";
+				$result['attributes_not_founds'] = $verif;
+				$continue = false;
+				
+				// OPTION 2 : si un attribute SUGAR n'existe pas chez EZ on le crée
+				/*$objectsMaster->setProperty('class_id',$ezclassID);
+				foreach($verif as $attr)
+				{
+					$newattr[] = $objectsMaster->createClassAttribute($attr);
+					$result[] = "nouveu attribut avec identifier " . $attr['identifier'] . " crée pou la class " . $ez_properties['class_identifier'];
+				}
+				
+				$continue = true;*/
+			}
+			else
+			{
+				// continue l'execution du script
+				$continue = true;
+			}
 		}
 	}
 	
@@ -140,8 +166,7 @@ else
 		// le remote_id des objet a la forme '$sugarmodule_$sugarid' !
 		$remoteID = $class_identifier . '_' . $sugarid;
 		
-		// reinsegne les propriétés 'class_id', 'object_remote_id', 'sugar_id'
-		$ez_properties['class_id'] = $ezclassID;
+		// reinsegne les propriétés 'object_remote_id', 'sugar_id'
 		$ez_properties['object_remote_id'] = $remoteID;
 		$sugar_properties['sugar_id'] = $sugarid;
 		
@@ -176,7 +201,7 @@ else
 				// debug notice
 				eZDebug::writeNotice("remote ID " . $remoteID . " non trouvé.\n Procede à la creation de l'objet.");
 				//debug notice
-				$notice = $objectsMaster->getProperties();
+				$notice['objectsMaster->getProperties()'] = $objectsMaster->getProperties();
 				
 				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				// CRÉE UN NOUVEAU OBJET EZ ***
@@ -188,7 +213,7 @@ else
 				if($createObject)
 					$result[] = "L'objet avec remote_id " . $remoteID . " a été creé avec succes!";
 				else
-					$result[] = array( 'createObjectEz()' => $createObject );
+					$result['createObjectEz()'] = $createObject;
 			}
 			else
 			{
@@ -204,12 +229,12 @@ else
 				$objectsMaster->setProperties($ez_properties);
 				
 				//debug notice
-				$notice = $objectsMaster->getProperty('object_attributes');
+				$notice['objectsMaster->object_attributes'] = $objectsMaster->getProperty('object_attributes');
 				
 			    // met à jour l'objet EZ existant
 			    $updateObject = $objectsMaster->updateObjectEz();
 			    
-			    $result[] = array( 'updateObjectEz()' => $updateObject );
+			    $result['updateObjectEz()'] = $updateObject;
 			}
 		}
 	}
