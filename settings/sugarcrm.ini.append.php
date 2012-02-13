@@ -11,8 +11,6 @@ prefixRemove=true
 # le prefix eventuel du nom de module SUGAR
 prefixString=test_
 
-[]
-
 [RemoteIdModel]
 # liste de variables pour le model de remote_id
 var_list[]
