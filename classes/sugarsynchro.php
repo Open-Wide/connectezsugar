@@ -65,6 +65,7 @@ class SugarSynchro
 								'mapping_types'			=> array( 'block' => "Mapping", 'var' => "mapping_types" ),
 								'prefixRemove'			=> array( 'block' => "Names", 'var' => "prefixRemove" ),
 								'prefixString'			=> array( 'block' => "Names", 'var' => "prefixString" ),
+								'modulesListToSynchro'	=> array( 'block' => "Synchro", 'var' => "modulesListToSynchro" ),
 							); 
 		self::$inidata_list = $inidata_list;
 		
@@ -161,6 +162,16 @@ class SugarSynchro
 		}
 		
 	}
+	
+	
+	public static function getModuleListToSynchro()
+	{
+		if( !isset(self::$inidata) or count(self::$inidata == 0) )
+			self::getIniData();
+			
+		return self::$inidata['modulesListToSynchro'];
+	}
+	
 	
 	/*
 	 * retourne la valeur d'une propriété statique si elle existe

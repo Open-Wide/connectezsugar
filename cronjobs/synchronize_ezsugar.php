@@ -1,31 +1,40 @@
 <?php
-include_once( 'kernel/common/template.php' );
+/*
+Cronjob pour la synchronisation des objets EZ depuis SUGAR
 
-if(isset($Params["sugarmodule"]))
-	$sugarmodule = $Params["sugarmodule"];
-else
-   $sugarmodule="test_Hotel";
-   
-if(isset($Params["sugarid"]))
-   $sugarid = $Params["sugarid"];
-else
-   $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650";
+@author Pasquesi Massimiliano <massipasquesi@gmail.com>
+*/
 
-$notice = null;
-$result = null;
-$continue = false;
-$logger = owLogger::CreateForAdd("var/log/sugarCrm_import.log");
-
-
-if( is_null($sugarmodule) or is_null($sugarid) )
+// fonction pour afficher les variable en console
+function show($var)
 {
-	$result[] = "sugarmodule et/ou sugarid manquant !!!";
+	$show = print_r($var,true);
+	return $show; 
 }
-else
-{  
-	eZDebug::writeNotice("Sugar Module : ". $sugarmodule);
-	eZDebug::writeNotice("Sugar Identifiant : ". $sugarid);
-	
+
+// init du logger
+$logger = owLogger::CreateForAdd("var/log/synchronize_ezsugar_" . date("d-m-Y") . ".log");
+
+// init CLI
+$cli = owCLI::instance();
+/*
+$ts = $cli->terminalStyles();
+$cli->output(show($ts));
+exit();
+*/
+
+// debut du script
+$cli->beginout("synchronize_ezsugar.php");
+
+// connexion à SUGAR
+$sugarConnector=new SugarConnector();
+$connection=$sugarConnector->login('admin','admin');
+
+// module SUGAR
+$modules_list = SugarSynchro::getModuleListToSynchro();
+
+foreach($modules_list as $sugarmodule)
+{
 	// initialise les tableaux $ez_properties et $sugar_properties
 	$ez_properties = array();
 	$sugar_properties = array();
@@ -50,16 +59,16 @@ else
 	//									'attr_2' => array( 'name' => 'Attr 2', 'datatype' => 'eztext', 'required' => 0 ) );
 	$sugar_attributes = $sugarSynchro->getSugarFields($sugar_properties);
 	if(!$sugar_attributes)
-		$result[] = "\$sugarSynchro->getSugarFields(\$sugar_properties) return false !!!";
+		$cli->error("\$sugarSynchro->getSugarFields(\$sugar_properties) return false !!!");
 	
 	// reinsegne la propriété 'class_attributes' après avoir normalisé les identifiants
 	$class_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes);
 	if(!$class_attributes)
-		$result[] = "\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes) return false !!!";
+		$cli->error("\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes) return false !!!");
 			
 	if( is_array($sugar_attributes) and is_array($class_attributes) )
 		$continue = true;
-	
+		
 	if($continue)
 	{
 		// OPTION 1 : definie $class_attributes après avoir normalisé les identifiants
@@ -74,7 +83,7 @@ else
 		if(!$ezclassID)
 		{
 			// debug notice
-			eZDebug::writeNotice("class de contenu EZ " . $class_identifier . " non trouvé.\n Procede à la creation de la class.");
+			$cli->gnotice("class de contenu EZ " . $class_identifier . " non trouvé.\n Procede à la creation de la class.");
 			
 			// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			// CRÉE UNE NOUVELLE CLASS EZ ***
@@ -99,13 +108,15 @@ else
 			$objectsMaster->setProperty('class_object_name',$ez_properties['class_object_name']);
 			
 			//debug notice
-			$notice['objectsMaster->getProperties()'] = $objectsMaster->getProperties();
+			$cli->emptyline();
+			$cli->gnotice("objectsMaster->getProperties()");
+			$cli->dgnotice(show($objectsMaster->getProperties()));
 			
 			// crée la nouvelle class de contenu EZ
 			$createClass = $objectsMaster->createClassEz($ez_properties);
 			if($createClass)
 			{
-				$result[] = "La class " . $class_identifier . " a été creé avec succes!";
+				$cli->gnotice("La class " . $class_identifier . " a été creé avec succes!");
 				// get de l'id de la class crée
 				$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
 				// reinsegne la propriété 'class_id'
@@ -115,12 +126,15 @@ else
 				//$continue = false;
 			}	
 			else
-				$result['createClassEz()'] = $createClass;
+			{
+				$cli->error(printf("createClassEz() return %s", show($createClass)));
+				$continue = false;
+			}
 		}
 		else
 		{	
 			// debug notice
-			eZDebug::writeNotice("ezclassID : ". $ezclassID);
+			$cli->gnotice("ezclassID : ". $ezclassID);
 			
 			// reinsegne la propriété 'class_id'
 			$ez_properties['class_id'] = $ezclassID;
@@ -132,9 +146,14 @@ else
 			elseif( is_array($verif) )
 			{
 				// OPTION 1 : si un attribute SUGAR n'existe pas chez EZ on ne met pas à jour l'objet
-				// et on log les divergences. @TODO : anvoyer un mail d'alerte
-				$result['verifyClassAttributes'] = "ERROR : il y a des divergences entre les attributes de la class EZ et SUGAR";
-				$result['attributes_not_founds'] = $verif;
+				// et on log les divergences. @TODO : envoyer un mail d'alerte
+				$msg = "verifyClassAttributes : ERROR : certaines attributes du module SUGAR " .
+						$cli->incolor('red-bg', $sugar_properties['sugar_module'], 'error') .
+						" ne sont pas trouvés parmi les attributes de la class EZ " .
+						$cli->incolor('red-bg', $ez_properties['class_identifier'], 'error');
+				$cli->error( $msg );
+				$cli->colorout('yellow',"attributes_not_founds :");
+				$cli->colorout('yellow',show($verif));
 				$continue = false;
 				
 				// OPTION 2 : si un attribute SUGAR n'existe pas chez EZ on le crée
@@ -142,7 +161,7 @@ else
 				foreach($verif as $attr)
 				{
 					$newattr[] = $objectsMaster->createClassAttribute($attr);
-					$result[] = "nouveu attribut avec identifier " . $attr['identifier'] . " crée pou la class " . $ez_properties['class_identifier'];
+					$cli->gnotice("nouveu attribut avec identifier " . $attr['identifier'] . " crée pou la class " . $ez_properties['class_identifier']);
 				}
 				
 				$continue = true;*/
@@ -155,6 +174,8 @@ else
 		}
 	}
 	
+	$continue = false;
+	$cli->error("le script s'arete pour l'instant à la création/verification de la class... à demain ;)");
 	if($continue)
 	{
 		// @ TODO : prevoir la possibilité de rendre parametrable la construction du remote_id
@@ -170,7 +191,7 @@ else
 		$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties);
 		if(!$sugar_attributes_values)
 			$result[] = "\$sugarSynchro->getSugarFieldsValues(\$sugar_properties) return false !!!";
-
+	
 		$object_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes_values);
 		if(!$object_attributes)
 			$result[] = "\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes_values) return false !!!";
@@ -233,20 +254,24 @@ else
 			}
 		}
 	}
-	
 }
 
 
-$tpl = templateInit();
-$tpl->setVariable('result',$result);
-$tpl->setVariable('notice',$notice);
-$tpl->setVariable('title', "Import de module et objets SUGAR");
-$tpl->setVariable('subtitle', "Creation à la volée d'objet et classes EZ ou Update d'objets existants");
-$Result = array();
-$Result['content'] = $tpl->fetch( 'design:sugarcrm/notice_result.tpl' );
-$Result['pagelayout']=false;
-$Result['path'] = array( array( 'url' => false,
-                               'text' => 'import' ) );
+// compte rendu du script
+$objects_count = array( 'test_Hotel' => 2);
+
+$cli->emptyline();
+$cli->colorout('cyan-bg',"COMPTE RENDU DU SCRIPT");
+$cli->colorout('cyan',"nombre de modules traitées : " . count($modules_list) );
+$cli->colorout('cyan',"liste des modules traitées : ");
+foreach($modules_list as $module_name)
+{
+	$cli->colorout('cyan-bg', $module_name, 1 );
+	$cli->colorout( 'dark-cyan', "nombre d'objets traité pour le module " . $module_name . " : " . $objects_count[$module_name], 1 );
+}
+
+
+// fin du script
+$cli->endout("synchronize_ezsugar.php");
 
 ?>
-

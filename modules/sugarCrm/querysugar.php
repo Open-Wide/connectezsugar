@@ -21,8 +21,10 @@ eZDebug::writeNotice("Query : " . $query);
 eZDebug::writeNotice("Sugar Module : " . $sugarmodule); 
 eZDebug::writeNotice("Sugar Id : " . $sugarid);
 
-$notice = null;
+// init result
 $result = null;
+// init notice
+$notice = null;
 
 // connexion à SUGAR
 $sugarConnector=new SugarConnector();
@@ -32,17 +34,35 @@ switch($query)
 {
 	case "get_available_modules" :
 		$sugardata = $sugarConnector->get_available_modules();
-		$result=$sugardata;
+		$result = $sugardata;
 		break;
 	case "get_module_fields" :
+		$notice = $sugarmodule;
 		$sugardata = $sugarConnector->get_module_fields($sugarmodule);
-		$result=$sugardata['module_fields'];
+		$result = $sugardata['module_fields'];
+		break;
+	case "get_full_entry_list" :
+		$notice = $sugarmodule;
+		// get_full_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=9999,$deleted=true)
+		$sugardata = $sugarConnector->get_full_entry_list($sugarmodule);
+		$result = $sugardata;
+		break;
+	case "get_entry_list" :
+		$notice = $sugarmodule;
+		// get_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=9999,$deleted=false)
+		$sugardata = $sugarConnector->get_entry_list($sugarmodule);
+		$result = $sugardata['entry_list'];
+		break;
+	case "get_entry" :
+		// get_entry($module,$id,$select_fields=array())
+		$sugardata = $sugarConnector->get_entry($sugarmodule,$sugarid);
+		$result = $sugardata;
 		break;
 }
 
 
 
-$tpl =& templateInit();
+$tpl = templateInit();
 $tpl->setVariable('result',$result);
 $tpl->setVariable('notice',$notice);
 $tpl->setVariable('title', "Interrogation sugarCRM : " . $query);

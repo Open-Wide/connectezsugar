@@ -65,4 +65,8 @@ mapping_types[text]=eztext
 mapping_types[name]=ezstring
 mapping_types[datetime]=ezdatetime
 
+[Synchro]
+modulesListToSynchro[]
+modulesListToSynchro[]=test_Hotel
+
 */ ?>
