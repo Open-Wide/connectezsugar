@@ -33,7 +33,7 @@ class SugarSynchro
 	
 	/*
 	 * instancie un nouveau objet de cette class
-	 * @return object[owObjectsMaster]
+	 * @return object[SugarSynchro]
 	 */
 	public static function instance($properties = array())
 	{
