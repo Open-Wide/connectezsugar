@@ -19,12 +19,14 @@ class SugarSynchro
 	private static $parameters_per_function;
 	private static $inidata_list;
 	protected static $inidata = array();
+	protected static $mappingdata_list;
 	protected static $logger;
 	
 	// D'INSTANCE
 	protected $properties = array();
 	protected $sugarConnector;
 	protected $sugar_session;
+	protected $mappingdata = array();
 	
 	
 	/*
@@ -69,11 +71,20 @@ class SugarSynchro
 							); 
 		self::$inidata_list = $inidata_list;
 		
+		// $mappingdata_list ***
+		$mappingdata_list = array(	'sugarez'			=> array( 'var' => "sugarez" ),
+									'ezsugar_rename'	=> array( 'var' => "ezsugar_rename" ),
+									'exclude_fields'	=> array( 'var' => "exclude_fields" ),
+									'include_fields'	=> array( 'var' => "include_fields" ),
+							); 
+		self::$mappingdata_list = $mappingdata_list;
+		
 		// properties_list ***
 		$properties_list = array(	'sugar_module',
 									'sugar_id',
 									'sugar_attributes',
 									'sugar_attributes_values',
+									'sugar_module_fields',
 									'class_id',
 									'class_name',
 									'class_identifier',
@@ -213,6 +224,8 @@ class SugarSynchro
 		}
 	}
 	
+	
+	
 	public function getProperties()
 	{
 		return $this->properties;
@@ -342,6 +355,122 @@ class SugarSynchro
 	}
 	
 	
+	
+	/*
+	 * get du mapping specifique au module
+	 */
+	public function getMappingDataForModule($module_name = null)
+	{
+		if( is_null($module_name)  )
+		{
+			if( isset($this->properties['sugar_module']) )
+				$module_name = $this->properties['sugar_module'];
+			else
+			{
+				$error = "ni le parametre \$module_name, ni \$this->properties['sugar_module'] sont reisegnés !";
+				self::$logger->writeTimedString("Erreur getMappingDataForModule() : " . $error);
+				$this->mappingdata = false;
+				return false;
+			}
+		}
+		
+		// verifie si self::MAPPINGINIFILE existe dans self::INIPATH
+	   	$initest = eZINI::exists(self::MAPPINGINIFILE, self::INIPATH);
+		if($initest)
+		{
+			$inimap = eZINI::instance(self::MAPPINGINIFILE, self::INIPATH);
+			
+			if( !$inimap->hasGroup($module_name) )
+			{
+				$warning = "Pas de block " . $module_name . " trouvé dans " . self::MAPPINGINIFILE;
+				self::$logger->writeTimedString("Warning getMappingDataForModule() : " . $warning);
+				$this->mappingdata = false;
+				return false;	
+			}
+			
+			// recupere toutes les variables du fichier ini definie dans self::$mappingdata_list 
+			foreach(self::$mappingdata_list as $name => $args)
+			{
+				$this->mappingdata[$name] = $ini->variable($module_name, $args['var']);
+			}
+			
+			$wrn = 0;
+			// si une des variables n'existe on ecrie dans le $log un warning
+			foreach( $this->mappingdata as $k => $var )
+			{
+				if( !$var )
+				{
+					$warning = "Pour le module " . $module_name . " la variable " . $k . ", n'est pas definie !";
+					self::$logger->writeTimedString("Warning getMappingDataForModule() : " . $warning);
+					$wrn++;
+				}
+			}
+			
+			if( $wrn >= count(self::$mappingdata_list) )
+			{
+				$this->mappingdata = false;
+				return false;
+			}
+				
+			return true;
+			
+		}
+		else
+		{
+			$error = self::MAPPINGINIFILE . " IN " . self::INIPATH . " NON TROUVÉ !";
+			self::$logger->writeTimedString("Erreur checkMappingForModule() : " . $error);
+			$this->mappingdata = false;
+			return false;
+		}
+	}
+	
+	
+	
+	protected function filterSugarFields()
+	{
+		if(is_array($this->mappingdata) and  count($this->mappingdata) == 0)
+			$testmapping = $this->getMappingDataForModule;
+		else
+			$testmapping = $this->mappingdata; 
+		
+		foreach($this->properties['sugar_module_fields'] as $modulefield)
+		{
+			// exclude les champs listé dans 'exlude_fields' dans 'sugarcrm.ini'
+			if( !in_array($modulefield['name'], self::$inidata['exclude_fields']) )
+			{
+				if($testmapping)
+				{	// si include_fields[] et exclude_fields[] sont definie : include_fields prevale
+					// si 'include_fields[]' est definie pour le module seulement ces champs sont inclues
+					if( is_array($this->mappingdata['include_fields']) )
+					{
+						if( in_array($modulefield['name'], $this->mappingdata['include_fields']) )
+							$this->setSugarAttribute($modulefield);
+					}
+					// sinon si 'exclude_fields[]' est definie pour le module ces champs sont exclues
+					elseif( is_array($this->mappingdata['exclude_fields']) )
+					{
+						if( !in_array($modulefield['name'], $this->mappingdata['exclude_fields']) )
+							$this->setSugarAttribute($modulefield);
+					}
+				}
+				else
+					$this->setSugarAttribute($modulefield);
+			}
+				
+		}
+		
+	}
+	
+	protected function setSugarAttribute($modulefield)
+	{
+		// $sugar_attributes[name] = array(identifier=>name,name=>label,datatype=>type,required=>required);
+		$this->properties['sugar_attributes'][$modulefield['name']] = array('identifier'=> $modulefield['name'],
+																			'name' 		=> $modulefield['label'],
+																			'datatype'	=> self::$inidata['mapping_types'][$modulefield['type']],
+																			'required'	=> (int)$modulefield['required']
+																			);
+	} 
+	
 	/*
 	 * ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'attr_1', 'datatype' => 'ezstring', 'required' => 1 ),
 	 *									'attr_2' => array( 'name' => 'attr_2', 'datatype' => 'eztext', 'required' => 0 ) );
@@ -355,8 +484,12 @@ class SugarSynchro
 		
 		$sugardata = $this->sugarConnector->get_module_fields($this->properties['sugar_module']);
 		$module_fields = $sugardata['module_fields'];
-		//exit(var_dump($module_fields));
-		$sugar_attributes = array();
+		$this->properties['sugar_module_fields'] = $module_fields;
+		
+		// @TODO : exclude_fields/include_fields per module
+		$this->filterSugarFields();
+		
+		/*$sugar_attributes = array();
 		foreach($module_fields as $modulefield)
 		{
 			if( !in_array($modulefield['name'], self::$inidata['exclude_fields']) )
@@ -373,7 +506,9 @@ class SugarSynchro
 		
 		$this->properties['sugar_attributes'] = $sugar_attributes;
 		
-		return $sugar_attributes;
+		return $sugar_attributes;*/
+		
+		return $this->properties['sugar_attributes'];
 		
 	}
 	
@@ -396,8 +531,6 @@ class SugarSynchro
 		$attributes_values = array();
 		foreach($name_value_list as $item)
 		{
-			//var_dump(iconv_get_encoding());
-			//var_dump($item['value']); htmlentities($value['default'], ENT_QUOTES, 'UTF-8');
 			$attributes_values[$item['name']] = html_entity_decode($item['value'], ENT_QUOTES, 'UTF-8');
 		}
 		
