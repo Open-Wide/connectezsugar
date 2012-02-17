@@ -12,6 +12,11 @@ function show($var)
 	return $show; 
 }
 
+// encoding
+//iconv_set_encoding("output_encoding", "UTF-8");
+//iconv_set_encoding("internal_encoding", "UTF-8");
+//iconv_set_encoding("input_encoding", "UTF-8");
+
 // init du logger
 $logger = owLogger::CreateForAdd("var/log/synchronize_ezsugar_" . date("d-m-Y") . ".log");
 
@@ -117,11 +122,13 @@ foreach($modules_list as $sugarmodule)
 			$createClass = $objectsMaster->createClassEz($ez_properties);
 			if($createClass)
 			{
-				$cli->gnotice("La class " . $class_identifier . " a été creé avec succes!");
 				// get de l'id de la class crée
 				$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
 				// reinsegne la propriété 'class_id'
 				$ez_properties['class_id'] = $ezclassID;
+				// debug notice
+				$cli->gnotice("La class " . $class_identifier . " a été creé avec succes!");
+				$cli->gnotice("ezclassID : ". $ezclassID);
 				// continue l'execution du script
 				$continue = true;
 				//$continue = false;
@@ -131,11 +138,14 @@ foreach($modules_list as $sugarmodule)
 				$cli->error(printf("createClassEz() return %s", show($createClass)));
 				$continue = false;
 			}
+			
+			$cli->emptyline();
 		}
 		else
 		{	
 			// debug notice
 			$cli->gnotice("ezclassID : ". $ezclassID);
+			$cli->emptyline();
 			
 			// reinsegne la propriété 'class_id'
 			$ez_properties['class_id'] = $ezclassID;
@@ -215,15 +225,14 @@ foreach($modules_list as $sugarmodule)
 				else
 					$objectsMaster->setProperties($ez_properties);
 				
-					
 				$object = eZContentObject::fetchByRemoteID( $remoteID );
 				if( !$object )
 				{
 					// debug notice
 					$cli->gnotice("remote ID " . $remoteID . " non trouvé.\n Procede à la creation de l'objet.");
-					$cli->emptyline();
-					$cli->gnotice("objectsMaster->getProperties()");
-					$cli->dgnotice(show($objectsMaster->getProperties()));
+					$cli->gnotice("objectsMaster->object_attributes : ");
+					$cli->dgnotice( show($objectsMaster->getProperty('object_attributes')) );
+					$cli->dgnotice( show($sugarSynchro->getProperty('sugar_attributes_values')) );
 					
 					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 					// CRÉE UN NOUVEAU OBJET EZ ***
@@ -239,6 +248,7 @@ foreach($modules_list as $sugarmodule)
 						$cli->gnotice("L'objet avec remote_id " . $remoteID . " a été creé avec succes!");
 					else
 						$cli->error("ERROR createObjectEz() : " . show($createObject) );
+					
 				}
 				else
 				{
@@ -256,6 +266,7 @@ foreach($modules_list as $sugarmodule)
 					//debug notice
 					$cli->gnotice("objectsMaster->object_attributes : ");
 					$cli->dgnotice( show($objectsMaster->getProperty('object_attributes')) );
+					$cli->dgnotice( show($sugarSynchro->getProperty('sugar_attributes_values')) );
 					
 				    // met à jour l'objet EZ existant
 				    $updateObject = $objectsMaster->updateObjectEz();
@@ -265,6 +276,8 @@ foreach($modules_list as $sugarmodule)
 					else
 						$cli->error("ERROR updateObjectEz() : " . show($updateObject) );
 				}
+				
+				$cli->emptyline();
 			}
 		}
 	}

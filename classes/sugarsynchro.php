@@ -396,6 +396,8 @@ class SugarSynchro
 		$attributes_values = array();
 		foreach($name_value_list as $item)
 		{
+			//var_dump(iconv_get_encoding());
+			//var_dump($item['value']);
 			$attributes_values[$item['name']] = $item['value'];
 		}
 		
