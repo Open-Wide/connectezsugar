@@ -1,19 +1,19 @@
 <?php
 
-class owCLI extends eZCLI
+class SmartCLI extends eZCLI
 {
 	
 	/**
-     * Returns a shared instance of the owCLI class.
+     * Returns a shared instance of the SmartCLI class.
      *
-     * @return owCLI
+     * @return SmartCLI
      */
     static function instance()
     {
         if ( !isset( $GLOBALS['eZCLIInstance'] ) ||
-             !( $GLOBALS['eZCLIInstance'] instanceof owCLI ) )
+             !( $GLOBALS['eZCLIInstance'] instanceof SmartCLI ) )
         {
-            $GLOBALS['eZCLIInstance'] = new owCLI();
+            $GLOBALS['eZCLIInstance'] = new SmartCLI();
         }
 
         $GLOBALS['eZCLIInstance']->setUseStyles( true ); // enable colors
@@ -85,7 +85,7 @@ class owCLI extends eZCLI
 	
 	/*
 	 * fais reference à eZCLI::notice
-	 * pour owCLI les message de type gnotice seront en green
+	 * pour SmartCLI les message de type gnotice seront en green
 	 */
 	public function gnotice( $message = false, $params = array() )
     {
@@ -95,7 +95,7 @@ class owCLI extends eZCLI
     
 	/*
 	 * fais reference à eZCLI::notice
-	 * pour owCLI les message de type dgnotice seront en dark-green
+	 * pour SmartCLI les message de type dgnotice seront en dark-green
 	 */
 	public function dgnotice( $message = false, $params = array() )
     {

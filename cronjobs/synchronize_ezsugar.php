@@ -16,7 +16,7 @@ function show($var)
 $logger = owLogger::CreateForAdd("var/log/synchronize_ezsugar_" . date("d-m-Y") . ".log");
 
 // init CLI
-$cli = owCLI::instance();
+$cli = SmartCLI::instance();
 /*
 $ts = $cli->terminalStyles();
 $cli->output(show($ts));
