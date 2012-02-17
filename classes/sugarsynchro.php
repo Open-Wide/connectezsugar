@@ -397,8 +397,8 @@ class SugarSynchro
 		foreach($name_value_list as $item)
 		{
 			//var_dump(iconv_get_encoding());
-			//var_dump($item['value']);
-			$attributes_values[$item['name']] = $item['value'];
+			//var_dump($item['value']); htmlentities($value['default'], ENT_QUOTES, 'UTF-8');
+			$attributes_values[$item['name']] = html_entity_decode($item['value'], ENT_QUOTES, 'UTF-8');
 		}
 		
 		$this->properties['sugar_attributes_values'] = $attributes_values;
