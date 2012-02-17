@@ -41,15 +41,9 @@ switch($query)
 		$sugardata = $sugarConnector->get_module_fields($sugarmodule);
 		$result = $sugardata['module_fields'];
 		break;
-	case "get_full_entry_list" :
-		$notice = $sugarmodule;
-		// get_full_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=9999,$deleted=true)
-		$sugardata = $sugarConnector->get_full_entry_list($sugarmodule);
-		$result = $sugardata;
-		break;
 	case "get_entry_list" :
 		$notice = $sugarmodule;
-		// get_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=9999,$deleted=false)
+		// get_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=999,$deleted=false)
 		$sugardata = $sugarConnector->get_entry_list($sugarmodule);
 		$result = $sugardata['entry_list'];
 		break;

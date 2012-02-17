@@ -89,7 +89,10 @@ class SmartCLI extends eZCLI
 	 */
 	public function gnotice( $message = false, $params = array() )
     {
-		$params['color'] = "green";
+		if ( $this->isQuiet() )
+            return;
+            
+    	$params['color'] = "green";
         $this->styleout($message, $params);
     }
     
@@ -99,7 +102,10 @@ class SmartCLI extends eZCLI
 	 */
 	public function dgnotice( $message = false, $params = array() )
     {
-        $params['color'] = "dark-green";
+        if ( $this->isQuiet() )
+            return;
+		
+    	$params['color'] = "dark-green";
         $this->styleout($message, $params);
     }
 	
@@ -113,7 +119,7 @@ class SmartCLI extends eZCLI
     {
     	$this->emptyline();
     	$params = array('color' => "green-bg");
-    	$this->styleout("Demarrage du script " . $scriptname, $params);
+    	$this->styleout("Fin du script " . $scriptname, $params);
     }
     
 	// fonction pour afficher les variable en console

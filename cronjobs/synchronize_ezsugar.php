@@ -22,6 +22,7 @@ $ts = $cli->terminalStyles();
 $cli->output(show($ts));
 exit();
 */
+$cli->setIsQuiet(false);
 
 // debut du script
 $cli->beginout("synchronize_ezsugar.php");
@@ -174,83 +175,96 @@ foreach($modules_list as $sugarmodule)
 		}
 	}
 	
-	$continue = false;
-	$cli->error("le script s'arete pour l'instant à la création/verification de la class... à demain ;)");
 	if($continue)
 	{
-		// @ TODO : prevoir la possibilité de rendre parametrable la construction du remote_id
-		// le remote_id des objet a la forme '$sugarmodule_$sugarid' !
-		$remoteID = $class_identifier . '_' . $sugarid;
+		$get_entry_list = $sugarConnector->get_entry_list($sugar_properties['sugar_module']);
+		$entry_list = $get_entry_list['entry_list'];
+		$objects_count[$sugar_properties['sugar_module']] = count($entry_list);
 		
-		// reinsegne les propriétés 'object_remote_id', 'sugar_id'
-		$ez_properties['object_remote_id'] = $remoteID;
-		$sugar_properties['sugar_id'] = $sugarid;
-		
-		// get des valeurs des attributes de la table sugar
-		// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
-		$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties);
-		if(!$sugar_attributes_values)
-			$result[] = "\$sugarSynchro->getSugarFieldsValues(\$sugar_properties) return false !!!";
-	
-		$object_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes_values);
-		if(!$object_attributes)
-			$result[] = "\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes_values) return false !!!";
-		
-		if( !$sugar_attributes_values  or !$object_attributes )
-			$continue = false;
-			
-		if( $continue )
+		foreach($entry_list as $entry)
 		{
-			$ez_properties['object_attributes'] = $object_attributes;
+			$sugarid = $entry['id'];
 			
-			// si $objectsMaster n'existe pas on crée une nouvelle instance
-			if(!isset($objectsMaster))			
-				// nouvelle instance de owObjectsMaster()
-				$objectsMaster = owObjectsMaster::instance($ez_properties);
-			else
-				$objectsMaster->setProperties($ez_properties);
+			$remoteID = $ez_properties['class_identifier'] . '_' . $sugarid;
 			
+			// reinsegne les propriétés 'object_remote_id', 'sugar_id'
+			$ez_properties['object_remote_id'] = $remoteID;
+			$sugar_properties['sugar_id'] = $sugarid;
+			
+			// get des valeurs des attributes de la table sugar
+			// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
+			$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties);
+			if(!$sugar_attributes_values)
+				$cli->error("\$sugarSynchro->getSugarFieldsValues(\$sugar_properties) return false !!!");
+		
+			$object_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes_values);
+			if(!$object_attributes)
+				$cli->error("\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes_values) return false !!!");
+			
+			if( !$sugar_attributes_values  or !$object_attributes )
+				$continue = false;
 				
-			$object = eZContentObject::fetchByRemoteID( $remoteID );
-			if( !$object )
+			if( $continue )
 			{
-				// debug notice
-				eZDebug::writeNotice("remote ID " . $remoteID . " non trouvé.\n Procede à la creation de l'objet.");
-				//debug notice
-				$notice['objectsMaster->getProperties()'] = $objectsMaster->getProperties();
+				$ez_properties['object_attributes'] = $object_attributes;
 				
-				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				// CRÉE UN NOUVEAU OBJET EZ ***
-				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				
-				// crée un nouveau objet de contenu EZ
-				$createObject = $objectsMaster->createObjectEz();
-				
-				if($createObject)
-					$result[] = "L'objet avec remote_id " . $remoteID . " a été creé avec succes!";
+				// si $objectsMaster n'existe pas on crée une nouvelle instance
+				if(!isset($objectsMaster))			
+					// nouvelle instance de owObjectsMaster()
+					$objectsMaster = owObjectsMaster::instance($ez_properties);
 				else
-					$result['createObjectEz()'] = $createObject;
-			}
-			else
-			{
-				// debug notice
-				eZDebug::writeNotice("remote ID " . $remoteID . " trouvé.\n Procede à la mise à jour de l'objet.");
+					$objectsMaster->setProperties($ez_properties);
 				
-				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				// MET À JOUR L'OBJET EZ EXISTANT ***
-				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				
-				// reinsegne la propriété 'content_object'
-				$ez_properties['content_object'] = $object;
-				$objectsMaster->setProperties($ez_properties);
-				
-				//debug notice
-				$notice['objectsMaster->object_attributes'] = $objectsMaster->getProperty('object_attributes');
-				
-			    // met à jour l'objet EZ existant
-			    $updateObject = $objectsMaster->updateObjectEz();
-			    
-			    $result['updateObjectEz()'] = $updateObject;
+					
+				$object = eZContentObject::fetchByRemoteID( $remoteID );
+				if( !$object )
+				{
+					// debug notice
+					$cli->gnotice("remote ID " . $remoteID . " non trouvé.\n Procede à la creation de l'objet.");
+					$cli->emptyline();
+					$cli->gnotice("objectsMaster->getProperties()");
+					$cli->dgnotice(show($objectsMaster->getProperties()));
+					
+					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					// CRÉE UN NOUVEAU OBJET EZ ***
+					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					
+					// @TODO : voir l'emplacement de l'objet selon la class ou autres parametres
+					//			arborescence du site EZ ?
+					
+					// crée un nouveau objet de contenu EZ
+					$createObject = $objectsMaster->createObjectEz();
+					
+					if($createObject)
+						$cli->gnotice("L'objet avec remote_id " . $remoteID . " a été creé avec succes!");
+					else
+						$cli->error("ERROR createObjectEz() : " . show($createObject) );
+				}
+				else
+				{
+					// debug notice
+					$cli->gnotice("remote ID " . $remoteID . " trouvé.\n Procede à la mise à jour de l'objet.");
+					
+					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					// MET À JOUR L'OBJET EZ EXISTANT ***
+					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					
+					// reinsegne la propriété 'content_object'
+					$ez_properties['content_object'] = $object;
+					$objectsMaster->setProperties($ez_properties);
+					
+					//debug notice
+					$cli->gnotice("objectsMaster->object_attributes : ");
+					$cli->dgnotice( show($objectsMaster->getProperty('object_attributes')) );
+					
+				    // met à jour l'objet EZ existant
+				    $updateObject = $objectsMaster->updateObjectEz();
+				    
+				    if($updateObject)
+						$cli->gnotice("L'objet avec remote_id " . $remoteID . " a été mis à jour avec succes!");
+					else
+						$cli->error("ERROR updateObjectEz() : " . show($updateObject) );
+				}
 			}
 		}
 	}
@@ -258,8 +272,6 @@ foreach($modules_list as $sugarmodule)
 
 
 // compte rendu du script
-$objects_count = array( 'test_Hotel' => 2);
-
 $cli->emptyline();
 $cli->colorout('cyan-bg',"COMPTE RENDU DU SCRIPT");
 $cli->colorout('cyan',"nombre de modules traitées : " . count($modules_list) );

@@ -33,21 +33,6 @@ class SugarConnector
         return $this->session;
     }
 
-    function get_full_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=999,$deleted=true)
-    {
-        $request = new eZSOAPRequest("get_entry_list",$this->serverNamespace);
-        $request->addParameter('session',$this->session);
-        $request->addParameter('module_name',$module);
-        $request->addParameter('query',$query);
-        $request->addParameter('order_by',$order_by);
-        $request->addParameter('offset',$offset);
-        $request->addParameter('select_fields',$select_fields);
-        $request->addParameter('max_results',$max_results);
-        $request->addParameter('deleted',$deleted);
-        
-        $reponse = $this->client->send($request);
-        return $reponse->Value;
-    }
     
 	function get_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=999,$deleted=false)
     {
