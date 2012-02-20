@@ -4,6 +4,8 @@
 ServerUrl=sugarcrm.local
 ServerPath=/soap.php
 ServerNamespace=http://www.sugarcrm.com/sugarcrm
+login=admin
+password=admin
 
 
 [Language]

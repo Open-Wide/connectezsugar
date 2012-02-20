@@ -51,9 +51,10 @@ class SugarSynchro
 		}
 		
 		// connexion à SUGAR
-		// @TODO : user et mdp pour login sont en dur pour l'instant
+		// @TODO : user et mdp pour login sont ecrites en clais dans le fichier sugarcrm.ini
+		// chercher une autre façon de stockage plus securisé ?
 		$instance->sugarConnector = new SugarConnector();
-		$instance->sugar_session = $instance->sugarConnector->login('admin','admin');
+		$instance->sugar_session = $instance->sugarConnector->login(self::$inidata['login'],self::$inidata['password']);
 		
 		return $instance;
 	}
@@ -61,7 +62,9 @@ class SugarSynchro
 	public static function definition()
 	{
 		// inidata_list ***
-		$inidata_list = array(	'mapping_names'			=> array( 'block' => "Mapping", 'var' => "mapping_names" ),
+		$inidata_list = array(	'login'					=> array( 'block' => "connexion", 'var' => "login" ),
+								'password'				=> array( 'block' => "connexion", 'var' => "password" ),
+								'mapping_names'			=> array( 'block' => "Mapping", 'var' => "mapping_names" ),
 								'mapping_identifiers'	=> array( 'block' => "Mapping", 'var' => "mapping_identifiers" ),
 								'exclude_fields'		=> array( 'block' => "Mapping", 'var' => "exclude_fields" ),
 								'mapping_types'			=> array( 'block' => "Mapping", 'var' => "mapping_types" ),

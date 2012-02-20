@@ -35,6 +35,8 @@ $cli->beginout("synchronize_ezsugar.php");
 // connexion à SUGAR
 $sugarConnector=new SugarConnector();
 $connection=$sugarConnector->login('admin','admin');
+ 
+
 
 // module SUGAR
 $modules_list = SugarSynchro::getModuleListToSynchro();
