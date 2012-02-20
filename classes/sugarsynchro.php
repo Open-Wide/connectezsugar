@@ -76,6 +76,7 @@ class SugarSynchro
 									'ezsugar_rename'	=> array( 'var' => "ezsugar_rename" ),
 									'exclude_fields'	=> array( 'var' => "exclude_fields" ),
 									'include_fields'	=> array( 'var' => "include_fields" ),
+									'translate_fields'	=> array( 'var' => "translate_fields" ),
 							); 
 		self::$mappingdata_list = $mappingdata_list;
 		
@@ -391,7 +392,7 @@ class SugarSynchro
 			// recupere toutes les variables du fichier ini definie dans self::$mappingdata_list 
 			foreach(self::$mappingdata_list as $name => $args)
 			{
-				$this->mappingdata[$name] = $ini->variable($module_name, $args['var']);
+				$this->mappingdata[$name] = $inimap->variable($module_name, $args['var']);
 			}
 			
 			$wrn = 0;
@@ -425,6 +426,22 @@ class SugarSynchro
 	}
 	
 	
+	
+	protected function testForMapping()
+	{
+		if(is_array($this->mappingdata) and  count($this->mappingdata) == 0)
+		{
+			//echo("rentre ici ");
+			$testmapping = $this->getMappingDataForModule();
+			//var_dump($testmapping);
+		}
+		else
+			$testmapping = $this->mappingdata;
+			
+		
+		return $testmapping;
+	}
+	
 	/*
 	 * A) va chercher le mapping pour le module concerné;
 	 * B) applique des filtres
@@ -439,10 +456,7 @@ class SugarSynchro
 	 */
 	protected function filterSugarFields()
 	{
-		if(is_array($this->mappingdata) and  count($this->mappingdata) == 0)
-			$testmapping = $this->getMappingDataForModule;
-		else
-			$testmapping = $this->mappingdata;
+		$testmapping = $this->testForMapping();
 		
 		foreach($this->properties['sugar_module_fields'] as $modulefield)
 		{
@@ -489,6 +503,12 @@ class SugarSynchro
 																			'datatype'	=> self::$inidata['mapping_types'][$modulefield['type']],
 																			'required'	=> (int)$modulefield['required']
 																			);
+																			
+		$testmapping = $this->testForMapping();
+		if( $testmapping and isset($this->mappingdata['translate_fields'][$modulefield['name']]) )
+		{
+			$this->properties['sugar_attributes'][$modulefield['name']]['can_translate'] = $this->mappingdata['translate_fields'][$modulefield['name']];
+		}
 	} 
 	
 	/*
@@ -615,7 +635,7 @@ class SugarSynchro
 	 */
 	public function checkMappingForModule($module_name)
 	{
-		// verifie si self::INIFILE existe dans self::INIPATH
+		// verifie si self::MAPPINGINIFILE existe dans self::INIPATH
 	   	$initest = eZINI::exists(self::MAPPINGINIFILE, self::INIPATH);
 		if($initest)
 		{
@@ -629,9 +649,8 @@ class SugarSynchro
 			
 			if( !$sugarez )
 			{
-				$error = "block " . $module_name . " trouvé mais pas de tableau sugarez[] trouvé !";
-				self::$logger->writeTimedString("Erreur checkMappingForModule() : " . $error);
-				$err++;
+				$notice = "block " . $module_name . " trouvé mais pas de tableau sugarez[] trouvé !";
+				self::$logger->writeTimedString("Notice checkMappingForModule() : " . $notice);
 				return false;
 			}
 

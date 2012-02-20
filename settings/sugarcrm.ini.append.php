@@ -5,28 +5,18 @@ ServerUrl=sugarcrm.local
 ServerPath=/soap.php
 ServerNamespace=http://www.sugarcrm.com/sugarcrm
 
+
+[Language]
+defaultLanguage=fr
+
+
 [Names]
 # si il y a un prefix à enlever du nom de module SUGAR pour nommer une class EZ en absence de mapping
-prefixRemove=true
+prefixRemove=false
 # le prefix eventuel du nom de module SUGAR
+# pas pris en compte si 'prefixRemove' est à false
 prefixString=test_
 
-[RemoteIdModel]
-# liste de variables pour le model de remote_id
-var_list[]
-var_list[]=ez_class_identifier
-var_list[]=ez_class_name
-var_list[]=sugar_object_id
-var_list[]=sugar_module_name
-var_list[]=sugar_module_libelle
-
-# modele de remote_id EZ en fonction de données SUGAR
-# le remote_id est construit avec la concatenation consecutive des elements du tableau "remote_id_model[]"
-# les valeurs possibles doivent faire partie de "var_list[]"
-remote_id_model[]
-remote_id_model[]=ez_class_identifier
-remote_id_model[]=_
-remote_id_model[]=sugar_object_id
 
 # mapping des correspondances des tables SUGAR avec les objets EZ
 [Mapping]
@@ -41,6 +31,7 @@ mapping_identifiers[]
 mapping_identifiers[test_Hotel]=hotel
 
 # champs des tables SUGAR (field name) à ignorer pour les objets EZ
+# generique pour tous les modules
 exclude_fields[]
 exclude_fields[]=id
 exclude_fields[]=date_entered
@@ -65,8 +56,31 @@ mapping_types[text]=eztext
 mapping_types[name]=ezstring
 mapping_types[datetime]=ezdatetime
 
+
 [Synchro]
+# liste des modules SUGAR qui sont concerné par la synchronisation
+# @IMPORTANT! : le chronjob de synchronisation viens lire cette liste !!!
 modulesListToSynchro[]
 modulesListToSynchro[]=test_Hotel
+
+
+# @IMPORTANT! : pour l'instant [RemoteIdModel] n'est pas utilisé !
+# le modele de RemoteId des objets EZ synchronisés avec SUGAR est "eZClassIdentifier_SugarObjectId"
+[RemoteIdModel]
+# liste de variables pour le model de remote_id
+var_list[]
+var_list[]=ez_class_identifier
+var_list[]=ez_class_name
+var_list[]=sugar_object_id
+var_list[]=sugar_module_name
+var_list[]=sugar_module_libelle
+
+# modele de remote_id EZ en fonction de données SUGAR
+# le remote_id est construit avec la concatenation consecutive des elements du tableau "remote_id_model[]"
+# les valeurs possibles doivent faire partie de "var_list[]"
+remote_id_model[]
+remote_id_model[]=ez_class_identifier
+remote_id_model[]=_
+remote_id_model[]=sugar_object_id
 
 */ ?>

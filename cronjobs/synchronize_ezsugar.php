@@ -63,12 +63,12 @@ foreach($modules_list as $sugarmodule)
 	// get des attributes de la table sugar à synchroniser
 	// ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'Attr 1', 'datatype' => 'ezstring', 'required' => 1 ),
 	//									'attr_2' => array( 'name' => 'Attr 2', 'datatype' => 'eztext', 'required' => 0 ) );
-	$sugar_attributes = $sugarSynchro->getSugarFields($sugar_properties);
+	$sugar_attributes = $sugarSynchro->getSugarFields($sugar_properties); var_dump($sugar_attributes);
 	if(!$sugar_attributes)
 		$cli->error("\$sugarSynchro->getSugarFields(\$sugar_properties) return false !!!");
 	
-	// reinsegne la propriété 'class_attributes' après avoir normalisé les identifiants
-	$class_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes);
+	// reinsegne la propriété 'class_attributes' après avoir verifié les settings pour le module
+	$class_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes); var_dump($class_attributes);
 	if(!$class_attributes)
 		$cli->error("\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes) return false !!!");
 			

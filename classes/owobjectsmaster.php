@@ -56,6 +56,8 @@ class owObjectsMaster
 		$inidata_list = array(	'AdminID'				=> array( 'block' => "Users", 'var' => "AdminID" ),
 								'DefaultParentNodeID'	=> array( 'block' => "Tree", 'var' => "DefaultParentNodeID" ),
 								'DefaultSectionID'		=> array( 'block' => "Tree", 'var' => "DefaultSectionID" ),
+								'DefaultCanTranslate'	=> array( 'block' => "Translation", 'var' => "DefaultCanTranslate" ),
+								'DefaultIsSearchable'	=> array( 'block' => "Search", 'var' => "DefaultIsSearchable" ),
 							); 
 		self::$inidata_list = $inidata_list;
 		
@@ -586,6 +588,8 @@ class owObjectsMaster
 	 */
 	public function createClassEz($args = null)
 	{
+		//exit("createClassEz stopped!");
+		
 		// verifie si la fonction a les parametres necessaires à son execution
 		$verify = $this->verifyArgsForFunction("createClassEz", $args);
 		if(!$verify)
@@ -596,6 +600,8 @@ class owObjectsMaster
 		$newClass =  eZContentClass::create( $userID );	
 		
 		// identifier de la class
+		// si le class_identifier n'est pas definie il est crée par la méthode 'self::normalizeIdentifier'
+		// sur la base du nom de la class
 		if(!isset($this->properties['class_identifier']))
 			$this->properties['class_identifier'] = self::normalizeIdentifier($this->properties['class_name']);
 		
@@ -623,20 +629,31 @@ class owObjectsMaster
 		$ingroup->store();
 		
 		// crée les attributs de la class EZ
-		// $class_attributes[identifier(string)] = array( name=>(string),datatype=>(string),required=>(bool) );
+		// $class_attributes[identifier(string)] = array( name=>(string),datatype=>(string),required=>(bool),[is_searchable=>(int),can_translate=>(int)] );
 		foreach( $this->properties['class_attributes'] as $identifier => $attrs )
 		{
+			// create attribute de type $attrs['datatype']
 			$new_attribute = eZContentClassAttribute::create( $ClassID, $attrs['datatype'] );
-			 
+			
+			// version
 			$new_attribute->setAttribute( 'version', $ClassVersion);
+			// name
 			$new_attribute->setAttribute( 'name', $attrs['name'] );
+			// is_required
 			$new_attribute->setAttribute( 'is_required', $attrs['required'] );
-			$new_attribute->setAttribute( 'is_searchable', 1 );
-			$new_attribute->setAttribute( 'can_translate', 1 );
+			// is_searchable
+			$is_searchable = ( isset($attrs['is_searchable']) )? (int)$attrs['is_searchable'] : (int)self::$inidata['DefaultIsSearchable'];
+			$new_attribute->setAttribute( 'is_searchable', $is_searchable );
+			// can_translate
+			$can_translate = ( isset($attrs['can_translate']) )? (int)$attrs['can_translate'] : (int)self::$inidata['DefaultCanTranslate'];
+			$new_attribute->setAttribute( 'can_translate', $can_translate );
+			// identifier
 			$new_attribute->setAttribute( 'identifier', $identifier );
-			 
+			
+			// initialise datatype
 			$dataType = $new_attribute->dataType();
 			$dataType->initializeClassAttribute( $new_attribute );
+			// store attribute
 			$new_attribute->store();
 		}
 		
