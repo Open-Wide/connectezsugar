@@ -23,7 +23,7 @@ class SugarConnector
         $this->client = new eZSOAPClient($serverUrl,$serverPath);
     }
 
-    function login($login = null, $password = null) 
+    function login($login = null, $password = null)
     {
     	if(is_null($login))
     		$login = $this->login;
