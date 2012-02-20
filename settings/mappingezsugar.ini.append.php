@@ -14,6 +14,10 @@
 # 3) exclude_fields[] : champs de la table SUGAR (field name) à ignorer pour ce module SUGAR
 #
 #4) include_fields[] : champs de la table SUGAR (field name) à synchroniser avec EZ pour ce module SUGAR
+#
+# !IMPORTANT! si les deux tableaux exclude_fields[] et include_fields[] sont definis
+# include_fields[] est pris en compte et exclude_fields[] ignoré
+#
 
 [test_Hotel]
 #sugarez[]
@@ -26,9 +30,6 @@
 #ezsugar_rename[description]=description
 #ezsugar_rename[deleted]=deleted
 
-# @TODO voir comment faire un merge de exclude_fields generic et le specifique par module
-# champs de la table SUGAR (field name) à ignorer pour cet module SUGAR
-# si il y en a en plus par rapport aux exclude_fields[] dans sugarcrm.ini
 #exclude_fields[]
 
 include_fields[]

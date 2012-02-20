@@ -425,21 +425,33 @@ class SugarSynchro
 	}
 	
 	
-	
+	/*
+	 * A) va chercher le mapping pour le module concerné;
+	 * B) applique des filtres
+	 * 1er filtre :
+	 * - exclude les champs SUGAR qui sont listé dans le tableau exclude_fileds[] generique pour tous les modules
+	 * 2eme filtre :
+	 * - include seulement les champs listé dans include_fields si defini
+	 * sinon
+	 * - exclude les champs listé dans exclude_fields si defini;
+	 * C) definie le tableau $this->properties['sugar_attributes'].
+	 * 
+	 */
 	protected function filterSugarFields()
 	{
 		if(is_array($this->mappingdata) and  count($this->mappingdata) == 0)
 			$testmapping = $this->getMappingDataForModule;
 		else
-			$testmapping = $this->mappingdata; 
+			$testmapping = $this->mappingdata;
 		
 		foreach($this->properties['sugar_module_fields'] as $modulefield)
 		{
 			// exclude les champs listé dans 'exlude_fields' dans 'sugarcrm.ini'
+			// ( exclude_fields generique pour tous les modules )
 			if( !in_array($modulefield['name'], self::$inidata['exclude_fields']) )
 			{
 				if($testmapping)
-				{	// si include_fields[] et exclude_fields[] sont definie : include_fields prevale
+				{	// si include_fields[] et exclude_fields[] sont definie : include_fields a la priorité
 					// si 'include_fields[]' est definie pour le module seulement ces champs sont inclues
 					if( is_array($this->mappingdata['include_fields']) )
 					{
@@ -461,6 +473,14 @@ class SugarSynchro
 		
 	}
 	
+	/*
+	 * definie un element du tableau $this->properties['sugar_attributes']
+	 * avec les donnée d'un champ de module SUGAR
+	 * formaté pour être enregistré sous EZ
+	 * 
+	 * @param $modulefield array ( tableau retourné par 'get_module_fields' => 'module_fields' )
+	 * @return void
+	 */
 	protected function setSugarAttribute($modulefield)
 	{
 		// $sugar_attributes[name] = array(identifier=>name,name=>label,datatype=>type,required=>required);
@@ -472,8 +492,12 @@ class SugarSynchro
 	} 
 	
 	/*
-	 * ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'attr_1', 'datatype' => 'ezstring', 'required' => 1 ),
-	 *									'attr_2' => array( 'name' => 'attr_2', 'datatype' => 'eztext', 'required' => 0 ) );
+	 * fait une requete pour obtenir les champs d'un module SUGAR,
+	 * filtre les champs selon la configuration general et specifique au module,
+	 * retourne le tableau filtré $this->properties['sugar_attributes']
+	 * 
+	 * @param $args array ( voir definition() )
+	 * @return $this->properties['sugar_attributes'] array
 	 */
 	public function getSugarFields($args = null)
 	{
@@ -486,27 +510,8 @@ class SugarSynchro
 		$module_fields = $sugardata['module_fields'];
 		$this->properties['sugar_module_fields'] = $module_fields;
 		
-		// @TODO : exclude_fields/include_fields per module
+		// filtre les champs selon la configuration general et specifique au module
 		$this->filterSugarFields();
-		
-		/*$sugar_attributes = array();
-		foreach($module_fields as $modulefield)
-		{
-			if( !in_array($modulefield['name'], self::$inidata['exclude_fields']) )
-			{
-				// $sugar_attributes[name] = array(name=>label,datatype=>type,required=>required);
-				$sugar_attributes[$modulefield['name']] = array('identifier'=> $modulefield['name'],
-																'name' 		=> $modulefield['label'],
-																'datatype'	=> self::$inidata['mapping_types'][$modulefield['type']],
-																'required'	=> (int)$modulefield['required']
-																);
-			}
-				
-		}
-		
-		$this->properties['sugar_attributes'] = $sugar_attributes;
-		
-		return $sugar_attributes;*/
 		
 		return $this->properties['sugar_attributes'];
 		
