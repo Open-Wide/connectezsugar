@@ -30,6 +30,7 @@ $notice = null;
 $sugarConnector=new SugarConnector();
 $connection=$sugarConnector->login();
 
+
 switch($query)
 {
 	case "get_available_modules" :
