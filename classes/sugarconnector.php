@@ -6,18 +6,30 @@ class SugarConnector
     private $client;
     private $session;
     private $serverNamespace;
+    private $login;
+    private $password;
 
     function SugarConnector()
     {
         $ini = eZINI::instance("sugarcrm.ini");
-        $serverUrl       = $ini->variable("connexion", "ServerUrl");
-        $serverPath      = $ini->variable("connexion", "ServerPath");
+        $serverUrl = $ini->variable("connexion", "ServerUrl");
+        $serverPath = $ini->variable("connexion", "ServerPath");
         $this->serverNamespace = $ini->variable("connexion", "ServerNamespace");
+        // @TODO : user et mdp pour login sont ecrites en clais dans le fichier sugarcrm.ini
+		// chercher une autre façon de stockage plus securisé ?
+        $this->login = $ini->variable("connexion", "login");
+		$this->password = $ini->variable("connexion", "password");
+        
         $this->client = new eZSOAPClient($serverUrl,$serverPath);
     }
 
-    function login($login,$password) 
+    function login($login = null, $password = null) 
     {
+    	if(is_null($login))
+    		$login = $this->login;
+    	if(is_null($password))
+    		$password = $this->password;
+    		
         $auth_array = array( 
                'user_name' => $login,
                'password' => $password,
