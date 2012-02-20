@@ -15,7 +15,7 @@ class SugarConnector
         $serverUrl = $ini->variable("connexion", "ServerUrl");
         $serverPath = $ini->variable("connexion", "ServerPath");
         $this->serverNamespace = $ini->variable("connexion", "ServerNamespace");
-        // @TODO : user et mdp pour login sont ecrites en clais dans le fichier sugarcrm.ini
+        // @TODO : user et mdp pour login sont ecrites en clair dans le fichier sugarcrm.ini
 		// chercher une autre façon de stockage plus securisé ?
         $this->login = $ini->variable("connexion", "login");
 		$this->password = $ini->variable("connexion", "password");
