@@ -32,9 +32,13 @@ $cli->setIsQuiet(false);
 // debut du script
 $cli->beginout("synchronize_ezsugar.php");
 
+// parametres de connexion à SUGAR
+$ini = eZINI::instance("sugarcrm.ini");
+$login = $ini->variable("connexion", "login");
+$password = $ini->variable("connexion", "password");
 // connexion à SUGAR
 $sugarConnector=new SugarConnector();
-$connection=$sugarConnector->login('admin','admin');
+$connection=$sugarConnector->login($login,$password);
  
 
 

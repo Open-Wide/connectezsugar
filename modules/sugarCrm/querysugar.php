@@ -26,9 +26,13 @@ $result = null;
 // init notice
 $notice = null;
 
+// parametres de connexion à SUGAR
+$ini = eZINI::instance("sugarcrm.ini");
+$login = $ini->variable("connexion", "login");
+$password = $ini->variable("connexion", "password");
 // connexion à SUGAR
 $sugarConnector=new SugarConnector();
-$connection=$sugarConnector->login('admin','admin');
+$connection=$sugarConnector->login($login,$password);
 
 switch($query)
 {
