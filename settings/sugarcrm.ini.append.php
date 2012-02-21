@@ -90,7 +90,7 @@ mapping_types[year]=ezinteger
 # liste des modules SUGAR qui sont concerné par la synchronisation
 # @IMPORTANT! : le chronjob de synchronisation viens lire cette liste !!!
 modulesListToSynchro[]
-modulesListToSynchro[]=test_Hotel
+modulesListToSynchro[]=otcp_room
 
 
 # @IMPORTANT! : pour l'instant [RemoteIdModel] n'est pas utilisé !

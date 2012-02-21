@@ -152,9 +152,9 @@ class SugarSynchro
 			}
 			
 			// si une des variables n'existe pas on renvoie false et on ecrie dans le $log
+			$err = 0;
 			foreach( self::$inidata as $k => $var )
 			{
-				$err = 0;
 				if( !$var )
 				{
 					$error = "la variable demandées : " . $k . ", n'existe pas !";

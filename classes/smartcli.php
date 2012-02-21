@@ -108,6 +108,20 @@ class SmartCLI extends eZCLI
     	$params['color'] = "dark-green";
         $this->styleout($message, $params);
     }
+    
+	/*
+	 * fais reference à eZCLI::notice
+	 * pour SmartCLI les message de type dynotice seront en dark-yellow
+	 */
+	public function dynotice( $message = false, $params = array() )
+    {
+        if ( $this->isQuiet() )
+            return;
+		
+    	$params['color'] = "dark-yellow";
+        $this->styleout($message, $params);
+    }
+    
 	
     public function beginout($scriptname)
     {

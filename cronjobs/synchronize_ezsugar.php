@@ -77,7 +77,13 @@ foreach($modules_list as $sugarmodule)
 			
 	if( is_array($sugar_attributes) and is_array($class_attributes) )
 		$continue = true;
-		
+	else
+	{
+		$cli->warning("SugarSynchro.log");
+		$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
+	}
+	
+	
 	if($continue)
 	{
 		// OPTION 1 : definie $class_attributes après avoir normalisé les identifiants
@@ -87,7 +93,18 @@ foreach($modules_list as $sugarmodule)
 		
 		// nouvelle instance de owObjectsMaster()
 		$objectsMaster = owObjectsMaster::instance($ez_properties);
-		
+		if( !is_object($objectsMaster) )
+		{
+			$cli->error("owObjectsMaster::instance ne renvoie pas un objet");
+			$cli->warning("owObjectsMaster.log");
+			$cli->dgnotice( show(owObjectsMaster::lastLogContent()) );
+			$continue = false;
+		}
+	}
+	
+	
+	if($continue)
+	{
 		$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
 		if(!$ezclassID)
 		{
@@ -215,27 +232,48 @@ foreach($modules_list as $sugarmodule)
 				$cli->error("\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes_values) return false !!!");
 			
 			if( !$sugar_attributes_values  or !$object_attributes )
+			{
 				$continue = false;
-				
+				$cli->warning("SugarSynchro.log");
+				$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
+			}
+			
+			
 			if( $continue )
 			{
 				$ez_properties['object_attributes'] = $object_attributes;
 				
 				// si $objectsMaster n'existe pas on crée une nouvelle instance
-				if(!isset($objectsMaster))			
+				if(!isset($objectsMaster))
+				{
 					// nouvelle instance de owObjectsMaster()
 					$objectsMaster = owObjectsMaster::instance($ez_properties);
+					if( !is_object($objectsMaster) )
+					{
+						$cli->error("owObjectsMaster::instance ne renvoie pas un objet");
+						$cli->warning("owObjectsMaster.log");
+						$cli->dgnotice( show(owObjectsMaster::lastLogContent()) );
+						$continue = false;
+					}
+				}
 				else
 					$objectsMaster->setProperties($ez_properties);
+			}
+			
+				
+			if( $continue )
+			{
 				
 				$object = eZContentObject::fetchByRemoteID( $remoteID );
 				if( !$object )
 				{
 					// debug notice
 					$cli->gnotice("remote ID " . $remoteID . " non trouvé.\n Procede à la creation de l'objet.");
-					$cli->gnotice("objectsMaster->object_attributes : ");
-					$cli->dgnotice( show($objectsMaster->getProperty('object_attributes')) );
+					$cli->dynotice("sugarSynchro->sugar_attributes_values : ");
 					$cli->dgnotice( show($sugarSynchro->getProperty('sugar_attributes_values')) );
+					$cli->dynotice("objectsMaster->object_attributes : ");
+					$cli->dgnotice( show($objectsMaster->getProperty('object_attributes')) );
+					
 					
 					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 					// CRÉE UN NOUVEAU OBJET EZ ***
@@ -267,9 +305,10 @@ foreach($modules_list as $sugarmodule)
 					$objectsMaster->setProperties($ez_properties);
 					
 					//debug notice
-					$cli->gnotice("objectsMaster->object_attributes : ");
-					$cli->dgnotice( show($objectsMaster->getProperty('object_attributes')) );
+					$cli->dynotice("sugarSynchro->sugar_attributes_values : ");
 					$cli->dgnotice( show($sugarSynchro->getProperty('sugar_attributes_values')) );
+					$cli->dynotice("objectsMaster->object_attributes : ");
+					$cli->dgnotice( show($objectsMaster->getProperty('object_attributes')) );
 					
 				    // met à jour l'objet EZ existant
 				    $updateObject = $objectsMaster->updateObjectEz();
@@ -292,10 +331,15 @@ $cli->emptyline();
 $cli->colorout('cyan-bg',"COMPTE RENDU DU SCRIPT");
 $cli->colorout('cyan',"nombre de modules traitées : " . count($modules_list) );
 $cli->colorout('cyan',"liste des modules traitées : ");
+$indent = 1;
 foreach($modules_list as $module_name)
 {
-	$cli->colorout('cyan-bg', $module_name, 1 );
-	$cli->colorout( 'dark-cyan', "nombre d'objets traité pour le module " . $module_name . " : " . $objects_count[$module_name], 1 );
+	if( !isset($objects_count[$module_name]) )
+		$mo_count = 0;
+	else
+		$mo_count =  $objects_count[$module_name];
+	$cli->colorout('cyan-bg', $module_name, $indent );
+	$cli->colorout( 'dark-cyan', "nombre d'objets traité pour le module " . $module_name . " : " . $mo_count, $indent );
 }
 
 

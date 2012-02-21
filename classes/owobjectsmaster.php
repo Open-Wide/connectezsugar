@@ -40,7 +40,7 @@ class owObjectsMaster
 		
 		if( !self::getIniData() )
 			return false;
-		
+			
 		if(count($properties) > 0)
 		{
 			$object = new owObjectsMaster();
@@ -172,13 +172,14 @@ class owObjectsMaster
 			}
 			
 			// si une des variables n'existe pas on renvoie false et on ecrie dans le $log
+			$err = 0;
 			foreach( self::$inidata as $k => $var )
 			{
-				$err = 0;
 				if( $var === false )
 				{
 					$error = "la variable demandées : " . $k . ", n'existe pas !";
 					self::$logger->writeTimedString("Erreur getIniData() : " . $error);
+					var_dump();
 					$err++;
 				}
 			}
