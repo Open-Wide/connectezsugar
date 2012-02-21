@@ -9,11 +9,13 @@ else
 if(isset($Params["identifier"]))
    $identifier = $Params["identifier"];
 elseif( isset($type) and $type == "class")
-	$identifier = "hotel";
+	$identifier = "room";
 elseif( isset($type) and $type == "object")
-	$identifier = "hotel_df72c261-9645-ec3a-d369-4f2a6ca53650";
+	$identifier = "room_25cc743a-df11-c88c-8e0f-4f3405904130";
 else
 	$identifier = null;
+	
+// hotel_df72c261-9645-ec3a-d369-4f2a6ca53650
 
 $notice = null;
 $result = null;

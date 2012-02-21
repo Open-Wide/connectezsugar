@@ -31,13 +31,15 @@ class owObjectsMaster
 	
 	/*
 	 * instancie un nouveau objet de cette class
-	 * @return object[owObjectsMaster]
+	 * @return object[owObjectsMaster] OR false
 	 */
 	public static function instance($properties = array())
 	{
 		self::$logger = owLogger::CreateForAdd(self::LOGFILE);
 		self::definition();
-		self::getIniData();
+		
+		if( !self::getIniData() )
+			return false;
 		
 		if(count($properties) > 0)
 		{
@@ -133,6 +135,12 @@ class owObjectsMaster
 	}
 	
 	
+	public static function lastLogContent()
+	{
+		return self::$logger->getLogContentFromCurrentStartTime();
+	}
+	
+	
 	/*
 	 * va chercher les settings dans le fichiers self::INIFILE
 	 * et les enregistre dans self::$inidata
@@ -157,14 +165,17 @@ class owObjectsMaster
 			// recupere toutes les variables du fichier ini definie dans self::$inidata_list 
 			foreach(self::$inidata_list as $name => $args)
 			{
-				self::$inidata[$name] = $ini->variable($args['block'], $args['var']);
+				if( $ini->hasVariable($args['block'], $args['var']) )
+					self::$inidata[$name] = $ini->variable($args['block'], $args['var']);
+				else
+					self::$inidata[$name] = false;
 			}
 			
 			// si une des variables n'existe pas on renvoie false et on ecrie dans le $log
 			foreach( self::$inidata as $k => $var )
 			{
 				$err = 0;
-				if( !$var )
+				if( $var === false )
 				{
 					$error = "la variable demandées : " . $k . ", n'existe pas !";
 					self::$logger->writeTimedString("Erreur getIniData() : " . $error);
@@ -532,6 +543,7 @@ class owObjectsMaster
 		}
 	}
 	
+	
 	protected function verifyArgsForFunction($function_name, $args)
 	{
 		// load definition si ce n'est pas dèjà fait
@@ -597,7 +609,7 @@ class owObjectsMaster
 		
 		// crée une nouvelle class EZ
 		$userID = self::$inidata['AdminID'];
-		$newClass =  eZContentClass::create( $userID );	
+		$newClass =  eZContentClass::create( $userID );
 		
 		// identifier de la class
 		// si le class_identifier n'est pas definie il est crée par la méthode 'self::normalizeIdentifier'

@@ -145,7 +145,10 @@ class SugarSynchro
 			// recupere toutes les variables du fichier ini definie dans self::$inidata_list 
 			foreach(self::$inidata_list as $name => $args)
 			{
-				self::$inidata[$name] = $ini->variable($args['block'], $args['var']);
+				if( $ini->hasVariable($args['block'], $args['var']) )
+					self::$inidata[$name] = $ini->variable($args['block'], $args['var']);
+				else
+					self::$inidata[$name] = false;
 			}
 			
 			// si une des variables n'existe pas on renvoie false et on ecrie dans le $log
@@ -195,6 +198,12 @@ class SugarSynchro
 	{
 		if(isset(self::$$name))
 			return self::$$name;
+	}
+	
+	
+	public static function lastLogContent()
+	{
+		return self::$logger->getLogContentFromCurrentStartTime();
 	}
 	
 	
@@ -261,6 +270,7 @@ class SugarSynchro
 			self::$logger->writeTimedString($error);
 		}
 	}
+	
 	
 	
 	protected function verifyArgsForFunction($function_name, $args)
@@ -393,7 +403,10 @@ class SugarSynchro
 			// recupere toutes les variables du fichier ini definie dans self::$mappingdata_list 
 			foreach(self::$mappingdata_list as $name => $args)
 			{
-				$this->mappingdata[$name] = $inimap->variable($module_name, $args['var']);
+				if( $inimap->hasVariable($module_name, $args['var']) )
+					$this->mappingdata[$name] = $inimap->variable($module_name, $args['var']);
+				else
+					$this->mappingdata[$name] = false;
 			}
 			
 			$wrn = 0;
@@ -402,8 +415,8 @@ class SugarSynchro
 			{
 				if( !$var )
 				{
-					$warning = "Pour le module " . $module_name . " la variable " . $k . ", n'est pas definie !";
-					self::$logger->writeTimedString("Warning getMappingDataForModule() : " . $warning);
+					$notice = "Pour le module " . $module_name . " la variable " . $k . ", n'est pas definie !";
+					self::$logger->writeTimedString("Notice getMappingDataForModule() : " . $notice);
 					$wrn++;
 				}
 			}
@@ -461,6 +474,7 @@ class SugarSynchro
 		
 		foreach($this->properties['sugar_module_fields'] as $modulefield)
 		{
+			$setAttribute = false;
 			// exclude les champs listé dans 'exlude_fields' dans 'sugarcrm.ini'
 			// ( exclude_fields generique pour tous les modules )
 			if( !in_array($modulefield['name'], self::$inidata['exclude_fields']) )
@@ -471,34 +485,52 @@ class SugarSynchro
 					if( is_array($this->mappingdata['include_fields']) )
 					{
 						if( in_array($modulefield['name'], $this->mappingdata['include_fields']) )
-							$this->setSugarAttribute($modulefield);
+							$setAttribute = true;
 					}
 					// sinon si 'exclude_fields[]' est definie pour le module ces champs sont exclues
 					elseif( is_array($this->mappingdata['exclude_fields']) )
 					{
 						if( !in_array($modulefield['name'], $this->mappingdata['exclude_fields']) )
-							$this->setSugarAttribute($modulefield);
+							$setAttribute = true;
 					}
 				}
 				else
-					$this->setSugarAttribute($modulefield);
+					$setAttribute = true;
+			}
+			
+			if($setAttribute)
+			{
+				$testSetSugarAttribute = $this->setSugarAttribute($modulefield);
+				// si il y a une erreur dans setSugarAttribute() return false
+				if(!$testSetSugarAttribute)
+					return false;
 			}
 				
 		}
 		
+		return true;
 	}
 	
 	/*
+	 * @TODO : check for datatype !!!
 	 * definie un element du tableau $this->properties['sugar_attributes']
 	 * avec les donnée d'un champ de module SUGAR
 	 * formaté pour être enregistré sous EZ
 	 * 
 	 * @param $modulefield array ( tableau retourné par 'get_module_fields' => 'module_fields' )
-	 * @return void
+	 * @return boolean
 	 */
 	protected function setSugarAttribute($modulefield)
 	{
-		// $sugar_attributes[name] = array(identifier=>name,name=>label,datatype=>type,required=>required);
+		// si le type du champ SUGAR n'est pas dans la liste des datatypes (self::$inidata['mapping_types'])
+		// ecrit l'erreur dans le log et return false
+		if( !isset(self::$inidata['mapping_types'][$modulefield['type']]) )
+		{
+			$error = $modulefield['type'] . " non trouvé dans la liste mapping_types[] in " . self::INIFILE;
+			self::$logger->writeTimedString("Erreur setSugarAttribute() : " . $error);
+			return false;
+		}
+		
 		$this->properties['sugar_attributes'][$modulefield['name']] = array('identifier'=> $modulefield['name'],
 																			'name' 		=> $modulefield['label'],
 																			'datatype'	=> self::$inidata['mapping_types'][$modulefield['type']],
@@ -510,6 +542,8 @@ class SugarSynchro
 		{
 			$this->properties['sugar_attributes'][$modulefield['name']]['can_translate'] = $this->mappingdata['translate_fields'][$modulefield['name']];
 		}
+		
+		return true;
 	} 
 	
 	/*
@@ -532,7 +566,13 @@ class SugarSynchro
 		$this->properties['sugar_module_fields'] = $module_fields;
 		
 		// filtre les champs selon la configuration general et specifique au module
-		$this->filterSugarFields();
+		$testFilterSugarFields = $this->filterSugarFields();
+		if(!$testFilterSugarFields)
+		{
+			//exit(var_dump(self::$logger->getLogContentFromCurrentStartTime()));
+			return false;
+		}
+			
 		
 		return $this->properties['sugar_attributes'];
 		

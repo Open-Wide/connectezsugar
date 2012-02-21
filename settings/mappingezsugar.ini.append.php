@@ -43,4 +43,9 @@ include_fields[]=deleted
 translate_fields[]
 translate_fields[description]=1
 
+[otcp_room]
+include_fields[]
+include_fields[]=name
+include_fields[]=description
+
 */ ?>

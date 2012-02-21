@@ -4,18 +4,19 @@ include_once( 'kernel/common/template.php' );
 if(isset($Params["sugarmodule"]))
 	$sugarmodule = $Params["sugarmodule"];
 else
-   $sugarmodule="test_Hotel";
+   $sugarmodule="otcp_room";
    
 if(isset($Params["sugarid"]))
    $sugarid = $Params["sugarid"];
 else
-   $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650";
+   $sugarid="25cc743a-df11-c88c-8e0f-4f3405904130";
 
+// $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650";
+   
 $notice = null;
 $result = null;
 $continue = false;
 $logger = owLogger::CreateForAdd("var/log/sugarCrm_import.log");
-
 
 if( is_null($sugarmodule) or is_null($sugarid) )
 {
@@ -23,7 +24,7 @@ if( is_null($sugarmodule) or is_null($sugarid) )
 }
 else
 {  
-	eZDebug::writeNotice("Sugar Module : ". $sugarmodule);
+	eZDebug::writeNotice("Sugar Module : ". $sugarmodule); 
 	eZDebug::writeNotice("Sugar Identifiant : ". $sugarid);
 	
 	// initialise les tableaux $ez_properties et $sugar_properties
@@ -59,6 +60,8 @@ else
 			
 	if( is_array($sugar_attributes) and is_array($class_attributes) )
 		$continue = true;
+	else
+		$notice['SugarSynchro.log'] = SugarSynchro::lastLogContent();
 	
 	if($continue)
 	{
@@ -69,90 +72,102 @@ else
 		
 		// nouvelle instance de owObjectsMaster()
 		$objectsMaster = owObjectsMaster::instance($ez_properties);
-		
-		$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
-		if(!$ezclassID)
+		if( !is_object($objectsMaster) )
 		{
-			// debug notice
-			eZDebug::writeNotice("class de contenu EZ " . $class_identifier . " non trouvé.\n Procede à la creation de la class.");
-			
-			// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			// CRÉE UNE NOUVELLE CLASS EZ ***
-			// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			
-			// reinsegne la propriété 'class_object_name' si un modele utilisable existe
-			if( array_key_exists('name', $class_attributes) )
-				$ez_properties['class_object_name'] = "name";
-			else
-			{
-				$ezstringsattr = array();
-				foreach( $class_attributes as $key => $attr )
-				{
-					if( $attr['datatype'] == "ezstring" )
-						$ezstringsattr[] = $key;
-				}
-				
-				if(count($ezstringsattr) > 0)
-					$ez_properties['class_object_name'] = $ezstringsattr[0];
-			}
-			
-			$objectsMaster->setProperty('class_object_name',$ez_properties['class_object_name']);
-			
-			//debug notice
-			$notice['objectsMaster->getProperties()'] = $objectsMaster->getProperties();
-			
-			// crée la nouvelle class de contenu EZ
-			$createClass = $objectsMaster->createClassEz($ez_properties);
-			if($createClass)
-			{
-				$result[] = "La class " . $class_identifier . " a été creé avec succes!";
-				// get de l'id de la class crée
-				$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
-				// reinsegne la propriété 'class_id'
-				$ez_properties['class_id'] = $ezclassID;
-				// continue l'execution du script
-				$continue = true;
-				//$continue = false;
-			}	
-			else
-				$result['createClassEz()'] = $createClass;
+			$notice['owObjectsMaster.log'] = owObjectsMaster::lastLogContent();
+			$continue = false;
 		}
 		else
-		{	
-			// debug notice
-			eZDebug::writeNotice("ezclassID : ". $ezclassID);
-			
-			// reinsegne la propriété 'class_id'
-			$ez_properties['class_id'] = $ezclassID;
-			
-			// verifie si la strucuture du model SUGAR n'a pas changé
-			$verif  = $sugarSynchro->verifyClassAttributes($ez_properties);
-			if(!$verif)
-				$continue = false;
-			elseif( is_array($verif) )
+		{
+			$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
+			if(!$ezclassID)
 			{
-				// OPTION 1 : si un attribute SUGAR n'existe pas chez EZ on ne met pas à jour l'objet
-				// et on log les divergences. @TODO : anvoyer un mail d'alerte
-				$result['verifyClassAttributes'] = "ERROR : il y a des divergences entre les attributes de la class EZ et SUGAR";
-				$result['attributes_not_founds'] = $verif;
-				$continue = false;
+				// debug notice
+				eZDebug::writeNotice("class de contenu EZ " . $class_identifier . " non trouvé.\n Procede à la creation de la class.");
 				
-				// OPTION 2 : si un attribute SUGAR n'existe pas chez EZ on le crée
-				/*$objectsMaster->setProperty('class_id',$ezclassID);
-				foreach($verif as $attr)
+				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				// CRÉE UNE NOUVELLE CLASS EZ ***
+				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				
+				// reinsegne la propriété 'class_object_name' si un modele utilisable existe
+				if( array_key_exists('name', $class_attributes) )
+					$ez_properties['class_object_name'] = "name";
+				else
 				{
-					$newattr[] = $objectsMaster->createClassAttribute($attr);
-					$result[] = "nouveu attribut avec identifier " . $attr['identifier'] . " crée pou la class " . $ez_properties['class_identifier'];
+					$ezstringsattr = array();
+					foreach( $class_attributes as $key => $attr )
+					{
+						if( $attr['datatype'] == "ezstring" )
+							$ezstringsattr[] = $key;
+					}
+					
+					if(count($ezstringsattr) > 0)
+						$ez_properties['class_object_name'] = $ezstringsattr[0];
 				}
 				
-				$continue = true;*/
+				$objectsMaster->setProperty('class_object_name',$ez_properties['class_object_name']);
+				
+				//debug notice
+				$notice['objectsMaster->getProperties()'] = $objectsMaster->getProperties();
+				
+				// crée la nouvelle class de contenu EZ
+				$createClass = $objectsMaster->createClassEz($ez_properties);
+				if($createClass)
+				{
+					$result[] = "La class " . $class_identifier . " a été creé avec succes!";
+					// get de l'id de la class crée
+					$ezclassID = eZContentClass::classIDByIdentifier($class_identifier);
+					// reinsegne la propriété 'class_id'
+					$ez_properties['class_id'] = $ezclassID;
+					// continue l'execution du script
+					$continue = true;
+				}	
+				else
+				{
+					$notice['owObjectsMaster.log'] = owObjectsMaster::lastLogContent();
+					$result['createClassEz()'] = $createClass;
+					$continue = false;
+				}
+					
 			}
 			else
-			{
-				// continue l'execution du script
-				$continue = true;
+			{	
+				// debug notice
+				eZDebug::writeNotice("ezclassID : ". $ezclassID);
+				
+				// reinsegne la propriété 'class_id'
+				$ez_properties['class_id'] = $ezclassID;
+				
+				// verifie si la strucuture du model SUGAR n'a pas changé
+				$verif  = $sugarSynchro->verifyClassAttributes($ez_properties);
+				if(!$verif)
+					$continue = false;
+				elseif( is_array($verif) )
+				{
+					// OPTION 1 : si un attribute SUGAR n'existe pas chez EZ on ne met pas à jour l'objet
+					// et on log les divergences. @TODO : anvoyer un mail d'alerte
+					$result['verifyClassAttributes'] = "ERROR : il y a des divergences entre les attributes de la class EZ et SUGAR";
+					$result['attributes_not_founds'] = $verif;
+					$continue = false;
+					
+					// OPTION 2 : si un attribute SUGAR n'existe pas chez EZ on le crée
+					/*$objectsMaster->setProperty('class_id',$ezclassID);
+					foreach($verif as $attr)
+					{
+						$newattr[] = $objectsMaster->createClassAttribute($attr);
+						$result[] = "nouveu attribut avec identifier " . $attr['identifier'] . " crée pou la class " . $ez_properties['class_identifier'];
+					}
+					
+					$continue = true;*/
+				}
+				else
+				{
+					// continue l'execution du script
+					$continue = true;
+				}
 			}
 		}
+		
 	}
 	
 	if($continue)
@@ -176,61 +191,79 @@ else
 			$result[] = "\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes_values) return false !!!";
 		
 		if( !$sugar_attributes_values  or !$object_attributes )
+		{
+			$notice['SugarSynchro.log'] = SugarSynchro::lastLogContent();
 			$continue = false;
+		}
+			
 			
 		if( $continue )
 		{
 			$ez_properties['object_attributes'] = $object_attributes;
 			
 			// si $objectsMaster n'existe pas on crée une nouvelle instance
-			if(!isset($objectsMaster))			
+			if(!isset($objectsMaster))
+			{
 				// nouvelle instance de owObjectsMaster()
 				$objectsMaster = owObjectsMaster::instance($ez_properties);
+				if( !is_object($objectsMaster) )
+				{
+					$notice['owObjectsMaster.log'] = owObjectsMaster::lastLogContent();
+					$continue = false;
+				}
+			}
 			else
 				$objectsMaster->setProperties($ez_properties);
 			
-				
-			$object = eZContentObject::fetchByRemoteID( $remoteID );
-			if( !$object )
+			if($continue)
 			{
-				// debug notice
-				eZDebug::writeNotice("remote ID " . $remoteID . " non trouvé.\n Procede à la creation de l'objet.");
-				//debug notice
-				$notice['objectsMaster->getProperties()'] = $objectsMaster->getProperties();
-				
-				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				// CRÉE UN NOUVEAU OBJET EZ ***
-				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				
-				// crée un nouveau objet de contenu EZ
-				$createObject = $objectsMaster->createObjectEz();
-				
-				if($createObject)
-					$result[] = "L'objet avec remote_id " . $remoteID . " a été creé avec succes!";
+				$object = eZContentObject::fetchByRemoteID( $remoteID );
+				if( !$object )
+				{
+					// debug notice
+					eZDebug::writeNotice("remote ID " . $remoteID . " non trouvé.\n Procede à la creation de l'objet.");
+					//debug notice
+					$notice['objectsMaster->getProperties()'] = $objectsMaster->getProperties();
+					
+					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					// CRÉE UN NOUVEAU OBJET EZ ***
+					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					
+					// crée un nouveau objet de contenu EZ
+					$createObject = $objectsMaster->createObjectEz();
+					
+					if($createObject)
+						$result[] = "L'objet avec remote_id " . $remoteID . " a été creé avec succes!";
+					else
+					{
+						$notice['owObjectsMaster.log'] = owObjectsMaster::lastLogContent();
+						$result['createObjectEz()'] = $createObject;
+					}
+						
+				}
 				else
-					$result['createObjectEz()'] = $createObject;
+				{
+					// debug notice
+					eZDebug::writeNotice("remote ID " . $remoteID . " trouvé.\n Procede à la mise à jour de l'objet.");
+					
+					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					// MET À JOUR L'OBJET EZ EXISTANT ***
+					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					
+					// reinsegne la propriété 'content_object'
+					$ez_properties['content_object'] = $object;
+					$objectsMaster->setProperties($ez_properties);
+					
+					//debug notice
+					$notice['objectsMaster->object_attributes'] = $objectsMaster->getProperty('object_attributes');
+					
+				    // met à jour l'objet EZ existant
+				    $updateObject = $objectsMaster->updateObjectEz();
+				    
+				    $result['updateObjectEz()'] = $updateObject;
+				}
 			}
-			else
-			{
-				// debug notice
-				eZDebug::writeNotice("remote ID " . $remoteID . " trouvé.\n Procede à la mise à jour de l'objet.");
 				
-				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				// MET À JOUR L'OBJET EZ EXISTANT ***
-				// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				
-				// reinsegne la propriété 'content_object'
-				$ez_properties['content_object'] = $object;
-				$objectsMaster->setProperties($ez_properties);
-				
-				//debug notice
-				$notice['objectsMaster->object_attributes'] = $objectsMaster->getProperty('object_attributes');
-				
-			    // met à jour l'objet EZ existant
-			    $updateObject = $objectsMaster->updateObjectEz();
-			    
-			    $result['updateObjectEz()'] = $updateObject;
-			}
 		}
 	}
 	
