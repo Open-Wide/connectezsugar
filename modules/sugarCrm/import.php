@@ -145,7 +145,7 @@ else
 				elseif( is_array($verif) )
 				{
 					// OPTION 1 : si un attribute SUGAR n'existe pas chez EZ on ne met pas à jour l'objet
-					// et on log les divergences. @TODO : anvoyer un mail d'alerte
+					// et on log les divergences. @TODO : envoyer un mail d'alerte
 					$result['verifyClassAttributes'] = "ERROR : il y a des divergences entre les attributes de la class EZ et SUGAR";
 					$result['attributes_not_founds'] = $verif;
 					$continue = false;

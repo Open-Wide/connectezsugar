@@ -433,7 +433,7 @@ class SugarSynchro
 		else
 		{
 			$error = self::MAPPINGINIFILE . " IN " . self::INIPATH . " NON TROUVÉ !";
-			self::$logger->writeTimedString("Erreur checkMappingForModule() : " . $error);
+			self::$logger->writeTimedString("Erreur getMappingDataForModule() : " . $error);
 			$this->mappingdata = false;
 			return false;
 		}
@@ -441,12 +441,12 @@ class SugarSynchro
 	
 	
 	
-	protected function testForMapping()
+	protected function testForMapping($module_name = null)
 	{
 		if(is_array($this->mappingdata) and  count($this->mappingdata) == 0)
 		{
 			//echo("rentre ici ");
-			$testmapping = $this->getMappingDataForModule();
+			$testmapping = $this->getMappingDataForModule($module_name);
 			//var_dump($testmapping);
 		}
 		else
@@ -511,8 +511,7 @@ class SugarSynchro
 		return true;
 	}
 	
-	/*
-	 * @TODO : check for datatype !!!
+	/* 
 	 * definie un element du tableau $this->properties['sugar_attributes']
 	 * avec les donnée d'un champ de module SUGAR
 	 * formaté pour être enregistré sous EZ
@@ -607,7 +606,7 @@ class SugarSynchro
 	
 	/*
 	 * synchronizeFieldsValues
-	 * @ TODO : rendre parametrable la normalisation des identifiers EZ (true/false)
+	 * 
 	 * @param $input_array array
 	 * @return $output_array array OR false
 	 */
@@ -632,21 +631,14 @@ class SugarSynchro
 		// init $output_array
 		$output_array = array();
 		
-		// si un mapping existe pour le module on le recupere
-		if( !isset($this->properties['sugarez']) )
-			$check_map =  $this->checkMappingForModule($this->properties['sugar_module']);
-		else
-			$check_map = true;
-		
+		// si un mapping de correspondences de noms d'attributes existe pour le module on le recupere et
 		// construit le tableau de sortie en nommant les attributs selon le mapping
-		if($check_map)
+		if($this->checkMappingForModule($this->properties['sugar_module']))
 		{
-			// @TODO : rendre parametrables le noms des variables du fichier ini ('sugarez','exclude_fields')
-			// @TODO : rajouter 'exclude_fields'
 			foreach( $input_array as $name => $values )
 			{
-				if(isset($this->properties['sugarez'][$name]))
-					$attr_identifier = $this->properties['sugarez'][$name];
+				if(isset($this->mappingdata['sugarez'][$name]))
+					$attr_identifier = $this->mappingdata['sugarez'][$name];
 				// OPTION 2 : ne change pas l'identifier de l'attribut
 				else
 					$attr_identifier = $name;
@@ -671,41 +663,17 @@ class SugarSynchro
 	}
 	
 	/*
-	 * @TODO : rendre parametrables les noms des variables du fichier ini ('sugarez','exclude_fields')
-	 * @TODO : rajouter 'exclude_fields' (specifique au module SUGAR concerné)
+	 * Verifie si un mapping de correspondences de noms d'attributes existe pour le module
 	 */
-	public function checkMappingForModule($module_name)
+	protected function checkMappingForModule($module_name)
 	{
-		// verifie si self::MAPPINGINIFILE existe dans self::INIPATH
-	   	$initest = eZINI::exists(self::MAPPINGINIFILE, self::INIPATH);
-		if($initest)
-		{
-			$inimap = eZINI::instance(self::MAPPINGINIFILE, self::INIPATH);
-			
-			if( !$inimap->hasGroup($module_name) )
-				return false;
-			
-			// sugarez[]
-			$sugarez = $inimap->variable($module_name, "sugarez");
-			
-			if( !$sugarez )
-			{
-				$notice = "block " . $module_name . " trouvé mais pas de tableau sugarez[] trouvé !";
-				self::$logger->writeTimedString("Notice checkMappingForModule() : " . $notice);
-				return false;
-			}
-
-			$this->properties['sugarez'] = $sugarez;
-			
+		$testmapping = $this->testForMapping($module_name);
+		
+		if( $testmapping && isset($this->mappingdata['sugarez']) && is_array($this->mappingdata['sugarez']) && count($this->mappingdata['sugarez']) > 0 )
 			return true;
-			
-		}
 		else
-		{
-			$error = self::MAPPINGINIFILE . " IN " . self::INIPATH . " NON TROUVÉ !";
-			self::$logger->writeTimedString("Erreur checkMappingForModule() : " . $error);
 			return false;
-		}
+		
 	}
 	
 	
