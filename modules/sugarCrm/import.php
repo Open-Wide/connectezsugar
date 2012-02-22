@@ -15,7 +15,7 @@ else
    
 $notice = null;
 $result = null;
-$continue = false;
+$continue = true;
 $logger = owLogger::CreateForAdd("var/log/sugarCrm_import.log");
 
 if( is_null($sugarmodule) or is_null($sugarid) )
@@ -33,35 +33,48 @@ else
 	
 	// instance de la class SugarSynchro
 	$sugarSynchro = SugarSynchro::instance();
-	
-	// definie le nom de la class EZ
-	$class_name = $sugarSynchro->defClassName($sugarmodule);
-	// definie l'identifier de la class EZ
-	$class_identifier = $sugarSynchro->defClassIdentifier($sugarmodule);
-	
-	// reinsegne la propriété 'class_name' 'class_identifier'
-	$ez_properties['class_name'] = $class_name;
-	$ez_properties['class_identifier'] = $class_identifier;
-	
-	// reinsegne la propriété 'sugar_module'
-	$sugar_properties['sugar_module'] = $sugarmodule;
-	
-	// get des attributes de la table sugar à synchroniser
-	// ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'Attr 1', 'datatype' => 'ezstring', 'required' => 1 ),
-	//									'attr_2' => array( 'name' => 'Attr 2', 'datatype' => 'eztext', 'required' => 0 ) );
-	$sugar_attributes = $sugarSynchro->getSugarFields($sugar_properties);
-	if(!$sugar_attributes)
-		$result[] = "\$sugarSynchro->getSugarFields(\$sugar_properties) return false !!!";
-	
-	// reinsegne la propriété 'class_attributes' après avoir normalisé les identifiants
-	$class_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes);
-	if(!$class_attributes)
-		$result[] = "\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes) return false !!!";
-			
-	if( is_array($sugar_attributes) and is_array($class_attributes) )
-		$continue = true;
-	else
+	if( !is_object($sugarSynchro) )
+	{
 		$notice['SugarSynchro.log'] = SugarSynchro::lastLogContent();
+		$continue = false;
+	}
+	
+	if($continue)
+	{
+		// definie le nom de la class EZ
+		$class_name = $sugarSynchro->defClassName($sugarmodule);
+		// definie l'identifier de la class EZ
+		$class_identifier = $sugarSynchro->defClassIdentifier($sugarmodule);
+		
+		// reinsegne la propriété 'class_name' 'class_identifier'
+		$ez_properties['class_name'] = $class_name;
+		$ez_properties['class_identifier'] = $class_identifier;
+		
+		// reinsegne la propriété 'sugar_module'
+		$sugar_properties['sugar_module'] = $sugarmodule;
+		
+		// get des attributes de la table sugar à synchroniser
+		// ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'Attr 1', 'datatype' => 'ezstring', 'required' => 1 ),
+		//									'attr_2' => array( 'name' => 'Attr 2', 'datatype' => 'eztext', 'required' => 0 ) );
+		$sugar_attributes = $sugarSynchro->getSugarFields($sugar_properties);
+		if(!$sugar_attributes)
+			$result[] = "\$sugarSynchro->getSugarFields(\$sugar_properties) return false !!!";
+		
+		// reinsegne la propriété 'class_attributes' après avoir normalisé les identifiants
+		$class_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes);
+		if(!$class_attributes)
+			$result[] = "\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes) return false !!!";
+				
+		if( is_array($sugar_attributes) and is_array($class_attributes) )
+			$continue = true;
+		else
+		{
+			$notice['SugarSynchro.log'] = SugarSynchro::lastLogContent();
+			$continue = false;
+		}
+			
+	}
+	
 	
 	if($continue)
 	{

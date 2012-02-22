@@ -1,5 +1,7 @@
 <?php
 
+include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
+
 class SugarSynchro
 {
 	/*
@@ -55,6 +57,14 @@ class SugarSynchro
 		// chercher une autre façon de stockage plus securisé ?
 		$instance->sugarConnector = new SugarConnector();
 		$instance->sugar_session = $instance->sugarConnector->login();
+		if( $instance->sugar_session === false )
+		{
+			$error = "instance() : sugarConnector->login() renvoie FALSE ! regarder le log SugarConnector.log";
+			self::$logger->writeTimedString($error);
+			$connector_error = "SugarConnector ERROR : " . $instance->sugarConnector->lastLogContent(true);
+			self::$logger->writeTimedString($connector_error);
+			return false;
+		}
 		
 		return $instance;
 	}
@@ -543,7 +553,24 @@ class SugarSynchro
 		}
 		
 		return true;
-	} 
+	}
+	
+	
+	/*
+	 * checkForConnectorErrors
+	 */
+	protected function checkForConnectorErrors($response, $queryname)
+	{
+		if( is_array($response) && isset($response['error']) && $response['error']['number'] != "0" )
+		{
+			$connector_error = "SugarConnector ERROR : $queryname : " . $this->sugarConnector->lastLogContent(true);
+			self::$logger->writeTimedString($connector_error);
+			return true;
+		}
+		
+		return false;
+	}
+	
 	
 	/*
 	 * fait une requete pour obtenir les champs d'un module SUGAR,
@@ -561,7 +588,11 @@ class SugarSynchro
 			return false;
 		
 		$sugardata = $this->sugarConnector->get_module_fields($this->properties['sugar_module']);
-		$module_fields = $sugardata['module_fields'];
+
+		if( $this->checkForConnectorErrors($sugardata, 'get_module_fields') )
+			return false;
+		
+		$module_fields = $sugardata['data'];
 		$this->properties['sugar_module_fields'] = $module_fields;
 		
 		// filtre les champs selon la configuration general et specifique au module
@@ -577,6 +608,7 @@ class SugarSynchro
 		
 	}
 	
+	
 	/*
 	 * ex.: $attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
 	 */
@@ -590,7 +622,10 @@ class SugarSynchro
 		$select_fields = array_keys($this->properties['sugar_attributes']);
 		$sugardata = $this->sugarConnector->get_entry($this->properties['sugar_module'], $this->properties['sugar_id'], $select_fields);
 		
-		$entry_list = $sugardata['entry_list'];
+		if( $this->checkForConnectorErrors($sugardata, 'get_entry') )
+			return false;
+		
+		$entry_list = $sugardata['data'];
 		$name_value_list = $entry_list[0]['name_value_list'];
 		
 		$attributes_values = array();

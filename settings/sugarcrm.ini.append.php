@@ -1,9 +1,11 @@
 <?php /*
 
 [connexion]
+#ServerUrl=nimportequoi.openwidesi-vm-recettephp.accelance.net
 ServerUrl=otcp_crm.openwidesi-vm-recettephp.accelance.net
 ServerPath=/soap.php
 ServerNamespace=http://www.sugarcrm.com/sugarcrm
+#ServerNamespace=http://www.sugarcrm.com/sugarcrm
 login=admin
 password=password
 

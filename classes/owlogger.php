@@ -55,7 +55,7 @@ class owLogger
     }
 
     
-	function getLogContentFromCurrentStartTime($withTimeKey = false)
+	function getLogContentFromCurrentStartTime($asString = false, $withTimeKey = false)
 	{
 		if( $this->fileName )
 		{
@@ -65,7 +65,8 @@ class owLogger
 			
 			$lastLogContent = substr($fileContent,$pos);
 			
-			//return $lastLogContent;
+			if($asString)
+				return $lastLogContent;
 			
 			$datepart = substr($this->currentStartTime,0,10); //var_dump($datepart);
 			$logArray = explode($datepart, $lastLogContent);

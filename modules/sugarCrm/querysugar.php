@@ -1,5 +1,6 @@
 <?php
 include_once( 'kernel/common/template.php' );
+include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
 if (isset ($Params["query"]))
    $query = $Params["query"];
@@ -14,8 +15,9 @@ else
 if (isset ($Params["sugarid"]))
    $sugarid = $Params["sugarid"];
 else
-   $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650";
+   $sugarid="25cc743a-df11-c88c-8e0f-4f3405904130";
 
+// $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650";
 
 eZDebug::writeNotice("Query : " . $query);
 eZDebug::writeNotice("Sugar Module : " . $sugarmodule); 
@@ -28,8 +30,11 @@ $notice = null;
 
 // connexion à SUGAR
 $sugarConnector=new SugarConnector();
-$connection=$sugarConnector->login();
-
+$connection=$sugarConnector->login(); //evd($connection);
+if( $connection === false )
+{
+	$notice = $sugarConnector->lastLogContent(true);
+}
 
 switch($query)
 {
@@ -40,7 +45,7 @@ switch($query)
 	case "get_module_fields" :
 		$notice = $sugarmodule;
 		$sugardata = $sugarConnector->get_module_fields($sugarmodule);
-		$result = $sugardata['module_fields'];
+		$result = $sugardata;
 		break;
 	case "get_entry_list" :
 		$notice = $sugarmodule;
@@ -53,7 +58,12 @@ switch($query)
 		$sugardata = $sugarConnector->get_entry($sugarmodule,$sugarid);
 		$result = $sugardata;
 		break;
+	default :
+		$result = "I don't know query : " . $query . ", de type : " . gettype($query);
+		break;
 }
+
+
 
 
 
