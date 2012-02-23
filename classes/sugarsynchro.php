@@ -105,8 +105,7 @@ class SugarSynchro
 		self::$properties_list = $properties_list;
 		
 		// parameters_per_function *** 
-		$parameters_per_function = array(	'getSugarFields' 		=> array(	'sugar_module' 	=> true
-																		),
+		$parameters_per_function = array(	'getSugarFields' 		=> array(	'sugar_module' 	=> true ),
 											'getSugarFieldsValues' => array(	'sugar_module' 		=> true,
 																				'sugar_id'			=> true,
 																				'sugar_attributes' 	=> true
@@ -116,7 +115,8 @@ class SugarSynchro
 											'verifyClassAttributes' => array(	'class_id' 			=> true,
 																				'class_attributes' 	=> true,
 																				'sugar_module'		=> true
-																		)
+																		),
+											'getSugarModuleEntryList' => array(	'sugar_module' 	=> true),
 										);
 		self::$parameters_per_function = $parameters_per_function;
 		
@@ -381,21 +381,15 @@ class SugarSynchro
 	/*
 	 * get du mapping specifique au module
 	 */
-	public function getMappingDataForModule($module_name = null)
+	public function getMappingDataForModule($args = null)
 	{
-		if( is_null($module_name)  )
-		{
-			if( isset($this->properties['sugar_module']) )
-				$module_name = $this->properties['sugar_module'];
-			else
-			{
-				$error = "ni le parametre \$module_name, ni \$this->properties['sugar_module'] sont reisegnés !";
-				self::$logger->writeTimedString("Erreur getMappingDataForModule() : " . $error);
-				$this->mappingdata = false;
-				return false;
-			}
-		}
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("getSugarFields", $args);
+		if(!$verify)
+			return false;
 		
+		$module_name = $this->properties['sugar_module'];
+			
 		// verifie si self::MAPPINGINIFILE existe dans self::INIPATH
 	   	$initest = eZINI::exists(self::MAPPINGINIFILE, self::INIPATH);
 		if($initest)
@@ -560,7 +554,7 @@ class SugarSynchro
 	/*
 	 * checkForConnectorErrors
 	 */
-	protected function checkForConnectorErrors($response, $queryname)
+	public function checkForConnectorErrors($response, $queryname)
 	{
 		if( is_array($response) && isset($response['error']) && $response['error']['number'] !== "0" )
 		{
@@ -570,6 +564,27 @@ class SugarSynchro
 		}
 		
 		return false;
+	}
+	
+	/*
+	 * 
+	 */
+	public function getSugarModuleEntryList($args = null)
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("getSugarFields", $args);
+		if(!$verify)
+			return false;
+
+		$sugardata = $this->sugarConnector->get_entry_list($this->properties['sugar_module']);
+		
+		if( $this->checkForConnectorErrors($sugardata, 'get_entry_list') )
+			return false;
+			
+		$entry_list = $sugardata['data'];
+		
+		return $entry_list;
+		
 	}
 	
 	

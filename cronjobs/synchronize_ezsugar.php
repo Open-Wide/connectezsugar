@@ -211,8 +211,20 @@ foreach($modules_list as $sugarmodule)
 	
 	if($continue)
 	{
-		$get_entry_list = $sugarConnector->get_entry_list($sugar_properties['sugar_module']);
-		$entry_list = $get_entry_list['data'];
+		$entry_list = $sugarSynchro->getSugarModuleEntryList();
+		
+		if( !$entry_list )
+		{
+			$cli->error("SugarConnector ERROR : ");
+			$cli->warning("SugarSynchro.log : ");
+			$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
+			$continue = false;
+		}
+	}
+	
+	
+	if($continue)
+	{
 		$objects_count[$sugar_properties['sugar_module']] = count($entry_list);
 		
 		foreach($entry_list as $entry)
