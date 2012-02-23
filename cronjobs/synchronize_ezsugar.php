@@ -5,6 +5,8 @@ Cronjob pour la synchronisation des objets EZ depuis SUGAR
 @author Pasquesi Massimiliano <massipasquesi@gmail.com>
 */
 
+include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
+
 // fonction pour afficher les variable en console
 function show($var)
 {
@@ -39,7 +41,7 @@ $connection=$sugarConnector->login();
  
 
 
-// module SUGAR
+// modules SUGAR à synchroniser
 $modules_list = SugarSynchro::getModuleListToSynchro();
 
 foreach($modules_list as $sugarmodule)
@@ -81,6 +83,7 @@ foreach($modules_list as $sugarmodule)
 	{
 		$cli->warning("SugarSynchro.log");
 		$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
+		$continue = false;
 	}
 	
 	
@@ -205,10 +208,11 @@ foreach($modules_list as $sugarmodule)
 		}
 	}
 	
+	
 	if($continue)
 	{
 		$get_entry_list = $sugarConnector->get_entry_list($sugar_properties['sugar_module']);
-		$entry_list = $get_entry_list['entry_list'];
+		$entry_list = $get_entry_list['data'];
 		$objects_count[$sugar_properties['sugar_module']] = count($entry_list);
 		
 		foreach($entry_list as $entry)

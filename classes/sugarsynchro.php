@@ -425,8 +425,9 @@ class SugarSynchro
 			{
 				if( !$var )
 				{
-					$notice = "Pour le module " . $module_name . " la variable " . $k . ", n'est pas definie !";
-					self::$logger->writeTimedString("Notice getMappingDataForModule() : " . $notice);
+					// *** @TODO : si on veut avoir dans le log les avvertissement decommenter les deux lignes suivantes ***
+					//$notice = "Pour le module " . $module_name . " la variable " . $k . ", n'est pas definie !";
+					//self::$logger->writeTimedString("Notice getMappingDataForModule() : " . $notice);
 					$wrn++;
 				}
 			}
@@ -561,7 +562,7 @@ class SugarSynchro
 	 */
 	protected function checkForConnectorErrors($response, $queryname)
 	{
-		if( is_array($response) && isset($response['error']) && $response['error']['number'] != "0" )
+		if( is_array($response) && isset($response['error']) && $response['error']['number'] !== "0" )
 		{
 			$connector_error = "SugarConnector ERROR : $queryname : " . $this->sugarConnector->lastLogContent(true);
 			self::$logger->writeTimedString($connector_error);
@@ -602,7 +603,6 @@ class SugarSynchro
 			//exit(var_dump(self::$logger->getLogContentFromCurrentStartTime()));
 			return false;
 		}
-			
 		
 		return $this->properties['sugar_attributes'];
 		
@@ -625,8 +625,7 @@ class SugarSynchro
 		if( $this->checkForConnectorErrors($sugardata, 'get_entry') )
 			return false;
 		
-		$entry_list = $sugardata['data'];
-		$name_value_list = $entry_list[0]['name_value_list'];
+		$name_value_list = $sugardata['data'];
 		
 		$attributes_values = array();
 		foreach($name_value_list as $item)

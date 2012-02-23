@@ -6,19 +6,96 @@ class SugarConnector
 {
 	const LOGFILE = "var/log/SugarConnector.log";
 	
+	private static $definition = array();
+	private static $properties_list;
+	private static $inidata_list;
+	private static $query_standard_return;
+	
     private $client;
     private $session;
     private $serverNamespace;
     private $login;
     private $password;
-	private $logger;
+	protected $logger;
     
+	
+	public static function definition()
+	{
+		// inidata_list ***
+		$inidata_list = array(	'serverUrl'			=> array( 'block' => "connexion", 'var' => "ServerUrl" ),
+								'$serverPath'		=> array( 'block' => "connexion", 'var' => "ServerPath" ),
+								'serverNamespace'	=> array( 'block' => "connexion", 'var' => "ServerNamespace" ),
+								'login'				=> array( 'block' => "connexion", 'var' => "login" ),
+								'password'			=> array( 'block' => "connexion", 'var' => "password" )
+							); 
+		self::$inidata_list = $inidata_list;
+		
+		// properties_list ***
+		$properties_list = array(	'client',
+									'session',
+									'serverNamespace',
+									'login',
+									'password',
+									'logger'
+								);
+		self::$properties_list = $properties_list;
+		
+		// query_standard_return
+		$query_standard_return = array( 'get_available_modules' => array( 'data' => 'modules' ),
+										'get_module_fields' 	=> array( 'data' => 'module_fields' ),
+										'get_entry_list' 		=> array( 'data' => 'entry_list' ),
+										'get_entry'	=> array( 	'data' 				=> array( 'entry_list',0,'name_value_list'),
+																'checkForWarning' 	=> array( 	'check'		=> array( 	'who' => 'field_list',
+																														'what' => 'count==0' ),
+																								'where'		=> array( 'entry_list',0,'name_value_list',0,'name'),
+																								'warning'	=> array('entry_list',0,'name_value_list',0),
+																							),
+															),
+										
+									);
+		self::$query_standard_return = $query_standard_return;
+		
+		
+		// tableau complet *******
+		$definition = array('properties_list' => $properties_list,
+							//'parameters_per_function' => $parameters_per_function,
+							'inidata_list' => $inidata_list
+							);
+		self::$definition = $definition;
+										
+		return $definition;
+	}
+	
+	
+	/*
+     * prend en parametre un tableau $array à creuser
+     * en passant par le chemin indiqué par le tableau $way
+     * $way doit être un tableau ou les elements sont, dans l'ordre, les niveau(nom de clé) à descendre dans le tableau $array
+     * 
+     * @param $array array
+     * @param $way array
+     */
+    public static function arrayDig($array,$way)
+    {
+    	$loop = $array;
+		for( $i=0; $i<count($way); $i++ )
+		{
+			$loop = $loop[$way[$i]];
+		}
+		
+		$result = $loop;
+		
+		return $result;
+    }
+	
 	
 	/*
 	 * CONSTRUCTEUR
 	 */
     function SugarConnector()
     {
+    	self::definition();
+    	
         $ini = eZINI::instance("sugarcrm.ini");
         $serverUrl = $ini->variable("connexion", "ServerUrl");
         $serverPath = $ini->variable("connexion", "ServerPath");
@@ -31,6 +108,7 @@ class SugarConnector
         $this->client = new eZSOAPClient($serverUrl,$serverPath);
         
         $this->logger = owLogger::CreateForAdd(self::LOGFILE);
+        
     }
 
     
@@ -109,6 +187,7 @@ class SugarConnector
     			$this->logger->writeTimedString($errorDetails);
     		}
     		
+    		// return "ERROR" ????
     		return true;
     	}
     	
@@ -140,12 +219,87 @@ class SugarConnector
     }
     
     
-	protected function standardFunctionReturn($result, $queryname, $dataname)
+    protected function findWarning($result, $warninginfos)
     {
-    	if( $this->checkForErrors($result, $queryname) )
-			return array('error' => $result['error']);
+    	$where = $warninginfos['where'];
+    	
+    	if( is_array($where) )
+			$wheredata = self::arrayDig($result,$where);
+		else
+			$wheredata = $result[$where];
 			
-		return array( 'data' => $result[$dataname]);
+		if( $wheredata == 'warning' )
+			return self::arrayDig( $result, $warninginfos['warning'] );
+		else
+			return false;
+    }
+    
+    
+	protected function checkForWarning($result, $warninginfos)
+    {
+    	$who = $warninginfos['check']['who'];
+    	$what = $warninginfos['check']['what'];
+    	
+    	switch( $what )
+    	{
+    		case "count==0" :
+    			if( count($result[$who]) == 0 )
+    				$warning = $this->findWarning($result, $warninginfos);
+    			else
+    				$warning = false;
+    			break;
+    			
+    		default :
+    			$warning = false;
+    			break;
+    	}
+
+    	return $warning;
+		
+    }
+    
+    
+    protected function writeWarningInError($result, $warning)
+    {
+    	$result['error'] = array('number' => "99", 'name' => $warning['name'], 'description' => $warning['value']);
+    	
+    	return $result;
+    }
+    
+    
+	protected function standardQueryReturn($result, $queryname)
+    {
+    	if( !isset(self::$query_standard_return[$queryname]) )
+    	{
+    		$alert = "ALERTE : standardQueryReturn() : $queryname non trouvé dans self::\$query_standard_return !!!";
+    		$this->logger->writeTimedString($alert);
+    		return $result;
+    	}
+    	
+    	$queryinfos = self::$query_standard_return[$queryname];
+    	
+    	if( $this->checkForErrors($result, $queryname) )
+			return array('error' => $result['error']); // return "ERROR" ????
+		
+			
+		if( isset($queryinfos['checkForWarning']) )
+		{
+			$warning = $this->checkForWarning($result, $queryinfos['checkForWarning']);
+			if( $warning !== false )
+			{
+				$result = $this->writeWarningInError($result,$warning);
+				$this->checkForErrors($result, $queryname);
+				return array('error' => $result['error']);
+			}
+		}
+
+		if( is_array($queryinfos['data']) )
+			$resultdata = self::arrayDig($result,$queryinfos['data']);
+		else
+			$resultdata = $result[$queryinfos['data']];
+		
+			
+		return array( 'data' => $resultdata);
     }
     
     
@@ -162,11 +316,17 @@ class SugarConnector
         $request->addParameter('deleted',$deleted);
         
         $reponse = $this->client->send($request);
-        return $reponse->Value;
+        $result = $reponse->Value;
+        
+        return $this->standardQueryReturn($result, "get_entry_list");
     }
 
-    function get_entry($module,$id,$select_fields=array(), $warning=false)
-    {     
+    function get_entry($module,$id,$select_fields=array())
+    {
+    	// si $select_fields est definie on rajoute le champs warning
+    	// autrement on ne voit pas l'erreur !
+    	if( count($select_fields) > 0 )
+			$select_fields[] = "warning";
     	
         $request = new eZSOAPRequest("get_entry", $this->serverNamespace);
         $request->addParameter('session',$this->session);
@@ -175,42 +335,12 @@ class SugarConnector
         $request->addParameter('select_fields',$select_fields);
         
         $reponse = $this->client->send($request);
-        $result = $reponse->Value; 
+        $result = $reponse->Value;
         
-        //return $result;
-        
-        $name_value_list = $result['entry_list'][0]['name_value_list'];
-        
-        //return $name_value_list;
-        
-        if( count($result['field_list']) == 0 and !$warning )
-        {
-        	$checkWarning = $this->checkWarning($module,$id);
-        	
-        	if( $checkWarning !== false )
-        		return $this->standardFunctionReturn($checkWarning, "get_entry", "data");
-        }
-        
-        
-        return $this->standardFunctionReturn($result, "get_entry", "entry_list");
+        return $this->standardQueryReturn($result, "get_entry", "entry_list", true);
     }
     
-    function checkWarning($module,$id)
-    {
-    	$checkWarning = $this->get_entry($module, $id, array('warning'), true);
-    	$name_value_list = $checkWarning['data'][0]['name_value_list'];
-       	if( count($name_value_list) > 0 )
-       	{
-     		$warning = $name_value_list[0];
-     		
-     		$checkWarning['error'] = array('number' => "99", 'name' => $warning['name'], 'description' => $warning['value']);
-       		
-       		return $checkWarning;
-       	}	
-       	else
-       		return false;
-       		
-    }
+    
 
     function valid_contacts($login,$password) 
     {
@@ -228,7 +358,7 @@ class SugarConnector
     	$reponse = $this->client->send($request);
         $result =  $reponse->Value;
         
-        return $this->standardFunctionReturn($result, "get_module_fields", "module_fields");
+        return $this->standardQueryReturn($result, "get_module_fields");
 
     }
     
@@ -240,7 +370,7 @@ class SugarConnector
     	$reponse = $this->client->send($request);
         $result = $reponse->Value;
         
-        return $this->standardFunctionReturn($result, "get_available_modules", "modules");
+        return $this->standardQueryReturn($result, "get_available_modules");
     }
     
     

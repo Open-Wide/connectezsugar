@@ -51,7 +51,7 @@ switch($query)
 		$notice = $sugarmodule;
 		// get_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=999,$deleted=false)
 		$sugardata = $sugarConnector->get_entry_list($sugarmodule);
-		$result = $sugardata['entry_list'];
+		$result = $sugardata;
 		break;
 	case "get_entry" :
 		// get_entry($module,$id,$select_fields=array())
