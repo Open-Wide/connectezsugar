@@ -28,6 +28,5 @@ include_fields[]
 include_fields[]=name
 include_fields[]=description
 include_fields[]=room_nb
-include_fields[]=room_type
 
 */ ?>
