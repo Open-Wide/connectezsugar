@@ -59,7 +59,7 @@ foreach($modules_list as $sugarmodule)
 	$sugar_properties['sugar_module'] = $sugarmodule;
 	
 	// get du class_id
-	$classID = eZContentClass::classIDByIdentifier($identifier);
+	$classID = eZContentClass::classIDByIdentifier($class_identifier);
 	
 	// si la class existe on la supprime
 	if(!$classID)

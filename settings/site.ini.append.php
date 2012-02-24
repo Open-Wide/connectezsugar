@@ -12,5 +12,6 @@ PolicyOmitList[]=sugarCrm/synchro
 PolicyOmitList[]=sugarCrm/import
 PolicyOmitList[]=sugarCrm/cleanup
 PolicyOmitList[]=sugarCrm/querysugar
+PolicyOmitList[]=sugarCrm/updateclass
 
 */ ?>

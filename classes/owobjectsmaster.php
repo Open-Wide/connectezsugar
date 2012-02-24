@@ -633,6 +633,7 @@ class owObjectsMaster
 		
 		// id de la class
 		$ClassID = $newClass->ID;
+		$this->properties['class_id'] = $ClassID;
 		// version de la class
 		$ClassVersion = $newClass->attribute( 'version' );
 		
@@ -645,8 +646,11 @@ class owObjectsMaster
 		// $class_attributes[identifier(string)] = array( name=>(string),datatype=>(string),required=>(bool),[is_searchable=>(int),can_translate=>(int)] );
 		foreach( $this->properties['class_attributes'] as $identifier => $attrs )
 		{
+			
+			$this->createClassAttribute($attrs,$ClassVersion);
+			
 			// create attribute de type $attrs['datatype']
-			$new_attribute = eZContentClassAttribute::create( $ClassID, $attrs['datatype'] );
+			/*$new_attribute = eZContentClassAttribute::create( $ClassID, $attrs['datatype'] );
 			
 			// version
 			$new_attribute->setAttribute( 'version', $ClassVersion);
@@ -667,7 +671,7 @@ class owObjectsMaster
 			$dataType = $new_attribute->dataType();
 			$dataType->initializeClassAttribute( $new_attribute );
 			// store attribute
-			$new_attribute->store();
+			$new_attribute->store();*/
 		}
 		
 		return true;
@@ -683,7 +687,7 @@ class owObjectsMaster
 		if(!$verify)
 			return false;
 			
-		
+		$this->properties['class_attributes'];
 			
 	}
 	
@@ -693,10 +697,38 @@ class owObjectsMaster
 	 * 
 	 * @param $attr array('identifier','name','datatype','required','is_searchable'=1,'can_translate'=1)
 	 */
-	public function createClassAttribute($attr)
+	public function createClassAttribute($attr,$ClassVersion = 0)
 	{
+		// create attribute de type $attrs['datatype']
+		$new_attribute = eZContentClassAttribute::create( $this->properties['class_id'], $attr['datatype'] );
+		
+		// version
+		$new_attribute->setAttribute( 'version', $ClassVersion);
+		// name
+		$new_attribute->setAttribute( 'name', $attr['name'] );
+		// is_required
+		$new_attribute->setAttribute( 'is_required', $attr['required'] );
+		// is_searchable
+		$is_searchable = ( isset($attrs['is_searchable']) )? (int)$attr['is_searchable'] : (int)self::$inidata['DefaultIsSearchable'];
+		$new_attribute->setAttribute( 'is_searchable', $is_searchable );
+		// can_translate
+		$can_translate = ( isset($attrs['can_translate']) )? (int)$attr['can_translate'] : (int)self::$inidata['DefaultCanTranslate'];
+		$new_attribute->setAttribute( 'can_translate', $can_translate );
+		// identifier
+		$new_attribute->setAttribute( 'identifier', $attr['identifier'] );
+		
+		// initialise datatype
+		$dataType = $new_attribute->dataType();
+		$dataType->initializeClassAttribute( $new_attribute );
+		// store attribute
+		$new_attribute->store(); //evd($new_attribute);
+		
+		return $new_attribute;
+		
+		//***************************************************************************************************
+		
 		//exit(var_dump($this->properties));
-		$class = eZContentClass::fetch($this->properties['class_id']);
+		/*$class = eZContentClass::fetch($this->properties['class_id']);
 		
 		$new_attribute = eZContentClassAttribute::create( $this->properties['class_id'], $attr['datatype'] );
 			 
@@ -714,7 +746,7 @@ class owObjectsMaster
 		
 		$dataType = $new_attribute->dataType();
 		$dataType->initializeClassAttribute( $new_attribute );
-		$new_attribute->store();
+		$new_attribute->store();*/
 
 	}
 	

@@ -22,30 +22,11 @@
 # les valeurs possible sont 1(oui) ou 0(non)
 # si cette liste est vide la valeur par default pour tous les attributs est retenu
 
-[test_Hotel]
-#sugarez[]
-#sugarez[name]=name
-#sugarez[description]=description
-#sugarez[deleted]=deleted
-
-#ezsugar_rename[]
-#ezsugar_rename[name]=name
-#ezsugar_rename[description]=description
-#ezsugar_rename[deleted]=deleted
-
-#exclude_fields[]
-
-include_fields[]
-include_fields[]=name
-include_fields[]=description
-include_fields[]=deleted
-
-translate_fields[]
-translate_fields[description]=1
 
 [otcp_room]
 include_fields[]
 include_fields[]=name
 include_fields[]=description
+include_fields[]=room_nb
 
 */ ?>
