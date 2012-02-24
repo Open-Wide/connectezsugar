@@ -702,6 +702,36 @@ class owObjectsMaster
 		// create attribute de type $attrs['datatype']
 		$new_attribute = eZContentClassAttribute::create( $this->properties['class_id'], $attr['datatype'] );
 		
+		if( $attr['datatype'] == "ezselection" )
+		{
+			$isMultiple = 0;
+			$new_attribute->setAttribute( 'data_int1', $isMultiple );
+			
+			$doc = new DOMDocument( '1.0', 'utf-8' );
+			$root = $doc->createElement( "ezselection" );
+			$doc->appendChild( $root );
+			
+			$options = $doc->createElement( "options" );
+			
+			$root->appendChild( $options );
+
+			foreach ( $attr['options'] as $option )
+			{
+			    $optionNode = $doc->createElement( "option" );
+			    $optionNode->setAttribute( 'id', $option['id'] );
+			    $optionNode->setAttribute( 'name', $option['name'] );
+			
+			    $options->appendChild( $optionNode );
+			}
+			
+			$xml = $doc->saveXML();
+			
+			$new_attribute->setAttribute( 'data_text5', $xml );
+			$new_attribute->setAttribute( 'data_type_string', 'ezselection' );
+			
+			
+		}
+		
 		// version
 		$new_attribute->setAttribute( 'version', $ClassVersion);
 		// name
@@ -721,7 +751,7 @@ class owObjectsMaster
 		$dataType = $new_attribute->dataType();
 		$dataType->initializeClassAttribute( $new_attribute );
 		// store attribute
-		$new_attribute->store(); //evd($new_attribute);
+		$new_attribute->store();
 		
 		return $new_attribute;
 		

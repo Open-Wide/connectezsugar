@@ -535,10 +535,22 @@ class SugarSynchro
 			return false;
 		}
 		
+		if( count($modulefield['options']) > 0 )
+		{
+			$options = array();
+			foreach( $modulefield['options'] as $option )
+			{
+				$options[] = array( 'id'=>$option['name'], 'name'=>$option['value'] );
+			}
+			
+			$modulefield['options'] = $options;
+		}
+		
 		$this->properties['sugar_attributes'][$modulefield['name']] = array('identifier'=> $modulefield['name'],
 																			'name' 		=> $modulefield['label'],
 																			'datatype'	=> self::$inidata['mapping_types'][$modulefield['type']],
-																			'required'	=> (int)$modulefield['required']
+																			'required'	=> (int)$modulefield['required'],
+																			'options'	=> $modulefield['options'],
 																			);
 																			
 		$testmapping = $this->testForMapping();

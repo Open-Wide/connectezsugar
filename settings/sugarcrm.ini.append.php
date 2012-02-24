@@ -86,7 +86,8 @@ mapping_types[datetime]=ezdatetime
 mapping_types[time]=eztime
 mapping_types[timestamp]=ezdatetime
 mapping_types[year]=ezinteger
-
+# listes
+mapping_types[enum]=ezselection
 
 [Synchro]
 # liste des modules SUGAR qui sont concerné par la synchronisation
