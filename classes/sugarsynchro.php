@@ -720,6 +720,7 @@ class SugarSynchro
 		}
 		
 		
+		
 		//exit(var_dump($output_array));
 		return $output_array;
 	}
