@@ -9,7 +9,7 @@ AdminID=14
 
 [Tree]
 # ID du node parent par default pour la création des objets
-DefaultParentNodeID=2
+DefaultParentNodeID=1198
 # ID de la section par default pour la création des objets
 DefaultSectionID=1
 

@@ -27,14 +27,16 @@ prefixString=test_
 # mapping des correspondances des noms de modules SUGAR avec les noms des classes EZ
 # ex.: mapping_names[nom_module_sugar]=class_name_ez
 mapping_names[]
-mapping_names[test_Hotel]=TestHotel
-mapping_names[otcp_room]=Hotel
+#mapping_names[test_Hotel]=TestHotel
+#mapping_names[otcp_room]=Hotel
+mapping_names[otcp_accommodation]=Hebergement
 
 # mapping des correspondances des noms de modules SUGAR avec les identifiers des classes EZ
 # ex.: mapping_identifiers[nom_module_sugar]=class_identifier_ez
 mapping_identifiers[]
-mapping_identifiers[test_Hotel]=testhotel
-mapping_identifiers[otcp_room]=hotel
+#mapping_identifiers[test_Hotel]=testhotel
+#mapping_identifiers[otcp_room]=hotel
+mapping_identifiers[otcp_accommodation]=accommodation
 
 # champs des tables SUGAR (field name) à ignorer pour les objets EZ
 # generique pour tous les modules
