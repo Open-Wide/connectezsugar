@@ -10,15 +10,16 @@ else
 if (isset ($Params["sugarmodule"]))
    $sugarmodule = $Params["sugarmodule"];
 else
-   $sugarmodule="test_Hotel";
+   $sugarmodule="otcp_room";
    
 if (isset ($Params["sugarid"]))
    $sugarid = $Params["sugarid"];
 else
-   $sugarid="25cc743a-df11-c88c-8e0f-4f3405904130";
+   $sugarid="a6fe081b-75b5-c950-60f6-4f3a4e9b434f";
 
-// $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650";
-
+// $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650"; 
+//  $sugarid="25cc743a-df11-c88c-8e0f-4f3405904130";
+   
 eZDebug::writeNotice("Query : " . $query);
 eZDebug::writeNotice("Sugar Module : " . $sugarmodule); 
 eZDebug::writeNotice("Sugar Id : " . $sugarid);
