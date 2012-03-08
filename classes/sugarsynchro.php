@@ -117,6 +117,10 @@ class SugarSynchro
 																				'sugar_module'		=> true
 																		),
 											'getSugarModuleEntryList' => array(	'sugar_module' 	=> true),
+											'getRelations' => array(			'sugar_module' 		=> true,
+																				'sugar_id'			=> true,
+																				'related_module' 	=> true
+																		),
 										);
 		self::$parameters_per_function = $parameters_per_function;
 		
@@ -790,6 +794,24 @@ class SugarSynchro
 		}
 		
 		return true;
+	}
+	
+	
+	public function getRelations($args = null)
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("getRelations", $args);
+		if(!$verify)
+			return false;
+		
+		$sugardata = $this->sugarConnector->get_relationships($this->properties['sugar_module'],$this->properties['sugar_id'],$this->properties['related_module']);
+		
+		if( $this->checkForConnectorErrors($sugardata, 'get_entry') )
+			return false;
+			
+		$related_beans = $sugardata['data'];
+		
+		return $related_beans;
 	}
 	
 	

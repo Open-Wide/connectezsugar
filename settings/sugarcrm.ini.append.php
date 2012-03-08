@@ -1,11 +1,10 @@
 <?php /*
 
 [connexion]
-#ServerUrl=nimportequoi.openwidesi-vm-recettephp.accelance.net
+#ServerUrl=sugarcrm.local
 ServerUrl=otcp_crm.openwidesi-vm-recettephp.accelance.net
 ServerPath=/soap.php
 ServerNamespace=http://www.sugarcrm.com/sugarcrm
-#ServerNamespace=http://www.sugarcrm.com/sugarcrm
 login=admin
 password=password
 
@@ -16,10 +15,10 @@ defaultLanguage=fr
 
 [Names]
 # si il y a un prefix à enlever du nom de module SUGAR pour nommer une class EZ en absence de mapping
-prefixRemove=false
+prefixRemove=true
 # le prefix eventuel du nom de module SUGAR
 # pas pris en compte si 'prefixRemove' est à false
-prefixString=test_
+prefixString=otcp_
 
 
 # mapping des correspondances des tables SUGAR avec les objets EZ
@@ -27,15 +26,13 @@ prefixString=test_
 # mapping des correspondances des noms de modules SUGAR avec les noms des classes EZ
 # ex.: mapping_names[nom_module_sugar]=class_name_ez
 mapping_names[]
-#mapping_names[test_Hotel]=TestHotel
-#mapping_names[otcp_room]=Hotel
+mapping_names[otcp_room]=Salle
 mapping_names[otcp_accommodation]=Hebergement
 
 # mapping des correspondances des noms de modules SUGAR avec les identifiers des classes EZ
 # ex.: mapping_identifiers[nom_module_sugar]=class_identifier_ez
 mapping_identifiers[]
-#mapping_identifiers[test_Hotel]=testhotel
-#mapping_identifiers[otcp_room]=hotel
+mapping_identifiers[otcp_room]=room
 mapping_identifiers[otcp_accommodation]=accommodation
 
 # champs des tables SUGAR (field name) à ignorer pour les objets EZ
@@ -90,12 +87,16 @@ mapping_types[timestamp]=ezdatetime
 mapping_types[year]=ezinteger
 # listes
 mapping_types[enum]=ezselection
+#ezenum
+# relations
+mapping_types[relate]=ezobjectrelation
 
 [Synchro]
 # liste des modules SUGAR qui sont concerné par la synchronisation
 # @IMPORTANT! : le chronjob de synchronisation viens lire cette liste !!!
 modulesListToSynchro[]
 modulesListToSynchro[]=otcp_room
+modulesListToSynchro[]=otcp_accommodation
 
 
 # @IMPORTANT! : pour l'instant [RemoteIdModel] n'est pas utilisé !

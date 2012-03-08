@@ -47,10 +47,14 @@ $ViewList['cleanup'] = array(
 
 $ViewList['querysugar'] = array(
     'script' => 'querysugar.php',
-    'params' => array('query','sugarmodule','sugarid'));
+    'params' => array('query','sugarmodule','sugarid','related_module'));
 
 $ViewList['updateclass'] = array(
     'script' => 'updateclass.php',
     'params' => array('sugarmodule'));
+
+$ViewList['import_relations'] = array(
+    'script' => 'import_relations.php',
+    'params' => array('sugarmodule','sugarid','related_module'));
 
 ?>

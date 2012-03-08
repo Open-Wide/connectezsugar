@@ -44,6 +44,8 @@ class SugarConnector
 		$query_standard_return = array( 'get_available_modules' => array( 'data' => 'modules' ),
 										'get_module_fields' 	=> array( 'data' => 'module_fields' ),
 										'get_entry_list' 		=> array( 'data' => 'entry_list' ),
+										//'get_relationships'		=> array( 'data' => array( 'entry_list',0,'name_value_list') ),
+										'get_relationships'		=> array( 'data' => 'entry_list' ),
 										'get_entry'	=> array( 	'data' 				=> array( 'entry_list',0,'name_value_list'),
 																'checkForWarning' 	=> array( 	'check'		=> array( 	'who' => 'field_list',
 																														'what' => 'count==0' ),
@@ -295,6 +297,8 @@ class SugarConnector
 
 		if( is_array($queryinfos['data']) )
 			$resultdata = self::arrayDig($result,$queryinfos['data']);
+		elseif( is_string($queryinfos['data']) && $queryinfos['data'] == "" )
+			$resultdata = $result;
 		else
 			$resultdata = $result[$queryinfos['data']];
 		
@@ -337,7 +341,7 @@ class SugarConnector
         $reponse = $this->client->send($request);
         $result = $reponse->Value;
         
-        return $this->standardQueryReturn($result, "get_entry", "entry_list", true);
+        return $this->standardQueryReturn($result, "get_entry");
     }
     
     
@@ -371,6 +375,20 @@ class SugarConnector
         $result = $reponse->Value;
         
         return $this->standardQueryReturn($result, "get_available_modules");
+    }
+    
+	function get_relationships($module,$id,$related_module)
+    {    	
+        $request = new eZSOAPRequest("get_entry", $this->serverNamespace);
+        $request->addParameter('session',$this->session);
+        $request->addParameter('module_name',$module);
+        $request->addParameter('module_id',$id);
+        $request->addParameter('related_module',$related_module);
+        
+        $reponse = $this->client->send($request);
+        $result = $reponse->Value; //foreach( $reponse as $k => $v ) { echo("$k\n"); if($k != "Value") vd($v); } exit();
+        
+        return $this->standardQueryReturn($result, "get_relationships");
     }
     
     
