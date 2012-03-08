@@ -9,9 +9,15 @@ AdminID=14
 
 [Tree]
 # ID du node parent par default pour la création des objets
-DefaultParentNodeID=1198
+#DefaultParentNodeID=1198
+DefaultParentNodeID=2
 # ID de la section par default pour la création des objets
 DefaultSectionID=1
+
+# ID du node parent pour la création des objets d'une class specifique
+ClassParentNodeID[]
+ClassParentNodeID[room]=2
+ClassParentNodeID[accommodation]=2
 
 
 # options relatives à la traduction et au multilangues

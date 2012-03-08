@@ -60,6 +60,7 @@ class owObjectsMaster
 								'DefaultSectionID'		=> array( 'block' => "Tree", 'var' => "DefaultSectionID" ),
 								'DefaultCanTranslate'	=> array( 'block' => "Translation", 'var' => "DefaultCanTranslate" ),
 								'DefaultIsSearchable'	=> array( 'block' => "Search", 'var' => "DefaultIsSearchable" ),
+								'ClassParentNodeID'		=> array( 'block' => "Tree", 'var' => "ClassParentNodeID"),
 							); 
 		self::$inidata_list = $inidata_list;
 		
@@ -691,17 +692,9 @@ class owObjectsMaster
 			
 	}
 	
-	/*
-	 * createClassAttribute
-	 * @!! attention quand on appele cette fonction il faut que certains proprieté soient reinsegnées !!!
-	 * 
-	 * @param $attr array('identifier','name','datatype','required','is_searchable'=1,'can_translate'=1)
-	 */
-	public function createClassAttribute($attr,$ClassVersion = 0)
+	
+	protected function initDatatype($new_attribute,$attr)
 	{
-		// create attribute de type $attrs['datatype']
-		$new_attribute = eZContentClassAttribute::create( $this->properties['class_id'], $attr['datatype'] );
-		
 		if( $attr['datatype'] == "ezselection" )
 		{
 			$isMultiple = 0;
@@ -729,8 +722,54 @@ class owObjectsMaster
 			$new_attribute->setAttribute( 'data_text5', $xml );
 			$new_attribute->setAttribute( 'data_type_string', 'ezselection' );
 			
-			
 		}
+		
+		return $new_attribute;
+	}
+	
+	
+	/*
+	 * createClassAttribute
+	 * @!! attention quand on appele cette fonction il faut que certains proprieté soient reinsegnées !!!
+	 * 
+	 * @param $attr array('identifier','name','datatype','required','is_searchable'=1,'can_translate'=1)
+	 */
+	public function createClassAttribute($attr,$ClassVersion = 0)
+	{
+		// create attribute de type $attrs['datatype']
+		$new_attribute = eZContentClassAttribute::create( $this->properties['class_id'], $attr['datatype'] );
+		
+		$new_attribute = $this->initDatatype($new_attribute,$attr);
+		
+		/*if( $attr['datatype'] == "ezselection" )
+		{
+			$isMultiple = 0;
+			$new_attribute->setAttribute( 'data_int1', $isMultiple );
+			
+			$doc = new DOMDocument( '1.0', 'utf-8' );
+			$root = $doc->createElement( "ezselection" );
+			$doc->appendChild( $root );
+			
+			$options = $doc->createElement( "options" );
+			
+			$root->appendChild( $options );
+
+			foreach ( $attr['options'] as $option )
+			{
+			    $optionNode = $doc->createElement( "option" );
+			    $optionNode->setAttribute( 'id', $option['id'] );
+			    $optionNode->setAttribute( 'name', $option['name'] );
+			
+			    $options->appendChild( $optionNode );
+			}
+			
+			$xml = $doc->saveXML();
+			
+			$new_attribute->setAttribute( 'data_text5', $xml );
+			$new_attribute->setAttribute( 'data_type_string', 'ezselection' );
+			
+			
+		}*/
 		
 		// version
 		$new_attribute->setAttribute( 'version', $ClassVersion);
@@ -823,7 +862,7 @@ class owObjectsMaster
 	protected function verifyObjectAttributes($args = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
-		$verify = $this->verifyArgsForFunction("createObjectEz", $args);
+		$verify = $this->verifyArgsForFunction("verifyObjectAttributes", $args);
 		if(!$verify)
 			return false;
 		
@@ -836,13 +875,25 @@ class owObjectsMaster
 		
 		foreach($this->properties['object_attributes'] as $attr => $value)
 		{
-			if( is_null( $class->fetchAttributeByIdentifier($attr,false) ) )
+			$attribute = $class->fetchAttributeByIdentifier($attr,false);
+			
+			if( is_null( $attribute ) )
 			{
 				$error = "verifyObjectAttributes() : " . $attr . " non trouvé parmi les attributes de la class " . $class->attribute('identifier');
 				self::$logger->writeTimedString($error);
 				return false;
 			}
 			
+			if( $attribute['data_type_string'] == "ezboolean" || $attribute['data_type_string'] == "ezinteger" )
+			{
+				if(is_null($value) || empty($value) )
+				{
+					$this->properties['object_attributes'][$attr] = "0";
+					//evd($this->properties['object_attributes'][$attr]);
+				}
+					
+			}
+				
 		}
 		
 		return true;
@@ -860,21 +911,29 @@ class owObjectsMaster
 		if(!$verify)
 			return false;
 		
+		//evd($this->properties['class_attributes']);
+			
 		// retrouve l'identifiant de la class si n'est pas déjà dans les propriété de l'instance
 		if( !isset($this->properties['class_identifier']) )
 			$this->properties['class_identifier'] = eZContentClass::classIdentifierByID($this->properties['class_id']);
 		
+		// retrouve le parent_node_id pour l'objet
+		if( isset(self::$inidata['ClassParentNodeID'][$this->properties['class_identifier']]) )
+			$parent_node_id = self::$inidata['ClassParentNodeID'][$this->properties['class_identifier']];
+		else
+			$parent_node_id = self::$inidata['DefaultParentNodeID'];
+			
     	$params = array();
 		$params['class_identifier'] = $this->properties['class_identifier']; 
 		$params['creator_id'] = self::$inidata['AdminID'];
-		$params['parent_node_id'] = self::$inidata['DefaultParentNodeID'];
+		$params['parent_node_id'] = $parent_node_id;
 		$params['section_id'] = self::$inidata['DefaultSectionID'];
 		if(isset($this->properties['object_remote_id']))
 			$params['remote_id'] = $this->properties['object_remote_id'];
      	$params['attributes'] = $this->properties['object_attributes'];
 		
 		// PUBLISH OBJECT
-		$contentObject = eZContentFunctions::createAndPublishObject( $params );
+		$contentObject = eZContentFunctions::createAndPublishObject( $params ); //evd($contentObject);
 		if(!$contentObject)
 			return false;
 			
