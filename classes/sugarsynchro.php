@@ -743,7 +743,7 @@ class SugarSynchro
 	 * @param $input_array array
 	 * @return $output_array array OR false
 	 */
-	public function synchronizeFieldsValues($input_array) // @@@
+	public function synchronizeFieldsValues($input_array)
 	{
 		if( !isset($this->properties['class_attributes']) )
 		{

@@ -193,6 +193,8 @@ else
 		$ez_properties['object_remote_id'] = $remoteID;
 		$sugar_properties['sugar_id'] = $sugarid;
 		
+		$sugarSynchro->setProperty('class_attributes',$ez_properties['class_attributes']);
+		
 		// get des valeurs des attributes de la table sugar
 		// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
 		$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties); //evd($sugar_attributes_values);

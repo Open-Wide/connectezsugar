@@ -683,29 +683,6 @@ class owObjectsMaster
 			
 			$this->createClassAttribute($attrs,$ClassVersion);
 			
-			// create attribute de type $attrs['datatype']
-			/*$new_attribute = eZContentClassAttribute::create( $ClassID, $attrs['datatype'] );
-			
-			// version
-			$new_attribute->setAttribute( 'version', $ClassVersion);
-			// name
-			$new_attribute->setAttribute( 'name', $attrs['name'] );
-			// is_required
-			$new_attribute->setAttribute( 'is_required', $attrs['required'] );
-			// is_searchable
-			$is_searchable = ( isset($attrs['is_searchable']) )? (int)$attrs['is_searchable'] : (int)self::$inidata['DefaultIsSearchable'];
-			$new_attribute->setAttribute( 'is_searchable', $is_searchable );
-			// can_translate
-			$can_translate = ( isset($attrs['can_translate']) )? (int)$attrs['can_translate'] : (int)self::$inidata['DefaultCanTranslate'];
-			$new_attribute->setAttribute( 'can_translate', $can_translate );
-			// identifier
-			$new_attribute->setAttribute( 'identifier', $identifier );
-			
-			// initialise datatype
-			$dataType = $new_attribute->dataType();
-			$dataType->initializeClassAttribute( $new_attribute );
-			// store attribute
-			$new_attribute->store();*/
 		}
 		
 		return true;
