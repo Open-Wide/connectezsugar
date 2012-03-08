@@ -1520,11 +1520,4 @@ editable_fields[]=acti_description_new
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
-*/ ?>=======
-[otcp_accommodation]
-include_fields[]
-include_fields[]=name
-include_fields[]=description
-
 */ ?>
->>>>>>> .r256
