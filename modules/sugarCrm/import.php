@@ -195,13 +195,14 @@ else
 		
 		// get des valeurs des attributes de la table sugar
 		// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
-		$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties);
+		$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties); //evd($sugar_attributes_values);
 		if(!$sugar_attributes_values)
 			$result[] = "\$sugarSynchro->getSugarFieldsValues(\$sugar_properties) return false !!!";
 
-		$object_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes_values);
+		$object_attributes = $sugarSynchro->synchronizeFieldsValues($sugar_attributes_values);
 		if(!$object_attributes)
-			$result[] = "\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes_values) return false !!!";
+			$result[] = "\$sugarSynchro->synchronizeFieldsValues(\$sugar_attributes_values) return false !!!";
+			
 		
 		if( !$sugar_attributes_values  or !$object_attributes )
 		{

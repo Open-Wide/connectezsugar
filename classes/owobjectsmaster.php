@@ -454,6 +454,8 @@ class owObjectsMaster
 		
 		$string = self::unaccent($string);
 		
+		$string = self::limitIdentifier($string);
+		
 		return $string;
 	}
 	
@@ -481,7 +483,38 @@ class owObjectsMaster
 		
 		return $normalarray;
 	}
-    
+	
+	// EZ coupe automatiquement un identifiant à 50 caracteres
+	public static function limitIdentifier($string)
+	{
+		// si le parametre n'est pas de type string on ne fait rien
+		if(!is_string($string))
+			return $string;
+			
+		$string = substr($string,0,50);
+		
+		return $string;
+	}
+	
+	public static function limitIdentifiers($array)
+	{
+		// si le parametre n'est pas de type array on ne fait rien
+		if(!is_array($array))
+			return $array;
+			
+		$normalarray = array();
+		foreach($array as $key => $value)
+		{
+			$normalkey = self::limitIdentifier($key);
+			if( is_array($value) and isset( $value['identifier'] ))
+			{
+				$value['identifier'] = $normalkey;
+			}
+			$normalarray[$normalkey] = $value;
+		}
+		
+		return $normalarray;
+	}
 	
 	/*
 	 * CONSTRUCTEUR
@@ -697,7 +730,11 @@ class owObjectsMaster
 	{
 		if( $attr['datatype'] == "ezselection" )
 		{
-			$isMultiple = 0;
+			if( isset($attr['multi']) && $attr['multi'] == 1 )
+				$isMultiple = 1;
+			else
+				$isMultiple = 0;
+			
 			$new_attribute->setAttribute( 'data_int1', $isMultiple );
 			
 			$doc = new DOMDocument( '1.0', 'utf-8' );
@@ -741,36 +778,6 @@ class owObjectsMaster
 		
 		$new_attribute = $this->initDatatype($new_attribute,$attr);
 		
-		/*if( $attr['datatype'] == "ezselection" )
-		{
-			$isMultiple = 0;
-			$new_attribute->setAttribute( 'data_int1', $isMultiple );
-			
-			$doc = new DOMDocument( '1.0', 'utf-8' );
-			$root = $doc->createElement( "ezselection" );
-			$doc->appendChild( $root );
-			
-			$options = $doc->createElement( "options" );
-			
-			$root->appendChild( $options );
-
-			foreach ( $attr['options'] as $option )
-			{
-			    $optionNode = $doc->createElement( "option" );
-			    $optionNode->setAttribute( 'id', $option['id'] );
-			    $optionNode->setAttribute( 'name', $option['name'] );
-			
-			    $options->appendChild( $optionNode );
-			}
-			
-			$xml = $doc->saveXML();
-			
-			$new_attribute->setAttribute( 'data_text5', $xml );
-			$new_attribute->setAttribute( 'data_type_string', 'ezselection' );
-			
-			
-		}*/
-		
 		// version
 		$new_attribute->setAttribute( 'version', $ClassVersion);
 		// name
@@ -793,29 +800,6 @@ class owObjectsMaster
 		$new_attribute->store();
 		
 		return $new_attribute;
-		
-		//***************************************************************************************************
-		
-		//exit(var_dump($this->properties));
-		/*$class = eZContentClass::fetch($this->properties['class_id']);
-		
-		$new_attribute = eZContentClassAttribute::create( $this->properties['class_id'], $attr['datatype'] );
-			 
-		$new_attribute->setAttribute( 'version', 0);
-		$new_attribute->setAttribute( 'name', $attr['name'] );
-		$new_attribute->setAttribute( 'identifier', $attr['identifier'] );
-		$new_attribute->setAttribute( 'is_required', $attr['required'] );
-		
-		$is_searchable = ( isset($attr['is_searchable']) )? $attr['is_searchable'] : 1;
-		$new_attribute->setAttribute( 'is_searchable', $is_searchable );
-		
-		$can_translate = ( isset($attr['can_translate']) )? $attr['can_translate'] : 1;
-		$new_attribute->setAttribute( 'can_translate', 1 );
-		
-		
-		$dataType = $new_attribute->dataType();
-		$dataType->initializeClassAttribute( $new_attribute );
-		$new_attribute->store();*/
 
 	}
 	

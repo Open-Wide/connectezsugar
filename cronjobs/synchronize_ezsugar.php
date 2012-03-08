@@ -243,9 +243,9 @@ foreach($modules_list as $sugarmodule)
 			if(!$sugar_attributes_values)
 				$cli->error("\$sugarSynchro->getSugarFieldsValues(\$sugar_properties) return false !!!");
 		
-			$object_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes_values);
+			$object_attributes = $sugarSynchro->synchronizeFieldsValues($sugar_attributes_values);
 			if(!$object_attributes)
-				$cli->error("\$sugarSynchro->synchronizeFieldsNames(\$sugar_attributes_values) return false !!!");
+				$cli->error("\$sugarSynchro->synchronizeFieldsValues(\$sugar_attributes_values) return false !!!");
 			
 			if( !$sugar_attributes_values  or !$object_attributes )
 			{

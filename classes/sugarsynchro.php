@@ -535,7 +535,7 @@ class SugarSynchro
 		if( !isset(self::$inidata['mapping_types'][$modulefield['type']]) )
 		{
 			$error = $modulefield['type'] . " non trouvé dans la liste mapping_types[] in " . self::INIFILE;
-			self::$logger->writeTimedString("Erreur setSugarAttribute() : " . $error);
+			self::$logger->writeTimedString("Erreur setSugarAttribute() : " . $modulefield['name'] . " : "  . $error);
 			return false;
 		}
 		
@@ -549,6 +549,7 @@ class SugarSynchro
 			
 			$modulefield['options'] = $options;
 		}
+			
 		
 		$this->properties['sugar_attributes'][$modulefield['name']] = array('identifier'=> $modulefield['name'],
 																			'name' 		=> $modulefield['label'],
@@ -556,6 +557,10 @@ class SugarSynchro
 																			'required'	=> (int)$modulefield['required'],
 																			'options'	=> $modulefield['options'],
 																			);
+																			
+		// si c'est une type multi_options on rajoute 'multi'=1
+		if( strrpos($modulefield['type'], "multi") !== false )
+			$this->properties['sugar_attributes'][$modulefield['name']]['multi'] = 1;
 																			
 		$testmapping = $this->testForMapping();
 		if( $testmapping and isset($this->mappingdata['translate_fields'][$modulefield['name']]) )
@@ -625,7 +630,7 @@ class SugarSynchro
 			return false;
 		
 		$module_fields = $sugardata['data'];
-		$this->properties['sugar_module_fields'] = $module_fields;
+		$this->properties['sugar_module_fields'] = $module_fields; //evd($module_fields);
 		
 		// filtre les champs selon la configuration general et specifique au module
 		$testFilterSugarFields = $this->filterSugarFields();
@@ -662,6 +667,8 @@ class SugarSynchro
 		foreach($name_value_list as $item)
 		{
 			$attributes_values[$item['name']] = html_entity_decode($item['value'], ENT_QUOTES, 'UTF-8');
+			//if( $item['name'] == "acco_business_event_type" )
+				//vd($item['value']);//@@@
 		}
 		
 		$this->properties['sugar_attributes_values'] = $attributes_values;
@@ -670,7 +677,7 @@ class SugarSynchro
 	}
 	
 	/*
-	 * synchronizeFieldsValues
+	 * synchronizeFieldsNames
 	 * 
 	 * @param $input_array array
 	 * @return $output_array array OR false
@@ -719,8 +726,8 @@ class SugarSynchro
 			// OPTION 1 : definie $object_attributes après avoir normalisé les identifiants
 			//$output_array = owObjectsMaster::normalizeIdentifiers( $input_array );
 			
-			// OPTION 2 : ne chnage rien au tableau
-			$output_array = $input_array;
+			// OPTION 2 : ne change rien au tableau sauf couper la chaine à 50 caracteres parce que EZ le fait automatiquement
+			$output_array = owObjectsMaster::limitIdentifiers( $input_array );
 		}
 		
 		
@@ -728,6 +735,48 @@ class SugarSynchro
 		//exit(var_dump($output_array));
 		return $output_array;
 	}
+	
+	
+	/*
+	 * synchronizeFieldsValues
+	 * 
+	 * @param $input_array array
+	 * @return $output_array array OR false
+	 */
+	public function synchronizeFieldsValues($input_array) // @@@
+	{
+		if( !isset($this->properties['class_attributes']) )
+		{
+			$error = "synchronizeFieldsValues : \$this->properties['class_attributes'] n'est pas reinsegné !";
+			self::$logger->writeTimedString($error);
+			return false;
+		}
+		
+		$input_array = $this->synchronizeFieldsNames($input_array);
+		if( !$input_array )
+			return false; 
+		
+		// init $output_array
+		$output_array = array();
+		
+		foreach( $input_array as $name => $value )
+		{
+			// dans le cas d'une selection multiple on transforme la valeur par la valeur attendu par fromString() de ezselectiotype
+			if( $this->properties['class_attributes'][$name]['datatype'] == "ezselection" 
+				&& isset($this->properties['class_attributes'][$name]['multi']) 
+				&& $this->properties['class_attributes'][$name]['multi'] == 1 )
+			{
+				$newvalue = str_replace ( "^" , "" , $value );
+				$newvalue = str_replace ( "," , "|" , $newvalue );
+				$output_array[$name] = $newvalue;
+			}
+			else
+				$output_array[$name] = $value;
+		}
+		
+		return $output_array;
+	}
+	
 	
 	/*
 	 * Verifie si un mapping de correspondences de noms d'attributes existe pour le module

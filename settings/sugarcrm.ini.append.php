@@ -79,6 +79,8 @@ mapping_types[bigint]=ezinteger
 mapping_types[decimal]=ezfloat
 mapping_types[double]=ezfloat
 mapping_types[float]=ezfloat
+# money
+mapping_types[currency]=ezprice
 # date & time
 mapping_types[date]=ezdate
 mapping_types[datetime]=ezdatetime
@@ -87,6 +89,7 @@ mapping_types[timestamp]=ezdatetime
 mapping_types[year]=ezinteger
 # listes
 mapping_types[enum]=ezselection
+mapping_types[multienum]=ezselection
 #ezenum
 # relations
 mapping_types[relate]=ezobjectrelation
