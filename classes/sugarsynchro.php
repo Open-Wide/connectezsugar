@@ -745,6 +745,7 @@ class SugarSynchro
 	 */
 	public function synchronizeFieldsValues($input_array)
 	{
+		//evd($this->properties['class_attributes']);
 		if( !isset($this->properties['class_attributes']) )
 		{
 			$error = "synchronizeFieldsValues : \$this->properties['class_attributes'] n'est pas reinsegné !";
