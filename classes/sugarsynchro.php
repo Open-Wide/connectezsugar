@@ -666,7 +666,9 @@ class SugarSynchro
 		$attributes_values = array();
 		foreach($name_value_list as $item)
 		{
-			$attributes_values[$item['name']] = html_entity_decode($item['value'], ENT_QUOTES, 'UTF-8');
+			// si la value est vide on ne reinsegne pas l'attribut 
+			if( !is_null($item['value']) and !empty($item['value']) )
+				$attributes_values[$item['name']] = html_entity_decode($item['value'], ENT_QUOTES, 'UTF-8');
 			//if( $item['name'] == "acco_business_event_type" )
 				//vd($item['value']);//@@@
 		}
