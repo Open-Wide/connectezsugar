@@ -704,7 +704,7 @@ class owObjectsMaster
 	
 	
 	protected function initDatatype($new_attribute,$attr)
-	{
+	{	
 		if( $attr['datatype'] == "ezselection" )
 		{
 			if( isset($attr['multi']) && $attr['multi'] == 1 )
@@ -735,8 +735,9 @@ class owObjectsMaster
 			
 			$new_attribute->setAttribute( 'data_text5', $xml );
 			$new_attribute->setAttribute( 'data_type_string', 'ezselection' );
-			
 		}
+		
+		
 		
 		return $new_attribute;
 	}
@@ -921,22 +922,29 @@ class owObjectsMaster
 		if( !isset($this->properties['class_identifier']) )
 			$this->properties['class_identifier'] = eZContentClass::classIdentifierByID($this->properties['class_id']);
 			
+			
 		$params = array();
 		$params['class_identifier'] = $this->properties['class_identifier']; 
 		$params['creator_id'] = self::$inidata['AdminID'];
 		$params['parent_node_id'] = self::$inidata['DefaultParentNodeID'];
-		$params['section_id'] = self::$inidata['DefaultSectionID'];	
+		$params['section_id'] = self::$inidata['DefaultSectionID'];
      	$params['attributes'] = $this->properties['object_attributes'];
 		
+     	//evd(eZContentClass::fetch($this->properties['class_id'])->dataMap());
 
 		// PUBLISH OBJECT
 		$contentObject = eZContentFunctions::updateAndPublishObject( $this->properties['content_object'], $params );
 		if(!$contentObject)
 			return false;
 
+		//evd($contentObject);
+			
 		// renomme l'objet si un nom est indiqué
 		if(isset($this->properties['object_name']))
-			$contentObject->rename($this->properties['object_name']);
+			$this->properties['content_object']->rename($this->properties['object_name']);
+			
+		$datamap = $this->properties['content_object']->dataMap();
+		
 			
 		return true;
 	}

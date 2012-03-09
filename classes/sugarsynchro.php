@@ -759,6 +759,10 @@ class SugarSynchro
 		
 		// init $output_array
 		$output_array = array();
+		// tableau listant les datatypes numeriques
+		$numeric_datatypes = array("ezinteger", "ezfloat", "ezprice", "ezboolean");
+		// tableau listant les datatypes timestamp
+		$timestamp_datatypes = array( "ezdatetime", "ezdate" );
 		
 		foreach( $input_array as $name => $value )
 		{
@@ -771,10 +775,38 @@ class SugarSynchro
 				$newvalue = str_replace ( "," , "|" , $newvalue );
 				$output_array[$name] = $newvalue;
 			}
+			elseif( in_array($this->properties['class_attributes'][$name]['datatype'], $numeric_datatypes) )
+			{
+				if( is_null($value) or empty($value) )
+					$output_array[$name] = "0";
+				else
+					$output_array[$name] = $value;
+			}
+			elseif( in_array($this->properties['class_attributes'][$name]['datatype'], $timestamp_datatypes) )
+			{
+				if( is_null($value) or empty($value) )
+					$output_array[$name] = "0";
+				elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezdate" )
+				{
+					$date_array = explode("-", $value);
+					$ezdate = eZDate::create($date_array[1],$date_array[2],$date_array[0]);
+					$output_array[$name] = (string)$ezdate->timeStamp();
+				}
+				elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezdatetime" )
+				{
+					$datetime_array = explode(" ", $value);
+					$date_array = explode("-", $datetime_array[0]);
+					$time_array = explode(":", $datetime_array[1]); 
+					$ezdatetime = eZDateTime::create($time_array[0], $time_array[1], $time_array[2], $date_array[1], $date_array[2], $date_array[0]);
+					$output_array[$name] = (string)$ezdatetime->timeStamp();
+				}
+				else
+					$output_array[$name] = $value;
+			}
 			else
 				$output_array[$name] = $value;
 		}
-		
+
 		return $output_array;
 	}
 	
