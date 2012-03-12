@@ -55,6 +55,6 @@ $ViewList['updateclass'] = array(
 
 $ViewList['import_relations'] = array(
     'script' => 'import_relations.php',
-    'params' => array('sugarmodule','sugarid','related_module'));
+    'params' => array('sugarmodule','sugarid'));
 
 ?>

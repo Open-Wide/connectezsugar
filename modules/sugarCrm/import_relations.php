@@ -10,12 +10,7 @@ else
 if (isset ($Params["sugarid"]))
    $sugarid = $Params["sugarid"];
 else
-   $sugarid="51621db3-1e20-22e9-bd31-4f549fd9ca88";
-
-if (isset ($Params["related_module"]))
-   $related_module = $Params["related_module"];
-else
-   $related_module="otcp_accommodation";
+   $sugarid="25cc743a-df11-c88c-8e0f-4f3405904130";
    
 
 eZDebug::writeNotice("Sugar Module : " . $sugarmodule); 
@@ -29,7 +24,7 @@ $continue = true;
 if( is_null($sugarmodule) || is_null($sugarid) )
 {
 	$result[] = "sugarmodule et/ou sugarid manquant !!!";
-	$continue =false;
+	$continue = false;
 }
 
 if($continue)
@@ -76,8 +71,8 @@ if($continue)
 	
 	$relation_type = "name";
 	$sugarrelations = $sugarSynchro->getRelations($sugar_properties, $relation_type);
-	//evd($sugarrelations);
 	
+	$notice['sugarrelations'] = $sugarrelations;
 	
 	foreach( $sugarrelations as $related_class_identifier => $related_name )
 	{
