@@ -84,10 +84,11 @@ class SugarSynchro
 		
 		// $mappingdata_list ***
 		$mappingdata_list = array(	'sugarez'			=> array( 'var' => "sugarez" ),
-									'ezsugar_rename'	=> array( 'var' => "ezsugar_rename" ),
+									'editable_fields'	=> array( 'var' => "editable_fields" ),
 									'exclude_fields'	=> array( 'var' => "exclude_fields" ),
 									'include_fields'	=> array( 'var' => "include_fields" ),
 									'translate_fields'	=> array( 'var' => "translate_fields" ),
+									'relations_names'	=> array( 'var' => "relations_names" ),
 							); 
 		self::$mappingdata_list = $mappingdata_list;
 		
@@ -118,8 +119,7 @@ class SugarSynchro
 																		),
 											'getSugarModuleEntryList' => array(	'sugar_module' 	=> true),
 											'getRelations' => array(			'sugar_module' 		=> true,
-																				'sugar_id'			=> true,
-																				'related_module' 	=> true
+																				'sugar_id'			=> true
 																		),
 										);
 		self::$parameters_per_function = $parameters_per_function;
@@ -777,6 +777,7 @@ class SugarSynchro
 				$newvalue = str_replace ( "," , "|" , $newvalue );
 				$output_array[$name] = $newvalue;
 			}
+			// dans le cas d'une valeur numerique à NULL on transforme en 0
 			elseif( in_array($this->properties['class_attributes'][$name]['datatype'], $numeric_datatypes) )
 			{
 				if( is_null($value) or empty($value) )
@@ -784,16 +785,20 @@ class SugarSynchro
 				else
 					$output_array[$name] = $value;
 			}
+			// dans le cas d'un datatype date ou datetime
 			elseif( in_array($this->properties['class_attributes'][$name]['datatype'], $timestamp_datatypes) )
 			{
+				// si la valeur est NULL on transforme en 0
 				if( is_null($value) or empty($value) )
 					$output_array[$name] = "0";
+				// dans le cas d'une date on calcule le timestamp
 				elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezdate" )
 				{
 					$date_array = explode("-", $value);
 					$ezdate = eZDate::create($date_array[1],$date_array[2],$date_array[0]);
 					$output_array[$name] = (string)$ezdate->timeStamp();
 				}
+				// dans le cas d'un datetime on calcule le timestamp avec le temps (h:m:s)
 				elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezdatetime" )
 				{
 					$datetime_array = explode(" ", $value);
@@ -881,21 +886,57 @@ class SugarSynchro
 	}
 	
 	
-	public function getRelations($args = null)
+	public function getRelations($args = null, $relation_type = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
 		$verify = $this->verifyArgsForFunction("getRelations", $args);
 		if(!$verify)
 			return false;
 		
-		$sugardata = $this->sugarConnector->get_relationships($this->properties['sugar_module'],$this->properties['sugar_id'],$this->properties['related_module']);
+		//$sugardata = $this->sugarConnector->get_relationships($this->properties['sugar_module'],$this->properties['sugar_id'],$this->properties['related_module']);
+		$sugardata = $this->sugarConnector->get_relationships($this->properties['sugar_module'],$this->properties['sugar_id']);
 		
 		if( $this->checkForConnectorErrors($sugardata, 'get_entry') )
 			return false;
-			
-		$related_beans = $sugardata['data'];
 		
-		return $related_beans;
+		$this->testForMapping();
+		$relations_names = $this->mappingdata['relations_names'];
+		if( is_null($relation_type) )
+			$relation_type = "name";
+		
+		foreach( $relations_names as $rel_class_identifier => $relation_name )
+		{
+			$relation_name =  $relation_name . "_" . $relation_type;
+			if ( strlen($relation_name) > 25 )
+			{
+				$relation_name_part_1 = substr($relation_name,0,11);
+				$relation_name_part_2 = substr($relation_name,-14);
+				$relation_name = $relation_name_part_1 . $relation_name_part_2; //evd($relation_name);
+			}
+			
+			$relations_names[$rel_class_identifier] = $relation_name;
+		}
+		
+		
+		foreach( $sugardata['data'] as $k1 => $v1 )
+		{
+			foreach( $v1['name_value_list'] as $k2 => $v2 )
+			$rel_class_identifier =  array_search($v2['name'], $relations_names);
+			if( $rel_class_identifier !== false )
+			{
+				$relateds_names[$rel_class_identifier] = $v2['value'];
+			}
+		}
+		
+		if( is_array($relateds_names) && count($relateds_names) > 0 )
+			return $relateds_names;
+		else
+		{
+			$error = "Aucune relation trouvé avec les noms de relation dans \$this->mappingdata['relations_names'] pour le module : " . $this->properties['sugar_module'];
+			self::$logger->writeTimedString($error);
+			return false;
+		}
+		
 	}
 	
 	

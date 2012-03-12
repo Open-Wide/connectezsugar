@@ -106,7 +106,14 @@ class owObjectsMaster
 																		),
 										'verifyClassAttributes' => array(	'class_id' 			=> true,
 																			'class_attributes' => true
-																		)
+																		),
+										'verifyClassAttributes' => array(	'class_id' 			=> true,
+																			'class_attributes' => true
+																		),
+										'setObjectRelation' => array(	'class_identifier' => true,
+																		'content_object' => true
+																		),
+																		
 										);
 		self::$parameters_per_function = $parameters_per_function;
 										
@@ -936,17 +943,76 @@ class owObjectsMaster
 		$contentObject = eZContentFunctions::updateAndPublishObject( $this->properties['content_object'], $params );
 		if(!$contentObject)
 			return false;
-
-		//evd($contentObject);
 			
 		// renomme l'objet si un nom est indiqué
 		if(isset($this->properties['object_name']))
 			$this->properties['content_object']->rename($this->properties['object_name']);
 			
-		$datamap = $this->properties['content_object']->dataMap();
+		//$datamap = $this->properties['content_object']->dataMap();
 		
+		//$class = eZContentClass::fetch($this->properties['class_id']);
+		//$class_datamap = $class->dataMap();
+		//evd($class_datamap);
 			
 		return true;
+	}
+	
+	
+	/*
+	 * 
+	 */
+	public function setObjectRelation( $args = null, $related_class_identifier, $related_name, $relation_type )
+	{
+		$related_class_id = eZContentClass::classIDByIdentifier($related_class_identifier);
+		
+		if( !$related_class_id )
+		{
+			self::$logger->writeTimedString("class avec identifier $related_class_identifier non trouvé.");
+			return false;
+		}
+		else
+		{
+			// @TODO : $parent_node_id EN DUR -> changer
+			$object_search = eZContentObjectTreeNode::subTreeByNodeID( array( 	'Depth' => 1,
+																				'ClassFilterType' => 'include',
+																				'ClassFilterArray' => array($related_class_identifier),
+																				'AttributeFilter' => array(array("$related_class_identifier/$relation_type", '=', $related_name) ),
+																				),
+																			     2 );
+		
+			if( count($object_search) == 0 )
+			{
+				self::$logger->writeTimedString("Acun objet trouvé avec le nom : $related_name.");
+				return false;
+			}
+			else
+			{
+				$related_object_id = $object_search[0]->attribute('contentobject_id');
+				
+				$relatedObjectsList = $this->properties['content_object']->relatedContentObjectList();
+				
+				if( count($relatedObjectsList) != 0 )
+				{
+					foreach($relatedObjectsList as $relatedObject)
+					{
+						if( $relatedObject->ID == $related_object_id )
+						{
+							self::$logger->writeTimedString("L'objet avec ID $related_object_id est déjà en relation avec l'objet avec ID : " . $this->properties['content_object']->ID);
+							return false;
+						}
+					}
+				}
+			}
+			
+
+			$addObjectRelation = $this->properties['content_object']->addContentObjectRelation($related_object_id);
+			$notice['addContentObjectRelation'] = $addObjectRelation;
+			if( $addObjectRelation !== false )
+				return true;
+
+			
+		}
+			
 	}
 	
 	

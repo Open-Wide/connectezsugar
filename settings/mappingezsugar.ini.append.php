@@ -1273,10 +1273,12 @@ include_fields[]=room_capacity_cabaret
 include_fields[]=room_capacity_seat
 include_fields[]=room_has_stage
 
-<<<<<<< .mine
 translate_fields[]
 
 editable_fields[]
+
+relations_names[]
+relations_names[accommodation]=otcp_accommodation_one
 
 [otcp_restaurant]
 include_fields[]
