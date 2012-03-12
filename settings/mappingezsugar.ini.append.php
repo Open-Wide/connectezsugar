@@ -1279,6 +1279,7 @@ editable_fields[]
 
 relations_names[]
 relations_names[accommodation]=otcp_accommodation_one
+relations_names[restaurant]=otcp_restaurant_one
 
 [otcp_restaurant]
 include_fields[]

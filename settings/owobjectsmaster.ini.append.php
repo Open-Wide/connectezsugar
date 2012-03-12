@@ -18,6 +18,7 @@ DefaultSectionID=1
 ClassParentNodeID[]
 ClassParentNodeID[room]=2
 ClassParentNodeID[accommodation]=2
+ClassParentNodeID[restaurant]=2
 
 
 # options relatives à la traduction et au multilangues

@@ -28,12 +28,15 @@ prefixString=otcp_
 mapping_names[]
 mapping_names[otcp_room]=Salle
 mapping_names[otcp_accommodation]=Hebergement
+mapping_names[otcp_restaurant]=Restaurant
 
 # mapping des correspondances des noms de modules SUGAR avec les identifiers des classes EZ
 # ex.: mapping_identifiers[nom_module_sugar]=class_identifier_ez
 mapping_identifiers[]
 mapping_identifiers[otcp_room]=room
 mapping_identifiers[otcp_accommodation]=accommodation
+mapping_identifiers[otcp_restaurant]=restaurant
+
 
 # champs des tables SUGAR (field name) à ignorer pour les objets EZ
 # generique pour tous les modules
@@ -100,6 +103,7 @@ mapping_types[relate]=ezobjectrelation
 modulesListToSynchro[]
 modulesListToSynchro[]=otcp_room
 modulesListToSynchro[]=otcp_accommodation
+modulesListToSynchro[]=otcp_restaurant
 
 
 # @IMPORTANT! : pour l'instant [RemoteIdModel] n'est pas utilisé !

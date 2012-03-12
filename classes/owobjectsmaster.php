@@ -972,13 +972,12 @@ class owObjectsMaster
 		}
 		else
 		{
-			// @TODO : $parent_node_id EN DUR -> changer
 			$object_search = eZContentObjectTreeNode::subTreeByNodeID( array( 	'Depth' => 1,
 																				'ClassFilterType' => 'include',
 																				'ClassFilterArray' => array($related_class_identifier),
 																				'AttributeFilter' => array(array("$related_class_identifier/$relation_type", '=', $related_name) ),
 																				),
-																			     2 );
+																			     self::$inidata['ClassParentNodeID'][$related_class_identifier] );
 		
 			if( count($object_search) == 0 )
 			{
