@@ -13,33 +13,41 @@ password=password
 defaultLanguage=fr
 
 
+####################################
 [Names]
 # si il y a un prefix à enlever du nom de module SUGAR pour nommer une class EZ en absence de mapping
 prefixRemove=true
 # le prefix eventuel du nom de module SUGAR
 # pas pris en compte si 'prefixRemove' est à false
 prefixString=otcp_
+###################################
 
 
+###########################################################################################################
 # mapping des correspondances des tables SUGAR avec les objets EZ
 [Mapping]
+##################
 # mapping des correspondances des noms de modules SUGAR avec les noms des classes EZ
 # ex.: mapping_names[nom_module_sugar]=class_name_ez
+#################
 mapping_names[]
 mapping_names[otcp_room]=Salle
 mapping_names[otcp_accommodation]=Hebergement
 mapping_names[otcp_restaurant]=Restaurant
-
+#################
 # mapping des correspondances des noms de modules SUGAR avec les identifiers des classes EZ
 # ex.: mapping_identifiers[nom_module_sugar]=class_identifier_ez
+#################
 mapping_identifiers[]
 mapping_identifiers[otcp_room]=room
 mapping_identifiers[otcp_accommodation]=accommodation
 mapping_identifiers[otcp_restaurant]=restaurant
+##################
 
-
+####################
 # champs des tables SUGAR (field name) à ignorer pour les objets EZ
 # generique pour tous les modules
+###################
 exclude_fields[]
 exclude_fields[]=id
 exclude_fields[]=date_entered
@@ -54,13 +62,15 @@ exclude_fields[]=team_count
 exclude_fields[]=team_name
 exclude_fields[]=assigned_user_id
 exclude_fields[]=assigned_user_name
+################
 
-
+#################
 # @TODO : rajouter dans mappingezsugar.ini un tableau de correspondences specifiques à un champ particulier le cas echeant
 # par exemple mapping_types[nom_du_champ]=ezdatatype
 # @TODO : la liste des datatype est à completer !!!!!!!!!
 # mapping des correspondances des types de champs SUGAR avec les datatype EZ
 # ex.: mapping_types[sugar_field_type]=ez_datatype
+#################
 mapping_types[]
 # strings
 mapping_types[id]=ezstring
@@ -96,18 +106,27 @@ mapping_types[multienum]=ezselection
 #ezenum
 # relations
 mapping_types[relate]=ezobjectrelation
+####################################################################################
 
-[Synchro]
+
+
+#####################################################################################
 # liste des modules SUGAR qui sont concerné par la synchronisation
 # @IMPORTANT! : le chronjob de synchronisation viens lire cette liste !!!
+##############
+[Synchro]
 modulesListToSynchro[]
 modulesListToSynchro[]=otcp_room
 modulesListToSynchro[]=otcp_accommodation
 modulesListToSynchro[]=otcp_restaurant
+#####################################################################################
 
 
+
+######################################################################################
 # @IMPORTANT! : pour l'instant [RemoteIdModel] n'est pas utilisé !
 # le modele de RemoteId des objets EZ synchronisés avec SUGAR est "eZClassIdentifier_SugarObjectId"
+###################
 [RemoteIdModel]
 # liste de variables pour le model de remote_id
 var_list[]

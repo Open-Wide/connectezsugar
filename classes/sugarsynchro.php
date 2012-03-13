@@ -121,6 +121,7 @@ class SugarSynchro
 											'getRelations' => array(			'sugar_module' 		=> true,
 																				'sugar_id'			=> true
 																		),
+											'checkForRelations' => array(	'sugar_module' 	=> true),
 										);
 		self::$parameters_per_function = $parameters_per_function;
 		
@@ -886,6 +887,25 @@ class SugarSynchro
 	}
 	
 	
+	public function checkForRelations($args = null)
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("checkForRelations", $args);
+		if(!$verify)
+			return false;
+		
+		$this->testForMapping();
+		$relations_names = $this->mappingdata['relations_names'];
+		
+		if( $relations_names === false || ( is_array($relations_names) && count($relations_names) == 0 )  )
+		{
+			self::$logger->writeTimedString("Aucun tableau relations_names[] trouvé pour le module " . $this->properties['sugar_module'] );
+			return false;
+		}
+		
+		return $relations_names;
+	}
+	
 	public function getRelations($args = null, $relation_type = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
@@ -899,8 +919,13 @@ class SugarSynchro
 		if( $this->checkForConnectorErrors($sugardata, 'get_entry') )
 			return false;
 		
-		$this->testForMapping();
-		$relations_names = $this->mappingdata['relations_names'];
+		$relations_names = $this->checkForRelations();
+		
+		if( $relations_names === false )
+		{
+			return array();
+		}
+		
 		if( is_null($relation_type) )
 			$relation_type = "name";
 		
@@ -917,16 +942,23 @@ class SugarSynchro
 			$relations_names[$rel_class_identifier] = $relation_name;
 		}
 		
+		//vd($relations_names);
+		//vd($sugardata['data'][0]['name_value_list']);
 		
 		foreach( $sugardata['data'] as $k1 => $v1 )
 		{
 			foreach( $v1['name_value_list'] as $k2 => $v2 )
-			$rel_class_identifier =  array_search($v2['name'], $relations_names);
-			if( $rel_class_identifier !== false )
 			{
-				$relateds_names[$rel_class_identifier] = $v2['value'];
+				$rel_class_identifier =  array_search($v2['name'], $relations_names);
+				if( $rel_class_identifier !== false )
+				{
+					$relateds_names[$rel_class_identifier] = $v2['value'];
+				}
 			}
+			
 		}
+		
+		//vd($relateds_names);
 		
 		if( is_array($relateds_names) && count($relateds_names) > 0 )
 			return $relateds_names;

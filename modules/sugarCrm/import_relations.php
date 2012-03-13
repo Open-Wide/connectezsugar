@@ -72,17 +72,33 @@ if($continue)
 	$relation_type = "name";
 	$sugarrelations = $sugarSynchro->getRelations($sugar_properties, $relation_type);
 	
-	$notice['sugarrelations'] = $sugarrelations;
+	if(!$sugarrelations)
+	{
+		$notice['SugarSynchro.log'] = SugarSynchro::lastLogContent();
+		$result['sugarrelations'] = $sugarrelations;
+		$continue = false;
+	}
+	else
+		$notice['sugarrelations'] = $sugarrelations;
 	
+}
+
+if($continue)
+{
 	foreach( $sugarrelations as $related_class_identifier => $related_name )
 	{
-		$setRelation = $objectsMaster->setObjectRelationByName($ez_properties, $related_class_identifier, $related_name, "name");
-		if( $setRelation )
-			$result[$related_name] = "La relation d'objets a été crée avec succes";
+		if( is_null($related_name) or empty($related_name) )
+			$result[$related_class_identifier] = "L'objet n'as pas de relation avec la class $related_class_identifier";
 		else
-			$result[$related_name] = owObjectsMaster::lastLogContent();;
+		{
+			$setRelation = $objectsMaster->setObjectRelationByName($ez_properties, $related_class_identifier, $related_name, "name");
+			if( $setRelation )
+				$result[$related_name] = "La relation d'objets a été crée avec succes";
+			else
+				$result[$related_name] = owObjectsMaster::lastLogContent();
+		}
+		
 	}
-	
 }
 
 
