@@ -358,13 +358,13 @@ class SugarSynchro
 		return $class_name;
 	}
 	
-	public function defClassIdentifier($module_name)
+	public function defClassIdentifier($module_name, $setProperty = true)
 	{
 		if(isset(self::$inidata['mapping_identifiers'][$module_name]))
 		{
 			$class_identifier = self::$inidata['mapping_identifiers'][$module_name];
 		}
-		elseif(isset($this->properties['class_name']))
+		elseif( isset($this->properties['class_name']) && $setProperty )
 		{
 			$class_identifier = owObjectsMaster::normalizeIdentifier($this->properties['class_name']);
 		}
@@ -376,7 +376,8 @@ class SugarSynchro
 		else
 			$class_identifier = owObjectsMaster::normalizeIdentifier($module_name);
 		
-		$this->properties['class_identifier'] = $class_identifier;
+		if( $setProperty )
+			$this->properties['class_identifier'] = $class_identifier;
 		
 		return $class_identifier;
 	}
@@ -791,7 +792,7 @@ class SugarSynchro
 			{
 				// si la valeur est NULL on transforme en 0
 				if( is_null($value) or empty($value) )
-					$output_array[$name] = "0";
+					$output_array[$name] = 0;
 				// dans le cas d'une date on calcule le timestamp
 				elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezdate" )
 				{
@@ -929,7 +930,7 @@ class SugarSynchro
 		if( is_null($relation_type) )
 			$relation_type = "name";
 		
-		foreach( $relations_names as $rel_class_identifier => $relation_name )
+		foreach( $relations_names as $rel_module_name => $relation_name )
 		{
 			$relation_name =  $relation_name . "_" . $relation_type;
 			if ( strlen($relation_name) > 25 )
@@ -939,7 +940,10 @@ class SugarSynchro
 				$relation_name = $relation_name_part_1 . $relation_name_part_2; //evd($relation_name);
 			}
 			
+			$rel_class_identifier = $this->defClassIdentifier($rel_module_name, false);
+			unset($relations_names[$rel_module_name]);
 			$relations_names[$rel_class_identifier] = $relation_name;
+			
 		}
 		
 		//vd($relations_names);
@@ -949,6 +953,14 @@ class SugarSynchro
 		{
 			foreach( $v1['name_value_list'] as $k2 => $v2 )
 			{
+				/*
+				if( is_integer( stripos($v2['name'], "otcp_contact_many") ) )
+				{
+					vd(stripos($v2['name'], "otcp_contact_many"));
+					evd($v2['name']);
+				}
+				*/
+					
 				$rel_class_identifier =  array_search($v2['name'], $relations_names);
 				if( $rel_class_identifier !== false )
 				{
@@ -964,6 +976,7 @@ class SugarSynchro
 			return $relateds_names;
 		else
 		{
+			//evd($sugardata);
 			$error = "Aucune relation trouvé avec les noms de relation dans \$this->mappingdata['relations_names'] pour le module : " . $this->properties['sugar_module'];
 			self::$logger->writeTimedString($error);
 			return false;

@@ -387,6 +387,9 @@ class SugarConnector
         $reponse = $this->client->send($request);
         $result = $reponse->Value; //foreach( $reponse as $k => $v ) { echo("$k\n"); if($k != "Value") vd($v); } exit();
         
+        //if($module == "otcp_accommodation")
+        	//evd($result);
+        
         return $this->standardQueryReturn($result, "get_relationships");
     }
     
