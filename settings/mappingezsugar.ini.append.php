@@ -55,6 +55,8 @@ editable_fields[]=phone_other
 editable_fields[]=cont_user_password
 editable_fields[]=cont_market
 
+relations_names[]
+
 [otcp_culture]
 include_fields[]
 include_fields[]=acti_id
@@ -275,6 +277,9 @@ editable_fields[]=acti_website
 editable_fields[]=acti_description_new
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
+
+relations_names[]
+relations_names[otcp_contact]=otcp_contact_many
 
 [otcp_accommodation]
 include_fields[]
@@ -558,6 +563,9 @@ editable_fields[]=acti_description_new
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
+relations_names[]
+relations_names[otcp_contact]=otcp_contact_many
+
 [otcp_transport]
 include_fields[]
 include_fields[]=acti_id
@@ -740,6 +748,9 @@ editable_fields[]=acti_description_new
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
+relations_names[]
+relations_names[otcp_contact]=otcp_contact_many
+
 [otcp_shopping]
 include_fields[]
 include_fields[]=acti_id
@@ -847,7 +858,6 @@ include_fields[]=shop_business_has_included_technical_services
 include_fields[]=shop_business_technical_services
 include_fields[]=shop_business_has_combined_services
 include_fields[]=shop_business_nb_room
-include_fields[]=
 
 translate_fields[]
 translate_fields[]=acti_transport_other
@@ -878,6 +888,9 @@ editable_fields[]=acti_website
 editable_fields[]=acti_description_new
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
+
+relations_names[]
+relations_names[otcp_contact]=otcp_contact_many
 
 [otcp_company]
 include_fields[]
@@ -925,6 +938,8 @@ translate_fields[]
 editable_fields[]
 editable_fields[]=comp_contact_twitter
 editable_fields[]=comp_contact_facebook
+
+relations_names[]
 
 [otcp_visit]
 include_fields[]
@@ -1116,6 +1131,9 @@ editable_fields[]=acti_description_new
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
+relations_names[]
+relations_names[otcp_contact]=otcp_contact_many
+
 [otcp_otherpro]
 include_fields[]
 include_fields[]=acti_id
@@ -1250,6 +1268,9 @@ editable_fields[]=acti_description_new
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
+relations_names[]
+relations_names[otcp_contact]=otcp_contact_many
+
 [otcp_room]
 include_fields[]
 include_fields[]=room_nb
@@ -1278,8 +1299,13 @@ translate_fields[]
 editable_fields[]
 
 relations_names[]
-relations_names[accommodation]=otcp_accommodation_one
-relations_names[restaurant]=otcp_restaurant_one
+relations_names[otcp_accommodation]=otcp_accommation_one
+relations_names[otcp_culture]=otcp_culture_one
+relations_names[otcp_otherpro]=otcp_otherpro_one
+relations_names[otcp_restaurant]=otcp_restaurant_one
+relations_names[otcp_shopping]=otcp_shopping_one
+relations_names[otcp_transport]=otcp_transport_one
+relations_names[otcp_visit]=otcp_visit_one
 
 [otcp_restaurant]
 include_fields[]
@@ -1522,5 +1548,8 @@ editable_fields[]=acti_website
 editable_fields[]=acti_description_new
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
+
+relations_names[]
+relations_names[otcp_contact]=otcp_contact_many
 
 */ ?>
