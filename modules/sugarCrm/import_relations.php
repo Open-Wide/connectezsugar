@@ -76,7 +76,7 @@ if($continue)
 	
 	foreach( $sugarrelations as $related_class_identifier => $related_name )
 	{
-		$setRelation = $objectsMaster->setObjectRelation($ez_properties, $related_class_identifier, $related_name, $relation_type);
+		$setRelation = $objectsMaster->setObjectRelationByName($ez_properties, $related_class_identifier, $related_name, "name");
 		if( $setRelation )
 			$result[$related_name] = "La relation d'objets a été crée avec succes";
 		else

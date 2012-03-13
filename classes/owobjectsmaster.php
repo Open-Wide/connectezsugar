@@ -110,7 +110,7 @@ class owObjectsMaster
 										'verifyClassAttributes' => array(	'class_id' 			=> true,
 																			'class_attributes' => true
 																		),
-										'setObjectRelation' => array(	'class_identifier' => true,
+										'setObjectRelationByName' => array(	'class_identifier' => true,
 																		'content_object' => true
 																		),
 																		
@@ -961,7 +961,7 @@ class owObjectsMaster
 	/*
 	 * 
 	 */
-	public function setObjectRelation( $args = null, $related_class_identifier, $related_name, $relation_type )
+	public function setObjectRelationByName( $args = null, $related_class_identifier, $related_name, $attr_name )
 	{
 		$related_class_id = eZContentClass::classIDByIdentifier($related_class_identifier);
 		
@@ -975,7 +975,7 @@ class owObjectsMaster
 			$object_search = eZContentObjectTreeNode::subTreeByNodeID( array( 	'Depth' => 1,
 																				'ClassFilterType' => 'include',
 																				'ClassFilterArray' => array($related_class_identifier),
-																				'AttributeFilter' => array(array("$related_class_identifier/$relation_type", '=', $related_name) ),
+																				'AttributeFilter' => array(array("$related_class_identifier/$attr_name", '=', $related_name) ),
 																				),
 																			     self::$inidata['ClassParentNodeID'][$related_class_identifier] );
 		

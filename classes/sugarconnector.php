@@ -377,13 +377,12 @@ class SugarConnector
         return $this->standardQueryReturn($result, "get_available_modules");
     }
     
-	function get_relationships($module,$id,$related_module)
+	function get_relationships($module,$id)
     {    	
         $request = new eZSOAPRequest("get_entry", $this->serverNamespace);
         $request->addParameter('session',$this->session);
         $request->addParameter('module_name',$module);
         $request->addParameter('module_id',$id);
-        $request->addParameter('related_module',$related_module);
         
         $reponse = $this->client->send($request);
         $result = $reponse->Value; //foreach( $reponse as $k => $v ) { echo("$k\n"); if($k != "Value") vd($v); } exit();
