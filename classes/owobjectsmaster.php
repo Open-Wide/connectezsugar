@@ -1015,6 +1015,31 @@ class owObjectsMaster
 	}
 	
 	
+	public function setObjectRelationByIds( $args = null, $related_class_identifier, $related_ids )
+	{
+		$related_class_id = eZContentClass::classIDByIdentifier($related_class_identifier);
+		
+		if( !$related_class_id )
+		{
+			self::$logger->writeTimedString("class avec identifier $related_class_identifier non trouvé.");
+			return false;
+		}
+		else
+		{
+			foreach( $related_ids as $key => $value )
+			{
+				$addObjectRelation = $this->properties['content_object']->addContentObjectRelation($value['id']);
+				if( $addObjectRelation !== false )
+					$result[$value['id']] = true;
+				else
+					$result[$value['id']] = false;
+			}	
+	
+			return $result;
+		}
+	}
+	
+	
 } // fin de class
 
 ?>

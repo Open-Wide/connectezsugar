@@ -119,7 +119,7 @@ class SugarSynchro
 																		),
 											'getSugarModuleEntryList' => array(	'sugar_module' 	=> true),
 											'getRelations' => array(			'sugar_module' 		=> true,
-																				'sugar_id'			=> true
+																				'sugar_id'			=> true,
 																		),
 											'checkForRelations' => array(	'sugar_module' 	=> true),
 										);
@@ -668,11 +668,14 @@ class SugarSynchro
 		$attributes_values = array();
 		foreach($name_value_list as $item)
 		{
+			$current_datatype = $this->properties['sugar_attributes'][$item['name']]['datatype'];
 			// si la value est vide on ne reinsegne pas l'attribut 
 			if( !is_null($item['value']) and !empty($item['value']) )
 				$attributes_values[$item['name']] = html_entity_decode($item['value'], ENT_QUOTES, 'UTF-8');
-			//if( $item['name'] == "acco_business_event_type" )
-				//vd($item['value']);//@@@
+			// sauf si c'est une date on met la valeur à 0
+			elseif( $current_datatype == "ezdate" || $current_datatype == "ezdatetime" )
+				$attributes_values[$item['name']] = 0;
+				
 		}
 		
 		$this->properties['sugar_attributes_values'] = $attributes_values;
@@ -907,7 +910,7 @@ class SugarSynchro
 		return $relations_names;
 	}
 	
-	public function getRelations($args = null, $relation_type = null)
+	public function OLD_getRelations($args = null, $relation_type = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
 		$verify = $this->verifyArgsForFunction("getRelations", $args);
@@ -982,6 +985,66 @@ class SugarSynchro
 			return false;
 		}
 		
+	}
+	
+	
+	
+	/*
+	 * array(2) {
+  ["ids"]=>
+  array(1) {
+    [0]=>
+    array(3) {
+      ["id"]=>
+      string(36) "d49973df-1b4f-d845-d826-4f17f3bcc084"
+      ["date_modified"]=>
+      string(19) "2012-02-01 16:04:06"
+      ["deleted"]=>
+      string(1) "0"
+    }
+  }
+  ["error"]=>
+  array(3) {
+    ["number"]=>
+    string(1) "0"
+    ["name"]=>
+    string(8) "No Error"
+    ["description"]=>
+    string(8) "No Error"
+  }
+}
+
+	 */
+	
+	public function getRelations($args = null, $relatedModules = "otcp_accommodation")
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("getRelations", $args);
+		if(!$verify)
+			return false;
+			
+		$relations_names = $this->checkForRelations();
+		
+		if( $relations_names === false )
+		{
+			return array();
+		}
+		
+		$relations_array = array();
+		
+		foreach( $relations_names as $rel_module_name => $relation_name )
+		{
+			$sugardata = $this->sugarConnector->get_relationships($this->properties['sugar_module'],$this->properties['sugar_id'], $rel_module_name);
+		
+			$rel_class_identifier = $this->defClassIdentifier($rel_module_name, false);
+			
+			if( $this->checkForConnectorErrors($sugardata, 'get_relationships') )
+				$relations_array[$rel_class_identifier] = false;
+			else
+				$relations_array[$rel_class_identifier] = $sugardata['data'];
+		}
+		
+		return $relations_array;
 	}
 	
 	
