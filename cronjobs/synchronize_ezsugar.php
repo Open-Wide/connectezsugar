@@ -7,12 +7,6 @@ Cronjob pour la synchronisation des objets EZ depuis SUGAR
 
 include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
-// fonction pour afficher les variable en console
-function show($var)
-{
-	$show = print_r($var,true);
-	return $show; 
-}
 
 // encoding
 //iconv_set_encoding("output_encoding", "UTF-8");

@@ -111,7 +111,13 @@ class owObjectsMaster
 																			'class_attributes' => true
 																		),
 										'setObjectRelationByName' => array(	'class_identifier' => true,
-																		'content_object' => true
+																			'content_object' => true
+																		),
+										'setObjectRelationByIds' => array(	'class_identifier' => true,
+																			'content_object' => true
+																		),
+										'setObjectRelationByRemoteIds' => array('class_identifier' => true,
+																				'content_object' => true
 																		),
 																		
 										);
@@ -217,7 +223,11 @@ class owObjectsMaster
         $resultArray = $db->arrayQuery( 'SELECT id FROM ezcontentobject WHERE remote_id=\'' . $remoteID . '\'' );
 		
         if ( count( $resultArray ) != 1 )
-            return false;
+        {
+        	$error = "Object non trouvé avec remote_id : $remoteID ";
+			self::$logger->writeTimedString("Erreur getIniData() : " . $error);
+			return false;
+        } 
         else
             return $resultArray[0]['id'];
 
@@ -235,7 +245,11 @@ class owObjectsMaster
         $resultArray = $db->arrayQuery( "SELECT main_node_id FROM ezcontentobject_tree WHERE contentobject_id=" . $id );
 		
         if ( count( $resultArray ) == 0 )
-            return false;
+        {
+        	$error = "Node non trouvé avec object_id : $id ";
+			self::$logger->writeTimedString("Erreur getIniData() : " . $error);
+			return false;
+        } 
         else
             return $resultArray[0]['main_node_id'];
 
@@ -963,6 +977,11 @@ class owObjectsMaster
 	 */
 	public function setObjectRelationByName( $args = null, $related_class_identifier, $related_name, $attr_name )
 	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("setObjectRelationByName", $args);
+		if(!$verify)
+			return false;
+		
 		$related_class_id = eZContentClass::classIDByIdentifier($related_class_identifier);
 		
 		if( !$related_class_id )
@@ -1017,6 +1036,11 @@ class owObjectsMaster
 	
 	public function setObjectRelationByIds( $args = null, $related_class_identifier, $related_ids )
 	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("setObjectRelationByIds", $args);
+		if(!$verify)
+			return false;
+		
 		$related_class_id = eZContentClass::classIDByIdentifier($related_class_identifier);
 		
 		if( !$related_class_id )
@@ -1033,6 +1057,43 @@ class owObjectsMaster
 					$result[$value['id']] = true;
 				else
 					$result[$value['id']] = false;
+			}	
+	
+			return $result;
+		}
+	}
+	
+	
+	public function setObjectRelationByRemoteIds( $args = null, $related_class_identifier, $related_ids )
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("setObjectRelationByRemoteIds", $args);
+		if(!$verify)
+			return false;
+		
+		$related_class_id = eZContentClass::classIDByIdentifier($related_class_identifier);
+		
+		if( !$related_class_id )
+		{
+			self::$logger->writeTimedString("class avec identifier $related_class_identifier non trouvé.");
+			return false;
+		}
+		else
+		{
+			foreach( $related_ids as $remote_id )
+			{
+				$object_id = self::objectIDByRemoteID($remote_id);
+				if( !$object_id )
+					$result[$remote_id] = false;
+				else
+				{
+					$addObjectRelation = $this->properties['content_object']->addContentObjectRelation($object_id);
+					if( $addObjectRelation !== false )
+						$result[$remote_id] = true;
+					else
+						$result[$remote_id] = false;
+				}
+				
 			}	
 	
 			return $result;

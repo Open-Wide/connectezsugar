@@ -4,12 +4,12 @@ include_once( 'kernel/common/template.php' );
 if(isset($Params["sugarmodule"]))
 	$sugarmodule = $Params["sugarmodule"];
 else
-   $sugarmodule="otcp_room";
+   $sugarmodule="otcp_accommodation";
    
 if(isset($Params["sugarid"]))
    $sugarid = $Params["sugarid"];
 else
-   $sugarid="25cc743a-df11-c88c-8e0f-4f3405904130";
+   $sugarid="343b77e9-dfeb-eb38-589b-4f549aa8e8e1";
 
 // $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650";
   

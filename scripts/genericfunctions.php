@@ -1,5 +1,15 @@
 <?php
 
+// fonction pour afficher les variable en console
+function show($var)
+{
+	$show = print_r($var,true);
+	return $show; 
+}
+
+/*
+ * fonctions pour des exit et des var_dump
+ */
 function vd($var)
 {
 	return var_dump($var);

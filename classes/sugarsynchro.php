@@ -122,6 +122,10 @@ class SugarSynchro
 																				'sugar_id'			=> true,
 																		),
 											'checkForRelations' => array(	'sugar_module' 	=> true),
+											'synchronizeFieldsValues' => array(	'sugar_module' 		=> true,
+																				'class_attributes'	=> true,
+																				'class_identifier' 	=> false,
+																		),
 										);
 		self::$parameters_per_function = $parameters_per_function;
 		
@@ -595,7 +599,7 @@ class SugarSynchro
 	public function getSugarModuleEntryList($args = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
-		$verify = $this->verifyArgsForFunction("getSugarFields", $args);
+		$verify = $this->verifyArgsForFunction("getSugarModuleEntryList", $args);
 		if(!$verify)
 			return false;
 
@@ -750,15 +754,12 @@ class SugarSynchro
 	 * @param $input_array array
 	 * @return $output_array array OR false
 	 */
-	public function synchronizeFieldsValues($input_array)
+	public function synchronizeFieldsValues($input_array, $args = null)
 	{
-		//evd($this->properties['class_attributes']);
-		if( !isset($this->properties['class_attributes']) )
-		{
-			$error = "synchronizeFieldsValues : \$this->properties['class_attributes'] n'est pas reinsegné !";
-			self::$logger->writeTimedString($error);
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("synchronizeFieldsValues", $args);
+		if(!$verify)
 			return false;
-		}
 		
 		$input_array = $this->synchronizeFieldsNames($input_array);
 		if( !$input_array )
@@ -781,6 +782,32 @@ class SugarSynchro
 				$newvalue = str_replace ( "^" , "" , $value );
 				$newvalue = str_replace ( "," , "|" , $newvalue );
 				$output_array[$name] = $newvalue;
+			}
+			// dans le cas d'une relation d'objet on transforme l'ID sugar en ID ez
+			elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezobjectrelation" )
+			{
+				// @IMPORTANT! : il nous faut le nom de la class pour determiner le remote_id de l'objet !!!
+				// @TODO : pour l'instant je n'ai pas trouvé d'autre mèthode pour determiner la class de l'objet en relation
+				// que un explode du nom du champ sugar !!!!!!!!
+				$explode_name = explode("_",$name);
+				$explode_count = count($explode_name);
+				$related_class_identifier = $explode_name[$explode_count-1];
+				
+				$select_fields = array($name."_id_c");
+				$sugardata = $this->sugarConnector->get_entry($this->properties['sugar_module'], $this->properties['sugar_id'], $select_fields);
+				$related_sugar_id = $sugardata['data'][0]['value'];
+				
+				$remoteID = $related_class_identifier . "_" . $related_sugar_id;
+				//evd($name);
+				//vd($remoteID);
+				$related_object_id = owObjectsMaster::objectIDByRemoteID($remoteID);
+				//vd($related_object_id);
+				//evd($this->properties['sugar_id']);
+				
+				if( $related_object_id !== false )
+					$output_array[$name] = $related_object_id;
+				else
+					$output_array[$name] = $value;
 			}
 			// dans le cas d'une valeur numerique à NULL on transforme en 0
 			elseif( in_array($this->properties['class_attributes'][$name]['datatype'], $numeric_datatypes) )
@@ -949,21 +976,11 @@ class SugarSynchro
 			
 		}
 		
-		//vd($relations_names);
-		//vd($sugardata['data'][0]['name_value_list']);
-		
 		foreach( $sugardata['data'] as $k1 => $v1 )
 		{
 			foreach( $v1['name_value_list'] as $k2 => $v2 )
 			{
-				/*
-				if( is_integer( stripos($v2['name'], "otcp_contact_many") ) )
-				{
-					vd(stripos($v2['name'], "otcp_contact_many"));
-					evd($v2['name']);
-				}
-				*/
-					
+
 				$rel_class_identifier =  array_search($v2['name'], $relations_names);
 				if( $rel_class_identifier !== false )
 				{
@@ -988,33 +1005,6 @@ class SugarSynchro
 	}
 	
 	
-	
-	/*
-	 * array(2) {
-  ["ids"]=>
-  array(1) {
-    [0]=>
-    array(3) {
-      ["id"]=>
-      string(36) "d49973df-1b4f-d845-d826-4f17f3bcc084"
-      ["date_modified"]=>
-      string(19) "2012-02-01 16:04:06"
-      ["deleted"]=>
-      string(1) "0"
-    }
-  }
-  ["error"]=>
-  array(3) {
-    ["number"]=>
-    string(1) "0"
-    ["name"]=>
-    string(8) "No Error"
-    ["description"]=>
-    string(8) "No Error"
-  }
-}
-
-	 */
 	
 	public function getRelations($args = null, $relatedModules = "otcp_accommodation")
 	{
@@ -1047,6 +1037,27 @@ class SugarSynchro
 		return $relations_array;
 	}
 	
+	
+	public function relationsArrayToRemoteId($relations_array)
+	{
+		$sugarrelations = array();
+		
+		foreach($relations_array as $related_class_identifier => $related_values)
+		{
+			if( count($related_values) == 0 )
+				$sugarrelations[$related_class_identifier] = $related_values;
+			else
+			{
+				foreach( $related_values as $value )
+				{
+					$sugarrelations[$related_class_identifier][] = $related_class_identifier . "_" . $value['id'];
+				}
+			}
+		}
+		
+		return $sugarrelations;
+		
+	}
 	
 	
 }// fin de class
