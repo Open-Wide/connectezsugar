@@ -797,10 +797,10 @@ class SugarSynchro
 				$sugardata = $this->sugarConnector->get_entry($this->properties['sugar_module'], $this->properties['sugar_id'], $select_fields);
 				$related_sugar_id = $sugardata['data'][0]['value'];
 				
-				$remoteID = $related_class_identifier . "_" . $related_sugar_id;
+				$related_remoteID = $related_class_identifier . "_" . $related_sugar_id;
 				//evd($name);
-				//vd($remoteID);
-				$related_object_id = owObjectsMaster::objectIDByRemoteID($remoteID);
+				//vd($related_remoteID);
+				$related_object_id = owObjectsMaster::objectIDByRemoteID($related_remoteID);
 				//vd($related_object_id);
 				//evd($this->properties['sugar_id']);
 				
