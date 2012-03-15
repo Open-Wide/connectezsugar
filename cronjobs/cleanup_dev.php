@@ -7,13 +7,6 @@ Cronjob pour la synchronisation des objets EZ depuis SUGAR
 
 include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
-// fonction pour afficher les variable en console
-function show($var)
-{
-	$show = print_r($var,true);
-	return $show; 
-}
-
 // init du logger
 $logger = owLogger::CreateForAdd("var/log/cleanup_dev_" . date("d-m-Y") . ".log");
 
