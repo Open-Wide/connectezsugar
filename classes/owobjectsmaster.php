@@ -62,7 +62,7 @@ class owObjectsMaster
 								'DefaultIsSearchable'	=> array( 'block' => "Search", 'var' => "DefaultIsSearchable" ),
 								'ClassParentNodeID'		=> array( 'block' => "Tree", 'var' => "ClassParentNodeID"),
 								'DefaultClassGroup'		=> array( 'block' => "Class", 'var' => "DefaultClassGroup"),
-								'ClassGroup'			=> array( 'block' => "Class", 'var' => "ClassParentNodeID"),
+								'ClassGroup'			=> array( 'block' => "Class", 'var' => "ClassGroup"),
 								'DefaultClassIsContainer'=> array( 'block' => "Class", 'var' => "DefaultClassIsContainer"),
 								'ClassIsContainer'		=> array( 'block' => "Class", 'var' => "ClassIsContainer"),
 							); 
