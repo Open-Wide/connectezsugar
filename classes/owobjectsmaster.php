@@ -35,7 +35,7 @@ class owObjectsMaster
 	 */
 	public static function instance($properties = array())
 	{
-		self::$logger = owLogger::CreateForAdd(self::LOGFILE);
+		self::initLogger();
 		self::definition();
 		
 		if( !self::getIniData() )
@@ -136,6 +136,12 @@ class owObjectsMaster
 	
 	
 	
+	public static function initLogger()
+	{
+		if( !is_object(self::$logger) )
+			self::$logger = owLogger::CreateForAdd(self::LOGFILE);
+	}
+	
 	
 	/*
 	 * retourne la valeur d'une propriété statique si elle existe
@@ -151,6 +157,7 @@ class owObjectsMaster
 	
 	public static function lastLogContent()
 	{
+		self::initLogger();
 		return self::$logger->getLogContentFromCurrentStartTime();
 	}
 	
@@ -164,7 +171,7 @@ class owObjectsMaster
 	public static function getIniData()
 	{
 		// init du fichier de log
-		self::$logger = owLogger::CreateForAdd(self::LOGFILE);
+		self::initLogger();
 		
 		// load definition si ce n'est pas dèjà fait
 		if(count(self::$definition) == 0)
@@ -218,6 +225,8 @@ class owObjectsMaster
 	 */
 	public static function objectIDByRemoteID($remoteID)
 	{
+		self::initLogger();
+		
 		$db = eZDB::instance();
         $remoteID =$db->escapeString( $remoteID );
         $resultArray = $db->arrayQuery( 'SELECT id FROM ezcontentobject WHERE remote_id=\'' . $remoteID . '\'' );
@@ -240,6 +249,8 @@ class owObjectsMaster
 	 */
 	public static function objectMainNodeIDByID($id)
 	{
+		self::initLogger();
+		
 		$db = eZDB::instance();
 		settype($id,'int');
         $resultArray = $db->arrayQuery( "SELECT main_node_id FROM ezcontentobject_tree WHERE contentobject_id=" . $id );
@@ -282,7 +293,7 @@ class owObjectsMaster
     	settype($delID,'int');
         
         // init du fichier de log
-		self::$logger = owLogger::CreateForAdd(self::LOGFILE);
+		self::initLogger();
         
         // empeche d'utiliser cette mèthode si l'objet existe encore !
         // utiliser plutôt eZContentObjectOperations::remove($id);
