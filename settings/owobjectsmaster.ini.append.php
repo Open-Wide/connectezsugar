@@ -4,7 +4,6 @@
 # ID de l'Admin User
 AdminID=14
 
-
 [Tree]
 # ID du node parent par default pour la création des objets
 #DefaultParentNodeID=1198
