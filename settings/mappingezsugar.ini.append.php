@@ -1,6 +1,5 @@
 <?php /* 
 
-######################################################################################################
 [otcp_contact]
 include_fields[]
 include_fields[]=cont_id
@@ -58,8 +57,6 @@ editable_fields[]=cont_market
 
 relations_names[]
 
-
-######################################################################################################
 [otcp_culture]
 include_fields[]
 include_fields[]=acti_id
@@ -282,10 +279,8 @@ editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
-#relations_names[otcp_contact]=otcp_contact_many
+relations_names[otcp_contact]=many_cult_many_cont
 
-
-######################################################################################################
 [otcp_accommodation]
 include_fields[]
 include_fields[]=acti_id
@@ -569,10 +564,8 @@ editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
-#relations_names[otcp_contact]=otcp_contact_many
+relations_names[otcp_contact]=many_acco_many_cont
 
-
-######################################################################################################
 [otcp_transport]
 include_fields[]
 include_fields[]=acti_id
@@ -756,10 +749,8 @@ editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
-relations_names[otcp_contact]=otcp_contact_many
+relations_names[otcp_contact]=many_tran_many_cont
 
-
-######################################################################################################
 [otcp_shopping]
 include_fields[]
 include_fields[]=acti_id
@@ -899,10 +890,8 @@ editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
-#relations_names[otcp_contact]=otcp_contact_many
+relations_names[otcp_contact]=many_shop_many_cont
 
-
-######################################################################################################
 [otcp_company]
 include_fields[]
 include_fields[]=comp_internal_comment
@@ -952,8 +941,6 @@ editable_fields[]=comp_contact_facebook
 
 relations_names[]
 
-
-######################################################################################################
 [otcp_visit]
 include_fields[]
 include_fields[]=acti_id
@@ -1145,10 +1132,8 @@ editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
-#relations_names[otcp_contact]=otcp_contact_many
+relations_names[otcp_contact]=many_visi_many_cont
 
-
-######################################################################################################
 [otcp_otherpro]
 include_fields[]
 include_fields[]=acti_id
@@ -1284,10 +1269,8 @@ editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
-#relations_names[otcp_contact]=otcp_contact_many
+relations_names[otcp_contact]=many_othe_many_cont
 
-
-######################################################################################################
 [otcp_room]
 include_fields[]
 include_fields[]=room_nb
@@ -1316,16 +1299,14 @@ translate_fields[]
 editable_fields[]
 
 relations_names[]
-relations_names[otcp_accommodation]=otcp_accommation_one
-relations_names[otcp_culture]=otcp_culture_one
-relations_names[otcp_otherpro]=otcp_otherpro_one
-relations_names[otcp_restaurant]=otcp_restaurant_one
-relations_names[otcp_shopping]=otcp_shopping_one
-relations_names[otcp_transport]=otcp_transport_one
-relations_names[otcp_visit]=otcp_visit_one
+relations_names[otcp_accommodation]=many_room_one_acco
+relations_names[otcp_culture]=many_room_one_cult
+relations_names[otcp_otherpro]=many_room_one_othe
+relations_names[otcp_restaurant]=many_room_one_rest
+relations_names[otcp_shopping]=many_room_one_shop
+relations_names[otcp_transport]=many_room_one_tran
+relations_names[otcp_visit]=many_room_one_visi
 
-
-######################################################################################################
 [otcp_restaurant]
 include_fields[]
 include_fields[]=acti_id
@@ -1569,8 +1550,6 @@ editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
-#relations_names[otcp_contact]=otcp_contact_many
-
-
+relations_names[otcp_contact]=many_rest_many_cont
 
 */ ?>
