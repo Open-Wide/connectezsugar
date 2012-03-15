@@ -234,7 +234,7 @@ class owObjectsMaster
         if ( count( $resultArray ) != 1 )
         {
         	$error = "Object non trouvé avec remote_id : $remoteID ";
-			self::$logger->writeTimedString("Erreur getIniData() : " . $error);
+			self::$logger->writeTimedString("Erreur objectIDByRemoteID() : " . $error);
 			return false;
         } 
         else
@@ -258,7 +258,7 @@ class owObjectsMaster
         if ( count( $resultArray ) == 0 )
         {
         	$error = "Node non trouvé avec object_id : $id ";
-			self::$logger->writeTimedString("Erreur getIniData() : " . $error);
+			self::$logger->writeTimedString("Erreur objectMainNodeIDByID() : " . $error);
 			return false;
         } 
         else
