@@ -61,6 +61,10 @@ class owObjectsMaster
 								'DefaultCanTranslate'	=> array( 'block' => "Translation", 'var' => "DefaultCanTranslate" ),
 								'DefaultIsSearchable'	=> array( 'block' => "Search", 'var' => "DefaultIsSearchable" ),
 								'ClassParentNodeID'		=> array( 'block' => "Tree", 'var' => "ClassParentNodeID"),
+								'DefaultClassGroup'		=> array( 'block' => "Class", 'var' => "DefaultClassGroup"),
+								'ClassGroup'			=> array( 'block' => "Class", 'var' => "ClassParentNodeID"),
+								'DefaultClassIsContainer'=> array( 'block' => "Class", 'var' => "DefaultClassIsContainer"),
+								'ClassIsContainer'		=> array( 'block' => "Class", 'var' => "ClassIsContainer"),
 							); 
 		self::$inidata_list = $inidata_list;
 		
@@ -202,7 +206,6 @@ class owObjectsMaster
 				{
 					$error = "la variable demandées : " . $k . ", n'existe pas !";
 					self::$logger->writeTimedString("Erreur getIniData() : " . $error);
-					var_dump();
 					$err++;
 				}
 			}
@@ -690,7 +693,14 @@ class owObjectsMaster
 		$contentobject_name = ( isset($this->properties['class_object_name']) )? $this->properties['class_object_name'] : "new " . $this->properties['class_name'];
 		
 		// is_container ( 1 par default )
-		$is_container = (isset($this->properties['class_options']['is_container'])) ? $this->properties['class_options']['is_container'] : 1;
+		if( isset($this->properties['class_options']['is_container']) )
+			$is_container =  (int)$this->properties['class_options']['is_container'];
+		elseif( isset(self::$inidata['ClassIsContainer'][$this->properties['class_identifier']]) )
+			$is_container = (int)self::$inidata['ClassIsContainer'][$this->properties['class_identifier']];
+		elseif( isset(self::$inidata['DefaultClassIsContainer']) )
+			$is_container = (int)self::$inidata['DefaultClassIsContainer'];
+		else
+			$is_container = 1;
 		
 		$newClass->setAttribute( 'version', 0);
 		$newClass->setAttribute( 'name', $this->properties['class_name']);
@@ -707,7 +717,14 @@ class owObjectsMaster
 		$ClassVersion = $newClass->attribute( 'version' );
 		
 		// class_group ( "Content" par default )
-		$class_group = (isset($this->properties['class_options']['class_group'])) ? $this->properties['class_options']['class_group'] : "Content";
+		if( isset($this->properties['class_options']['class_group']) )
+			$class_group =  (int)$this->properties['class_options']['class_group'];
+		elseif( isset(self::$inidata['ClassGroup'][$this->properties['class_identifier']]) )
+			$class_group = (int)self::$inidata['ClassGroup'][$this->properties['class_identifier']];
+		elseif( isset(self::$inidata['DefaultClassGroup']) )
+			$class_group = (int)self::$inidata['DefaultClassGroup'];
+		else
+			$class_group = "Content";
 
 		$ingroup = eZContentClassClassGroup::create($ClassID, $ClassVersion, 1, $class_group);
 		$ingroup->store();
@@ -868,8 +885,6 @@ class owObjectsMaster
 			return false;
 		
 		$class = eZContentClass::fetch($this->properties['class_id']);
-		
-		//exit(var_dump($this->properties['object_attributes']));
 		
 		foreach($this->properties['object_attributes'] as $attr => $value)
 		{

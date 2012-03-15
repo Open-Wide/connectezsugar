@@ -21,6 +21,21 @@ ClassParentNodeID[accommodation]=2
 ClassParentNodeID[restaurant]=2
 
 
+[Class]
+# Group de Class
+DefaultClassGroup=Content
+
+ClassGroup[]
+ClassGroup[room]=Content
+ClassGroup[accommodation]=Content
+
+# Class Objects is_container?
+DefaultClassIsContainer=1
+
+ClassIsContainer[room]=1
+ClassIsContainer[accommodation]=1
+
+
 # options relatives à la traduction et au multilangues
 [Translation]
 # valeur par default de 'can_translate' des attributes des classes EZ
