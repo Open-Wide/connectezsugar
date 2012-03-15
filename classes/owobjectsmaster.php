@@ -805,7 +805,7 @@ class owObjectsMaster
 	
 	/*
 	 * Verify la coherance entre le tableu $this->properties['class_attributes'] et la structure de la class 
-	 * @TODO : verifier la coherance de la valeur de l'attribut avec la valeur attende par la mèthode fromString() du datatype 
+	 * 
 	 */
 	protected function verifyClassAttributes($args = null)
 	{

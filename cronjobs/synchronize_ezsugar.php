@@ -290,9 +290,6 @@ foreach($modules_list as $sugarmodule)
 					// CRÉE UN NOUVEAU OBJET EZ ***
 					// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 					
-					// @TODO : voir l'emplacement de l'objet selon la class ou autres parametres
-					//			arborescence du site EZ ?
-					
 					// crée un nouveau objet de contenu EZ
 					$createObject = $objectsMaster->createObjectEz();
 					

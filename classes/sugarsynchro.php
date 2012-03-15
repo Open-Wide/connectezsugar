@@ -122,9 +122,9 @@ class SugarSynchro
 																				'sugar_id'			=> true,
 																		),
 											'checkForRelations' => array(	'sugar_module' 	=> true),
-											'synchronizeFieldsValues' => array(	'sugar_module' 		=> true,
-																				'class_attributes'	=> true,
-																				'class_identifier' 	=> false,
+											'synchronizeFieldsValues' => array(	'class_attributes'	=> true,
+																				'sugar_module' 		=> true,
+																				'sugar_id' 			=> true,
 																		),
 										);
 		self::$parameters_per_function = $parameters_per_function;
@@ -774,8 +774,10 @@ class SugarSynchro
 		
 		foreach( $input_array as $name => $value )
 		{
+			$datatype = $this->properties['class_attributes'][$name]['datatype'];
+			
 			// dans le cas d'une selection multiple on transforme la valeur par la valeur attendu par fromString() de ezselectiotype
-			if( $this->properties['class_attributes'][$name]['datatype'] == "ezselection" 
+			if( $datatype == "ezselection" 
 				&& isset($this->properties['class_attributes'][$name]['multi']) 
 				&& $this->properties['class_attributes'][$name]['multi'] == 1 )
 			{
@@ -784,7 +786,7 @@ class SugarSynchro
 				$output_array[$name] = $newvalue;
 			}
 			// dans le cas d'une relation d'objet on transforme l'ID sugar en ID ez
-			elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezobjectrelation" )
+			elseif( $datatype == "ezobjectrelation" )
 			{
 				// @IMPORTANT! : il nous faut le nom de la class pour determiner le remote_id de l'objet !!!
 				// @TODO : pour l'instant je n'ai pas trouvé d'autre mèthode pour determiner la class de l'objet en relation
@@ -810,7 +812,7 @@ class SugarSynchro
 					$output_array[$name] = $value;
 			}
 			// dans le cas d'une valeur numerique à NULL on transforme en 0
-			elseif( in_array($this->properties['class_attributes'][$name]['datatype'], $numeric_datatypes) )
+			elseif( in_array($$datatype, $numeric_datatypes) )
 			{
 				if( is_null($value) or empty($value) )
 					$output_array[$name] = "0";
@@ -818,20 +820,20 @@ class SugarSynchro
 					$output_array[$name] = $value;
 			}
 			// dans le cas d'un datatype date ou datetime
-			elseif( in_array($this->properties['class_attributes'][$name]['datatype'], $timestamp_datatypes) )
+			elseif( in_array($datatype, $timestamp_datatypes) )
 			{
 				// si la valeur est NULL on transforme en 0
 				if( is_null($value) or empty($value) )
 					$output_array[$name] = 0;
 				// dans le cas d'une date on calcule le timestamp
-				elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezdate" )
+				elseif( $datatype == "ezdate" )
 				{
 					$date_array = explode("-", $value);
 					$ezdate = eZDate::create($date_array[1],$date_array[2],$date_array[0]);
 					$output_array[$name] = (string)$ezdate->timeStamp();
 				}
 				// dans le cas d'un datetime on calcule le timestamp avec le temps (h:m:s)
-				elseif( $this->properties['class_attributes'][$name]['datatype'] == "ezdatetime" )
+				elseif( $$datatype == "ezdatetime" )
 				{
 					$datetime_array = explode(" ", $value);
 					$date_array = explode("-", $datetime_array[0]);
@@ -868,7 +870,6 @@ class SugarSynchro
 	
 	/*
 	 * Verify la coherance entre le tableu $this->properties['class_attributes'] et la structure de la class EZ
-	 * @TODO : verifier la coherance de la valeur de l'attribut avec la valeur attende par la mèthode fromString() du datatype 
 	 * @param $args (voir self::definition())
 	 * @return boolean -> si tout va bien ou si il y a un erreur qui empeche le deroulement de la fonction
 	 * @return $changes array -> si des attributes dans le tableau en entrée $this->properties['class_attributes'] ne sont pas trouvé parmi les attributes de la class EZ
