@@ -7,9 +7,6 @@ Cronjob pour la synchronisation des objets EZ depuis SUGAR
 
 include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
-// init du logger
-$logger = owLogger::CreateForAdd("var/log/cleanup_dev_" . date("d-m-Y") . ".log");
-
 // init CLI
 $cli = SmartCLI::instance();
 

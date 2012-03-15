@@ -31,20 +31,31 @@ prefixString=otcp_
 # ex.: mapping_names[nom_module_sugar]=class_name_ez
 #################
 mapping_names[]
-mapping_names[otcp_room]=Salle
+mapping_names[otcp_contact]=Contact
+mapping_names[otcp_company]=Entreprise
+mapping_names[otcp_culture]=Lieux culturels et de loisirs
+mapping_names[otcp_shopping]=Shopping
+mapping_names[otcp_visit]=Visites guidées et agences réceptives
+mapping_names[otcp_otherpro]=Autres Professionnels
 mapping_names[otcp_accommodation]=Hebergement
 mapping_names[otcp_restaurant]=Restaurant
-mapping_names[otcp_transport]=Transport
-mapping_names[otcp_contact]=Contact
+mapping_names[otcp_transport]=Transports et POI
+mapping_names[otcp_room]=Salle
 #################
 # mapping des correspondances des noms de modules SUGAR avec les identifiers des classes EZ
 # ex.: mapping_identifiers[nom_module_sugar]=class_identifier_ez
 #################
 mapping_identifiers[]
-mapping_identifiers[otcp_room]=room
+mapping_identifiers[otcp_contact]=contact
+mapping_identifiers[otcp_company]=company
+mapping_identifiers[otcp_culture]=culture
+mapping_identifiers[otcp_shopping]=shopping
+mapping_identifiers[otcp_visit]=visit
+mapping_identifiers[otcp_otherpro]=otherpro
 mapping_identifiers[otcp_accommodation]=accommodation
 mapping_identifiers[otcp_restaurant]=restaurant
-mapping_identifiers[otcp_contact]=contact
+mapping_identifiers[otcp_transport]=transport
+mapping_identifiers[otcp_room]=room
 ##################
 
 ####################
@@ -120,12 +131,17 @@ mapping_types[relate]=ezobjectrelation
 ##############
 [Synchro]
 modulesListToSynchro[]
-#modulesListToSynchro[]=otcp_room
+modulesListToSynchro[]=otcp_contact
 modulesListToSynchro[]=otcp_company
+modulesListToSynchro[]=otcp_culture
 modulesListToSynchro[]=otcp_accommodation
-#modulesListToSynchro[]=otcp_restaurant
-#modulesListToSynchro[]=otcp_transport
-#modulesListToSynchro[]=otcp_contact
+modulesListToSynchro[]=otcp_restaurant
+modulesListToSynchro[]=otcp_transport
+modulesListToSynchro[]=otcp_shopping
+modulesListToSynchro[]=otcp_visit
+modulesListToSynchro[]=otcp_otherpro
+modulesListToSynchro[]=otcp_room
+
 #####################################################################################
 
 

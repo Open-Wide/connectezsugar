@@ -13,8 +13,6 @@ include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 //iconv_set_encoding("internal_encoding", "UTF-8");
 //iconv_set_encoding("input_encoding", "UTF-8");
 
-// init du logger
-$logger = owLogger::CreateForAdd("var/log/synchronize_ezsugar_" . date("d-m-Y") . ".log");
 
 // init CLI
 $cli = SmartCLI::instance();
