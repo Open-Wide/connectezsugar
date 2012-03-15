@@ -3,8 +3,6 @@
 [Users]
 # ID de l'Admin User
 AdminID=14
-# je sais pas si c'est utile ....
-#DefaultGroupID=112
 
 
 [Tree]
