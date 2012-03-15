@@ -4,7 +4,7 @@ include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
 class SugarConnector
 {
-	const LOGFILE = "var/log/SugarConnector.log";
+	const LOGFILE = "var/log/SugarConnector";
 	
 	private static $definition = array();
 	private static $properties_list;
@@ -66,7 +66,7 @@ class SugarConnector
 										
 		return $definition;
 	}
-	
+
 	
 	/*
      * prend en parametre un tableau $array à creuser
@@ -108,7 +108,7 @@ class SugarConnector
         
         $this->client = new eZSOAPClient($serverUrl,$serverPath);
         
-        $this->logger = owLogger::CreateForAdd(self::LOGFILE);
+        $this->logger = owLogger::CreateForAdd(self::LOGFILE . date("d-m-Y") . ".log");
         
     }
 

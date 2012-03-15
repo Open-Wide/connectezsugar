@@ -6,7 +6,7 @@ class owObjectsMaster
 	 * CONSTANTES
 	 */
 	
-	const LOGFILE = "var/log/owObjectsMaster.log";
+	const LOGFILE = "var/log/owObjectsMaster";
 	const INIPATH = "extension/connectezsugar/settings/";
 	const INIFILE = "owobjectsmaster.ini.append.php";
 	
@@ -139,7 +139,7 @@ class owObjectsMaster
 	public static function initLogger()
 	{
 		if( !is_object(self::$logger) )
-			self::$logger = owLogger::CreateForAdd(self::LOGFILE);
+			self::$logger = owLogger::CreateForAdd(self::LOGFILE . date("d-m-Y") . ".log");
 	}
 	
 	

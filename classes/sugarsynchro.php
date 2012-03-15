@@ -7,7 +7,7 @@ class SugarSynchro
 	/*
 	 * CONSTANTES
 	 */
-	const LOGFILE = "var/log/SugarSynchro.log";
+	const LOGFILE = "var/log/SugarSynchro";
 	const INIPATH = "extension/connectezsugar/settings/";
 	const INIFILE = "sugarcrm.ini.append.php";
 	const MAPPINGINIFILE = "mappingezsugar.ini.append.php";
@@ -41,7 +41,7 @@ class SugarSynchro
 	 */
 	public static function instance($properties = array())
 	{
-		self::$logger = owLogger::CreateForAdd(self::LOGFILE);
+		self::initLogger();
 		self::definition();
 		self::getIniData();
 		
@@ -140,6 +140,14 @@ class SugarSynchro
 		return $definition;
 	}
 	
+	
+	public static function initLogger()
+	{
+		if( !is_object(self::$logger) )
+			self::$logger = owLogger::CreateForAdd(self::LOGFILE . date("d-m-Y") . ".log");
+	}
+	
+	
 	/*
 	 * va chercher les settings dans le fichiers self::INIFILE
 	 * et les enregistre dans self::$inidata
@@ -149,7 +157,7 @@ class SugarSynchro
 	public static function getIniData()
 	{
 		// init du fichier de log
-		self::$logger = owLogger::CreateForAdd(self::LOGFILE);
+		self::initLogger();
 		
 		// load definition si ce n'est pas dèjà fait
 		if(count(self::$definition) == 0)
@@ -222,6 +230,7 @@ class SugarSynchro
 	
 	public static function lastLogContent()
 	{
+		self::initLogger();
 		return self::$logger->getLogContentFromCurrentStartTime();
 	}
 	
