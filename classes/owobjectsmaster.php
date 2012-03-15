@@ -71,6 +71,7 @@ class owObjectsMaster
 									'class_id',
 									'class_identifier',
 									'class_object_name',
+									'class_options',
 									'object_name',
 									'object_attributes',
 									'object_remote_id',
@@ -83,7 +84,8 @@ class owObjectsMaster
 		$parameters_per_function = array('createClassEz' => array(	'class_name' 		=> true,
 																	'class_identifier' 	=> false,
 																	'class_attributes' 	=> true,
-																	'class_object_name'	=> false
+																	'class_object_name'	=> false,
+																	'class_options'		=> false
 																),
 										'updateClassEz' => array(	'class_id'			=> true,
 																	'class_attributes' 	=> true,
@@ -687,12 +689,13 @@ class owObjectsMaster
 		// modele de nom pour les objets
 		$contentobject_name = ( isset($this->properties['class_object_name']) )? $this->properties['class_object_name'] : "new " . $this->properties['class_name'];
 		
-		// @ TODO pouvoir decider pour :
-		// 'is_container' (en dur pour l'instant!!)
+		// is_container ( 1 par default )
+		$is_container = (isset($this->properties['class_options']['is_container'])) ? $this->properties['class_options']['is_container'] : 1;
+		
 		$newClass->setAttribute( 'version', 0);
 		$newClass->setAttribute( 'name', $this->properties['class_name']);
 		$newClass->setAttribute( 'identifier', $this->properties['class_identifier'] );
-		$newClass->setAttribute( 'is_container', 1 ); // en dur pour l'instant !!
+		$newClass->setAttribute( 'is_container', $is_container );
 		$newClass->setAttribute( 'contentobject_name', "<" . $contentobject_name . ">" );
 		 
 		$newClass->store();
@@ -703,9 +706,10 @@ class owObjectsMaster
 		// version de la class
 		$ClassVersion = $newClass->attribute( 'version' );
 		
-		// @ TODO pouvoir decider pour le group de classes
-		// pour l'instant met la class dans le group "Content" (en dur !!)
-		$ingroup = eZContentClassClassGroup::create( $ClassID,$ClassVersion,1,"Content" );
+		// class_group ( "Content" par default )
+		$class_group = (isset($this->properties['class_options']['class_group'])) ? $this->properties['class_options']['class_group'] : "Content";
+
+		$ingroup = eZContentClassClassGroup::create($ClassID, $ClassVersion, 1, $class_group);
 		$ingroup->store();
 		
 		// crée les attributs de la class EZ

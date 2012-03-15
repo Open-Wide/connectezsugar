@@ -10,7 +10,7 @@ else
 if (isset ($Params["sugarid"]))
    $sugarid = $Params["sugarid"];
 else
-   $sugarid="25cc743a-df11-c88c-8e0f-4f3405904130";
+   $sugarid="3183d896-9573-12f6-4029-4f3402e785ee";
    
 
 eZDebug::writeNotice("Sugar Module : " . $sugarmodule); 
@@ -97,7 +97,7 @@ if($continue)
 if($continue)
 {
 	$relations_array = $sugarSynchro->getRelations($sugar_properties);
-
+	
 	if(!$relations_array)
 	{
 		$result['sugarrelations'] = "sugarSynchro->getRelations renvoie FALSE! ";

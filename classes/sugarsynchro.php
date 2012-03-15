@@ -1035,7 +1035,7 @@ class SugarSynchro
 		foreach( $relations_names as $rel_module_name => $relation_name )
 		{
 			$sugardata = $this->sugarConnector->get_relationships($this->properties['sugar_module'],$this->properties['sugar_id'], $rel_module_name);
-		
+
 			$rel_class_identifier = $this->defClassIdentifier($rel_module_name, false);
 			
 			if( $this->checkForConnectorErrors($sugardata, 'get_relationships') )
@@ -1043,7 +1043,7 @@ class SugarSynchro
 			else
 				$relations_array[$rel_class_identifier] = $sugardata['data'];
 		}
-		
+
 		return $relations_array;
 	}
 	
