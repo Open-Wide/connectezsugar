@@ -781,6 +781,12 @@ class SugarSynchro
 		// tableau listant les datatypes timestamp
 		$timestamp_datatypes = array( "ezdatetime", "ezdate" );
 		
+		/*
+		 * @!IMPORTANT!
+		 * c'est ici que on fait des traitement pour adapter/transformer
+		 * la valeur donné par SUGAR en la valeur attendu par EZ
+		 * selon le datatype 
+		 */
 		foreach( $input_array as $name => $value )
 		{
 			$datatype = $this->properties['class_attributes'][$name]['datatype'];
