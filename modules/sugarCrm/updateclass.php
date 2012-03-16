@@ -1,5 +1,6 @@
 <?php
 include_once( 'kernel/common/template.php' );
+include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
 if (isset ($Params["sugarmodule"]))
    $sugarmodule = $Params["sugarmodule"];
@@ -53,7 +54,7 @@ else
 		$sugar_attributes = $sugarSynchro->getSugarFields($sugar_properties);
 		if(!$sugar_attributes)
 			$result[] = "\$sugarSynchro->getSugarFields(\$sugar_properties) return false !!!";
-		
+		//evd($sugar_attributes);
 		// reinsegne la propriété 'class_attributes' après avoir normalisé les identifiants
 		$class_attributes = $sugarSynchro->synchronizeFieldsNames($sugar_attributes);
 		if(!$class_attributes)
@@ -171,11 +172,15 @@ else
 				// OPTION 2 : si un attribute SUGAR n'existe pas chez EZ on le crée
 				foreach($verif as $attr)
 				{
-					$newattr[] = $objectsMaster->createClassAttribute($attr);
+					$newattr = $objectsMaster->createClassAttribute($attr);
+					
+					// !IMPORTANT! : met à jour tous les objects existants avec le nouveau attribut
+					$newattr->initializeObjectAttributes();
+					
+					$notice['new_class_attributes'] = $ez_properties['class_attributes'][$attr['identifier']];
 					$result[] = "nouveu attribut avec identifier " . $attr['identifier'] . " crée pou la class " . $ez_properties['class_identifier'];
 				}
 				
-				//$notice[] = $newattr;
 				
 				$continue = true;
 			}

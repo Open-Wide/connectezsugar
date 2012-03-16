@@ -1,15 +1,16 @@
 <?php
 include_once( 'kernel/common/template.php' );
+include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
 if(isset($Params["sugarmodule"]))
 	$sugarmodule = $Params["sugarmodule"];
 else
-   $sugarmodule="otcp_accommodation";
+   $sugarmodule="otcp_room";
    
 if(isset($Params["sugarid"]))
    $sugarid = $Params["sugarid"];
 else
-   $sugarid="343b77e9-dfeb-eb38-589b-4f549aa8e8e1";
+   $sugarid="71b4bfd0-0010-e187-c9dc-4f549e8988f1";
 
 // $sugarid="df72c261-9645-ec3a-d369-4f2a6ca53650";
   

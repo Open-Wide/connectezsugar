@@ -553,6 +553,10 @@ class owObjectsMaster
 		return $normalarray;
 	}
 	
+	
+	
+	
+	
 	/*
 	 * CONSTRUCTEUR
 	 * on ne peut pas faire un new owObjectsMaster() en dehors de la class ou des classes qui l'etende
@@ -981,22 +985,16 @@ class owObjectsMaster
 		$params['section_id'] = self::$inidata['DefaultSectionID'];
      	$params['attributes'] = $this->properties['object_attributes'];
 		
-     	//evd(eZContentClass::fetch($this->properties['class_id'])->dataMap());
-
+     	
 		// PUBLISH OBJECT
-		$contentObject = eZContentFunctions::updateAndPublishObject( $this->properties['content_object'], $params );
+		$contentObject = self::updateAndPublishObject( $this->properties['content_object'], $params );
 		if(!$contentObject)
 			return false;
 			
 		// renomme l'objet si un nom est indiqué
 		if(isset($this->properties['object_name']))
 			$this->properties['content_object']->rename($this->properties['object_name']);
-			
-		//$datamap = $this->properties['content_object']->dataMap();
 		
-		//$class = eZContentClass::fetch($this->properties['class_id']);
-		//$class_datamap = $class->dataMap();
-		//evd($class_datamap);
 			
 		return true;
 	}
@@ -1129,6 +1127,8 @@ class owObjectsMaster
 			return $result;
 		}
 	}
+	
+	
 	
 	
 } // fin de class

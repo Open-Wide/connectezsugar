@@ -495,7 +495,8 @@ class SugarSynchro
 	protected function filterSugarFields()
 	{
 		$testmapping = $this->testForMapping();
-		
+		//evd($this->properties['sugar_module_fields']);
+		//evd(self::$inidata['exclude_fields']);
 		foreach($this->properties['sugar_module_fields'] as $modulefield)
 		{
 			$setAttribute = false;
