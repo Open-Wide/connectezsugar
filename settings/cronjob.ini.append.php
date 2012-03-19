@@ -6,6 +6,7 @@ ExtensionDirectories[]=connectezsugar
 Scripts[]=synchronize_ezsugar.php
 Scripts[]=synchronize_relations.php
 Scripts[]=cleanup_dev.php
+Scripts[]=update_classes.php
 
 
 [CronjobPart-synchro]
@@ -18,9 +19,12 @@ Scripts[]=synchronize_relations.php
 [CronjobPart-cleanup]
 Scripts[]=cleanup_dev.php
 
+[CronjobPart-upclasses]
+Scripts[]=update_classes.php
 
 # php runcronjobs.php synchro
 # php runcronjobs.php synchrorelations
 # php runcronjobs.php cleanup
+# php runcronjobs.php upclasses
 
 */ ?>

@@ -2,7 +2,7 @@
 /*
 Cronjob pour la synchronisation des objets EZ depuis SUGAR
 
-@author Pasquesi Massimiliano <massipasquesi@gmail.com>
+@author Pasquesi Massimiliano <massimiliano.pasquesi@openwide.fr>
 */
 
 include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
