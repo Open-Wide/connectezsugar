@@ -1,5 +1,7 @@
 <?php
 
+include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
+
 class owObjectsMaster
 {
 	/*
@@ -671,6 +673,24 @@ class owObjectsMaster
 	
 
 	
+	public function createClassGroup($name)
+	{	
+		$classGroup = eZContentClassGroup::fetchByName($name);
+		if( !is_null($classGroup) )
+		{
+			$warning = "Un groupe de classes avec le nom:$name existe déjà";
+			self::$logger->writeTimedString($warning);
+			return $classGroup;
+		}
+		
+		$classGroup = eZContentClassGroup::create(self::$inidata['AdminID']);
+		$classGroup->setAttribute('name',$name);
+		$classGroup->store();
+		
+		return $classGroup;
+	}
+	
+	
 	/*
 	 * $class_attributes[identifier(string)] = array( name=>(string),datatype=>(string),required=>(bool) );
 	 */
@@ -722,15 +742,27 @@ class owObjectsMaster
 		
 		// class_group ( "Content" par default )
 		if( isset($this->properties['class_options']['class_group']) )
-			$class_group =  (int)$this->properties['class_options']['class_group'];
+			$classGroup_name =  $this->properties['class_options']['class_group'];
 		elseif( isset(self::$inidata['ClassGroup'][$this->properties['class_identifier']]) )
-			$class_group = (int)self::$inidata['ClassGroup'][$this->properties['class_identifier']];
+			$classGroup_name = self::$inidata['ClassGroup'][$this->properties['class_identifier']];
 		elseif( isset(self::$inidata['DefaultClassGroup']) )
-			$class_group = (int)self::$inidata['DefaultClassGroup'];
+			$classGroup_name = self::$inidata['DefaultClassGroup'];
 		else
-			$class_group = "Content";
+			$classGroup_name = "Content";
 
-		$ingroup = eZContentClassClassGroup::create($ClassID, $ClassVersion, 1, $class_group);
+		$classGroup = eZContentClassGroup::fetchByName($classGroup_name);
+		
+		if( is_null($classGroup) )
+		{
+			$warning = "Le nom de groupe de classes donné ($classGroup_name) n'existe pas !";
+			self::$logger->writeTimedString($warning);
+			$classGroup_name = "Content";
+			$classGroup_ID = 1;
+		}
+		else
+			$classGroup_ID = $classGroup->attribute('id');
+			
+		$ingroup = eZContentClassClassGroup::create($ClassID, $ClassVersion, $classGroup_ID, $classGroup_name);
 		$ingroup->store();
 		
 		// crée les attributs de la class EZ
