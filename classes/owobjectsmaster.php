@@ -1019,7 +1019,7 @@ class owObjectsMaster
 		
      	
 		// PUBLISH OBJECT
-		$contentObject = self::updateAndPublishObject( $this->properties['content_object'], $params );
+		$contentObject = eZContentFunctions::updateAndPublishObject( $this->properties['content_object'], $params );
 		if(!$contentObject)
 			return false;
 			
