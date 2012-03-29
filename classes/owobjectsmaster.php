@@ -189,15 +189,16 @@ class owObjectsMaster
 	   	$initest = eZINI::exists(self::INIFILE, self::INIPATH);
 		if($initest)
 		{
-			$ini = eZINI::instance(self::INIFILE, self::INIPATH);
+			$ini = eZINI::instance(self::INIFILE);
 			
 			// recupere toutes les variables du fichier ini definie dans self::$inidata_list 
 			foreach(self::$inidata_list as $name => $args)
 			{
-				if( $ini->hasVariable($args['block'], $args['var']) )
+				if( $ini->hasVariable($args['block'], $args['var']) ) {
 					self::$inidata[$name] = $ini->variable($args['block'], $args['var']);
-				else
-					self::$inidata[$name] = false;
+				} else {
+					self::$inidata[self::$name] = false;
+				}
 			}
 			
 			// si une des variables n'existe pas on renvoie false et on ecrie dans le $log
@@ -971,8 +972,11 @@ class owObjectsMaster
 			$parent_node_id = self::$inidata['ClassParentNodeID'][$this->properties['class_identifier']];
 		else
 			$parent_node_id = self::$inidata['DefaultParentNodeID'];
+		
+		var_dump($inidata);
+		var_dump($parent_node_id);
 			
-    	$params = array();
+    $params = array();
 		$params['class_identifier'] = $this->properties['class_identifier']; 
 		$params['creator_id'] = self::$inidata['AdminID'];
 		$params['parent_node_id'] = $parent_node_id;
