@@ -972,9 +972,6 @@ class owObjectsMaster
 			$parent_node_id = self::$inidata['ClassParentNodeID'][$this->properties['class_identifier']];
 		else
 			$parent_node_id = self::$inidata['DefaultParentNodeID'];
-		
-		var_dump($inidata);
-		var_dump($parent_node_id);
 			
     $params = array();
 		$params['class_identifier'] = $this->properties['class_identifier']; 
