@@ -37,11 +37,11 @@ $connection=$sugarConnector->login();
 
 // modules SUGAR à synchroniser
 $modules_list = SugarSynchro::getModuleListToSynchro();
-$cli->gnotice("Mémoire utilisée avant boucle sur les modules : " . memory_get_usage());
+$cli->gnotice("Mémoire utilisée avant boucle sur les modules : " . memory_get_usage_hr());
 
 foreach($modules_list as $sugarmodule)
 {
-    $cli->gnotice("Mémoire utilisée boucle module : " . memory_get_usage());
+    $cli->gnotice("Mémoire utilisée boucle module : " . memory_get_usage_hr());
 	// initialise les tableaux $ez_properties et $sugar_properties
 	$ez_properties = array();
 	$sugar_properties = array();
@@ -60,6 +60,8 @@ foreach($modules_list as $sugarmodule)
 	
 	// reinsegne la propriété 'sugar_module'
 	$sugar_properties['sugar_module'] = $sugarmodule;
+	
+	$cli->title("Module : $sugarmodule");
 	
 	// get des attributes de la table sugar à synchroniser
 	// ex.: $sugar_attributes = array(	'attr_1' => array( 'name' => 'Attr 1', 'datatype' => 'ezstring', 'required' => 1 ),
@@ -81,7 +83,7 @@ foreach($modules_list as $sugarmodule)
 		$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
 		$continue = false;
 	}
-	$cli->gnotice("Mémoire utilisée : " . memory_get_usage());
+	$cli->gnotice("Mémoire utilisée : " . memory_get_usage_hr());
 	
 	
 	if($continue)
@@ -101,7 +103,7 @@ foreach($modules_list as $sugarmodule)
 			$continue = false;
 		}
 	}
-	$cli->gnotice("Mémoire utilisée : " . memory_get_usage());
+	$cli->gnotice("Mémoire utilisée : " . memory_get_usage_hr());
 	
 	
 	if($continue)
@@ -205,17 +207,18 @@ foreach($modules_list as $sugarmodule)
 			}
 		}
 	}
-	$cli->gnotice("Mémoire utilisée : " . memory_get_usage());
+	$cli->gnotice("Mémoire utilisée : " . memory_get_usage_hr());
 	
 	
 	if($continue)
 	{
-		$entry_list = $sugarSynchro->getSugarModuleEntryList();
+		$entry_list_ids = $sugarSynchro->getSugarModuleIdList();
+		$cli->gnotice("Mémoire utilisée après getSugarModuleIdList() : " . memory_get_usage_hr());
 		/*
 		 * Hack pour limiter la consommation mémoire : au lieu de garder tous les éléments de l'entry_list, on reconstruit un tab 
 		 * constitué uniquement d'ids et on unset le tableau initial
 		 */
-		$entry_list_ids = array();
+		/*$entry_list_ids = array();
 		foreach ($entry_list as $entry) {
 		    $entry_list_ids[] = array('id' => $entry['id']);
 		}
@@ -227,18 +230,21 @@ foreach($modules_list as $sugarmodule)
 			$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
 			$continue = false;
 		}
+		$cli->gnotice("Mémoire utilisée 2: " . memory_get_usage_hr());
 		unset($entry_list);
+		$cli->gnotice("Mémoire utilisée 3: " . memory_get_usage_hr());
+		*/
 	}
-	$cli->gnotice("Mémoire utilisée avant boucle sur les éléments : " . memory_get_usage());
+	$cli->gnotice("Mémoire utilisée avant boucle sur les éléments : " . memory_get_usage_hr());
 	
 	
 	if($continue)
 	{
-		$objects_count[$sugar_properties['sugar_module']] = count($entry_list);
+		$objects_count[$sugar_properties['sugar_module']] = count($entry_list_ids);
 		
 		foreach($entry_list_ids as $entry)
 		{
-		    $cli->gnotice("Mémoire utilisée boucle élément : " . memory_get_usage());
+		    $cli->gnotice("Mémoire utilisée boucle élément : " . memory_get_usage_hr());
 			$sugarid = $entry['id'];
 			
 			$remoteID = $ez_properties['class_identifier'] . '_' . $sugarid;
@@ -248,12 +254,16 @@ foreach($modules_list as $sugarmodule)
 			$sugar_properties['sugar_id'] = $sugarid;
 			$sugarSynchro->setProperty('class_attributes',$ez_properties['class_attributes']);
 			
+			$cli->gnotice("Mémoire aprés sugarSynchro->setProperty('class_attributes') : " . memory_get_usage_hr());
+			
 			// get des valeurs des attributes de la table sugar
 			// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
 			$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties);
 			if(!$sugar_attributes_values)
 				$cli->error("\$sugarSynchro->getSugarFieldsValues(\$sugar_properties) return false !!!");
 		
+			$cli->gnotice("Mémoire aprés sugarSynchro->getSugarFieldsValues : " . memory_get_usage_hr());
+				
 			$object_attributes = $sugarSynchro->synchronizeFieldsValues($sugar_attributes_values);
 			if(!$object_attributes)
 				$cli->error("\$sugarSynchro->synchronizeFieldsValues(\$sugar_attributes_values) return false !!!");
@@ -265,6 +275,7 @@ foreach($modules_list as $sugarmodule)
 				$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
 			}
 			
+			$cli->gnotice("Mémoire aprés sugarSynchro->synchronizeFieldsValues : " . memory_get_usage_hr());
 			
 			if( $continue )
 			{
@@ -343,16 +354,19 @@ foreach($modules_list as $sugarmodule)
 						$cli->error("ERROR updateObjectEz() : " . show($updateObject) );
 				}
 				
-				$cli->gnotice("Mémoire utilisée avant desctuction : " . memory_get_usage());
+				$cli->gnotice("Mémoire utilisée avant desctuction : " . memory_get_usage_hr());
+				// liberation de la memoire de $objectsMaster
 				unset($objectsMaster);
-				unset($entry_list);
-				$cli->gnotice("Mémoire utilisée apres desctruction 1 : " . memory_get_usage());
+				$cli->gnotice("Mémoire utilisée apres desctruction 1 : " . memory_get_usage_hr());
 				$cli->emptyline();
 			}
 		}
+		// liberation de la memoire de $entry_list_ids
+		unset($entry_list_ids);
 	}
+	// liberation de la memoire de $sugarSynchro
 	unset($sugarSynchro);
-	$cli->gnotice("Mémoire utilisée apres desctruction 2 : " . memory_get_usage());
+	$cli->gnotice("Mémoire utilisée apres desctruction 2 : " . memory_get_usage_hr());
 	gc_collect_cycles();
 }
 

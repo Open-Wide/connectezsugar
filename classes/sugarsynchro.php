@@ -626,6 +626,27 @@ class SugarSynchro
 	}
 	
 	
+	public function getSugarModuleIdList($args = null)
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("getSugarModuleEntryList", $args);
+		if(!$verify)
+			return false;
+
+		$select_fields = array('id');
+		$offset = 0;
+		$max_results = 999;
+			
+		$sugardata = $this->sugarConnector->get_entry_list($this->properties['sugar_module'], $select_fields, $offset, $max_results);
+		
+		if( $this->checkForConnectorErrors($sugardata, 'get_entry_list') )
+			return false;
+		
+		return $sugardata['data'];
+		
+	}
+	
+	
 	/*
 	 * fait une requete pour obtenir les champs d'un module SUGAR,
 	 * filtre les champs selon la configuration general et specifique au module,

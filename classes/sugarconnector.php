@@ -306,7 +306,7 @@ class SugarConnector
     }
     
     
-	function get_entry_list($module,$query='',$order_by='',$offset='',$select_fields=array(),$max_results=999,$deleted=false)
+	function get_entry_list($module, $select_fields=array(), $offset='', $max_results=999, $query='', $order_by='', $deleted=false)
     {
         $request = new eZSOAPRequest("get_entry_list",$this->serverNamespace);
         $request->addParameter('session',$this->session);

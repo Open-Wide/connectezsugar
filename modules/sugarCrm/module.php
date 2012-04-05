@@ -57,4 +57,7 @@ $ViewList['import_relations'] = array(
     'script' => 'import_relations.php',
     'params' => array('sugarmodule','sugarid'));
 
+$ViewList['test'] = array(
+    'script' => 'test.php');
+
 ?>

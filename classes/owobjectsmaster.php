@@ -448,6 +448,119 @@ class owObjectsMaster
 	
     
     
+	public static function updateAndPublishObject( eZContentObject $object, array $params )
+    {
+    	echo "Mémoire utilisée à l'entré updateAndPublishObject : " . memory_get_usage_hr() . "\n";
+        if ( !array_key_exists( 'attributes', $params ) and !is_array( $params['attributes'] ) and count( $params['attributes'] ) > 0 )
+        {
+            eZDebug::writeError( 'No attributes specified for object' . $object->attribute( 'id' ), __METHOD__ );
+            return false;
+        }
+
+        $storageDir   = '';
+        $languageCode = false;
+        $mustStore    = false;
+
+        if ( array_key_exists( 'remote_id', $params ) )
+        {
+            $object->setAttribute( 'remote_id', $params['remote_id'] );
+            $mustStore = true;
+        }
+
+        if ( array_key_exists( 'section_id', $params ) )
+        {
+            $object->setAttribute( 'section_id', $params['section_id'] );
+            $mustStore = true;
+        }
+
+        if ( $mustStore )
+            $object->store();
+
+        if ( array_key_exists( 'storage_dir', $params ) )
+            $storageDir = $params['storage_dir'];
+
+        if ( array_key_exists( 'language', $params ) and $params['language'] != false )
+        {
+            $languageCode = $params['language'];
+        }
+        else
+        {
+            $initialLanguageID = $object->attribute( 'initial_language_id' );
+            $language = eZContentLanguage::fetch( $initialLanguageID );
+            $languageCode = $language->attribute( 'locale' );
+        }
+        
+        echo "Mémoire utilisée avant eZDB::instance : " . memory_get_usage_hr() . "\n";
+
+        $db = eZDB::instance();
+        $db->begin();
+
+		echo "Mémoire utilisée avant object->createNewVersion : " . memory_get_usage_hr() . "\n";
+
+        $newVersion = $object->createNewVersion( false, true, $languageCode );
+
+        if ( !$newVersion instanceof eZContentObjectVersion )
+        {
+            eZDebug::writeError( 'Unable to create a new version for object ' . $object->attribute( 'id' ), __METHOD__ );
+
+            $db->rollback();
+
+            return false;
+        }
+        
+        echo "Mémoire utilisée après object->createNewVersion : " . memory_get_usage_hr() . "\n";
+
+        $newVersion->setAttribute( 'modified', time() );
+        $newVersion->store();
+
+        $attributeList = $newVersion->attribute( 'contentobject_attributes' );
+		
+        $attributesData = $params['attributes'];
+
+		echo "Mémoire utilisée après set attributeList : " . memory_get_usage_hr() . "\n";
+
+        foreach( $attributeList as $attribute )
+        {
+            $attributeIdentifier = $attribute->attribute( 'contentclass_attribute_identifier' );
+            if ( array_key_exists( $attributeIdentifier, $attributesData ) )
+            {
+                $dataString = $attributesData[$attributeIdentifier];
+                switch ( $datatypeString = $attribute->attribute( 'data_type_string' ) )
+                {
+                    case 'ezimage':
+                    case 'ezbinaryfile':
+                    case 'ezmedia':
+                    {
+                        $dataString = $storageDir . $dataString;
+                        break;
+                    }
+                    default:
+                }
+
+                $attribute->fromString( $dataString );
+                $attribute->store();
+            }
+        }
+
+        $db->commit();
+        
+        echo "Mémoire utilisée après db->commit : " . memory_get_usage_hr() . "\n";
+
+        $operationResult = eZOperationHandler::execute( 'content', 'publish', array( 'object_id' => $newVersion->attribute( 'contentobject_id' ),
+                                                                                     'version'   => $newVersion->attribute( 'version' ) ) );
+
+		echo "Mémoire utilisée après eZOperationHandler::execute : " . memory_get_usage_hr() . "\n";
+
+		unset($newVersion, $attributeList, $attributesData, $object);
+		echo "Mémoire utilisée après unset(newVersion) : " . memory_get_usage_hr() . "\n";
+
+        if( $operationResult['status'] == eZModuleOperationInfo::STATUS_CONTINUE )
+            return true;
+
+        return false;
+    }
+    
+    
     /*
      * fonction pour remplacer tous les character accentué par de non accentué
      */
@@ -1001,6 +1114,7 @@ class owObjectsMaster
 	
 	public function updateObjectEz($args = null)
 	{
+		echo "Mémoire utilisée debut updateObject : " . memory_get_usage_hr() . "\n";
 		// verifie si la fonction a les parametres necessaires à son execution
 		$verify = $this->verifyArgsForFunction("updateObjectEz", $args);
 		if(!$verify)
@@ -1010,6 +1124,8 @@ class owObjectsMaster
 		$verify = $this->verifyObjectAttributes();
 		if(!$verify)
 			return false;
+		
+		echo "Mémoire utilisée aprés verifyObjectAttributes : " . memory_get_usage_hr() . "\n";
 			
 		// retrouve l'identifiant de la class si n'est pas déjà dans les propriété de l'instance
 		if( !isset($this->properties['class_identifier']) )
@@ -1023,19 +1139,22 @@ class owObjectsMaster
 		$params['section_id'] = self::$inidata['DefaultSectionID'];
      	$params['attributes'] = $this->properties['object_attributes'];
 		
+     	echo "Mémoire utilisée aprés set params : " . memory_get_usage_hr() . "\n";
      	
 		// PUBLISH OBJECT
-		$contentObject = eZContentFunctions::updateAndPublishObject( $this->properties['content_object'], $params );
+		$contentObject = self::updateAndPublishObject( $this->properties['content_object'], $params );
 		if(!$contentObject)
 			return false;
+			
+		echo "Mémoire utilisée aprés updateAndPublishObject : " . memory_get_usage_hr() . "\n";
 			
 		// renomme l'objet si un nom est indiqué
 		if(isset($this->properties['object_name']))
 			$this->properties['content_object']->rename($this->properties['object_name']);
 		
-		eZContentObject::clearCache();
 		unset($contentObject);
-		echo "Mémoire utilisée apres desctruction updateObject : " . memory_get_usage() . "\n";
+		eZContentObject::clearCache();
+		echo "Mémoire utilisée apres desctruction updateObject : " . memory_get_usage_hr() . "\n";
 		return true;
 	}
 	

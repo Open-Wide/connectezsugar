@@ -14,5 +14,6 @@ PolicyOmitList[]=sugarCrm/cleanup
 PolicyOmitList[]=sugarCrm/querysugar
 PolicyOmitList[]=sugarCrm/updateclass
 PolicyOmitList[]=sugarCrm/import_relations
+PolicyOmitList[]=sugarCrm/test
 
 */ ?>

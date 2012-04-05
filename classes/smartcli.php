@@ -172,6 +172,15 @@ class SmartCLI extends eZCLI
 	{
 		$this->output("\n");
 	}
+	
+	public function title($texte)
+	{
+		$this->emptyline();
+		$this->gnotice("********************************************");
+		$this->gnotice($texte);
+		$this->gnotice("********************************************");
+		$this->emptyline();
+	}
 
 	
 } // END of CLASS

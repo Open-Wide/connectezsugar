@@ -8,6 +8,22 @@ function show($var)
 }
 
 /*
+ * fonction relative à l'utilisation de la memoire
+ */
+
+function convert($size)
+{
+	$unit=array('b','kb','mb','gb','tb','pb');
+	return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+}
+
+function memory_get_usage_hr()
+{
+	return convert(memory_get_usage(true));
+}
+
+
+/*
  * fonctions pour des exit et des var_dump
  */
 function vd($var)
