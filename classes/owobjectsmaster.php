@@ -775,6 +775,8 @@ class owObjectsMaster
 			
 		}
 		
+		unset($ingroup);
+		unset($newClass);
 		return true;
 			
 	}
@@ -946,6 +948,7 @@ class owObjectsMaster
 				
 		}
 		
+		unset($class);
 		return true;
 	}
 	
@@ -991,6 +994,8 @@ class owObjectsMaster
 		if(isset($this->properties['object_name']))
 			$contentObject->rename($this->properties['object_name']);
 		
+		eZContentObject::clearCache();
+		unset($contentObject);
 		return true;
 	}
 	
@@ -1028,7 +1033,9 @@ class owObjectsMaster
 		if(isset($this->properties['object_name']))
 			$this->properties['content_object']->rename($this->properties['object_name']);
 		
-			
+		eZContentObject::clearCache();
+		unset($contentObject);
+		echo "Mémoire utilisée apres desctruction updateObject : " . memory_get_usage() . "\n";
 		return true;
 	}
 	
@@ -1161,6 +1168,7 @@ class owObjectsMaster
 		}
 	}
 	
+	public function __destruct() {}
 	
 	
 	

@@ -7,6 +7,8 @@ Cronjob pour la synchronisation des objets EZ depuis SUGAR
 
 include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
+gc_enable();
+
 
 // encoding
 //iconv_set_encoding("output_encoding", "UTF-8");
@@ -35,9 +37,11 @@ $connection=$sugarConnector->login();
 
 // modules SUGAR à synchroniser
 $modules_list = SugarSynchro::getModuleListToSynchro();
+$cli->gnotice("Mémoire utilisée avant boucle sur les modules : " . memory_get_usage());
 
 foreach($modules_list as $sugarmodule)
 {
+    $cli->gnotice("Mémoire utilisée boucle module : " . memory_get_usage());
 	// initialise les tableaux $ez_properties et $sugar_properties
 	$ez_properties = array();
 	$sugar_properties = array();
@@ -77,6 +81,7 @@ foreach($modules_list as $sugarmodule)
 		$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
 		$continue = false;
 	}
+	$cli->gnotice("Mémoire utilisée : " . memory_get_usage());
 	
 	
 	if($continue)
@@ -96,6 +101,7 @@ foreach($modules_list as $sugarmodule)
 			$continue = false;
 		}
 	}
+	$cli->gnotice("Mémoire utilisée : " . memory_get_usage());
 	
 	
 	if($continue)
@@ -199,28 +205,40 @@ foreach($modules_list as $sugarmodule)
 			}
 		}
 	}
+	$cli->gnotice("Mémoire utilisée : " . memory_get_usage());
 	
 	
 	if($continue)
 	{
 		$entry_list = $sugarSynchro->getSugarModuleEntryList();
-		
+		/*
+		 * Hack pour limiter la consommation mémoire : au lieu de garder tous les éléments de l'entry_list, on reconstruit un tab 
+		 * constitué uniquement d'ids et on unset le tableau initial
+		 */
+		$entry_list_ids = array();
+		foreach ($entry_list as $entry) {
+		    $entry_list_ids[] = array('id' => $entry['id']);
+		}
 		if( !$entry_list )
 		{
+		  
 			$cli->error("SugarConnector ERROR : ");
 			$cli->warning("SugarSynchro.log : ");
 			$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
 			$continue = false;
 		}
+		unset($entry_list);
 	}
+	$cli->gnotice("Mémoire utilisée avant boucle sur les éléments : " . memory_get_usage());
 	
 	
 	if($continue)
 	{
 		$objects_count[$sugar_properties['sugar_module']] = count($entry_list);
 		
-		foreach($entry_list as $entry)
+		foreach($entry_list_ids as $entry)
 		{
+		    $cli->gnotice("Mémoire utilisée boucle élément : " . memory_get_usage());
 			$sugarid = $entry['id'];
 			
 			$remoteID = $ez_properties['class_identifier'] . '_' . $sugarid;
@@ -325,10 +343,17 @@ foreach($modules_list as $sugarmodule)
 						$cli->error("ERROR updateObjectEz() : " . show($updateObject) );
 				}
 				
+				$cli->gnotice("Mémoire utilisée avant desctuction : " . memory_get_usage());
+				unset($objectsMaster);
+				unset($entry_list);
+				$cli->gnotice("Mémoire utilisée apres desctruction 1 : " . memory_get_usage());
 				$cli->emptyline();
 			}
 		}
 	}
+	unset($sugarSynchro);
+	$cli->gnotice("Mémoire utilisée apres desctruction 2 : " . memory_get_usage());
+	gc_collect_cycles();
 }
 
 

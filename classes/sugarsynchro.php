@@ -195,12 +195,14 @@ class SugarSynchro
 			if( $err > 0 )
 				return false;
 			
+			unset($ini);
 			return true;
 		}
 		else
 		{
 			$error = self::INIFILE . " IN " . self::INIPATH . " NON TROUVÉ !";
 			self::$logger->writeTimedString("Erreur getIniData() : " . $error);
+			unset($ini);
 			return false;
 		}
 		
@@ -413,7 +415,7 @@ class SugarSynchro
 	   	$initest = eZINI::exists(self::MAPPINGINIFILE, self::INIPATH);
 		if($initest)
 		{
-			$inimap = eZINI::instance(self::MAPPINGINIFILE, self::INIPATH);
+			$inimap = eZINI::instance(self::MAPPINGINIFILE);
 			
 			if( !$inimap->hasGroup($module_name) )
 			{
@@ -450,7 +452,8 @@ class SugarSynchro
 				$this->mappingdata = false;
 				return false;
 			}
-				
+
+			unset($inimap);
 			return true;
 			
 		}
@@ -617,10 +620,8 @@ class SugarSynchro
 		
 		if( $this->checkForConnectorErrors($sugardata, 'get_entry_list') )
 			return false;
-			
-		$entry_list = $sugardata['data'];
 		
-		return $entry_list;
+		return $sugardata['data'];
 		
 	}
 	
