@@ -7,6 +7,7 @@ Cronjob pour la synchronisation des relations d'objets EZ depuis SUGAR
 
 include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
+gc_enable();
 
 // init CLI
 $cli = SmartCLI::instance();
@@ -35,8 +36,13 @@ if($continue)
 	// modules SUGAR à synchroniser
 	$modules_list = SugarSynchro::getModuleListToSynchro();
 	
+	$cli->gnotice("Mémoire utilisée avant boucle sur les modules : " . memory_get_usage_hr());
+	
 	foreach($modules_list as $sugarmodule)
 	{
+		$cli->emptyline();
+		$cli->gnotice("Mémoire utilisée boucle module : " . memory_get_usage_hr());
+	
 		$continue = true;
 
 		$cli->emptyline();
@@ -86,7 +92,7 @@ if($continue)
 
 		if($continue)
 		{
-			$entry_list = $sugarSynchro->getSugarModuleEntryList();
+			$entry_list = $sugarSynchro->getSugarModuleIdList();
 			if( !$entry_list )
 			{
 				$cli->error("SugarConnector ERROR : ");
@@ -189,7 +195,16 @@ if($continue)
 			}
 		
 		}
+		
+		unset($ez_properties);
+		unset($sugar_properties);
+		unset($sugarSynchro);
+		
 	}
+	
+	$cli->emptyline();
+	$cli->gnotice("Mémoire utilisée après boucle sur les modules : " . memory_get_usage_hr());
+	
 }
 
 

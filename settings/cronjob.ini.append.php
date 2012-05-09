@@ -11,7 +11,7 @@ Scripts[]=update_classes.php
 
 [CronjobPart-synchro]
 Scripts[]=synchronize_ezsugar.php
-Scripts[]=synchronize_relations.php
+#Scripts[]=synchronize_relations.php
 
 [CronjobPart-synchrorelations]
 Scripts[]=synchronize_relations.php
