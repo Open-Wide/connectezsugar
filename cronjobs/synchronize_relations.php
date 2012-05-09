@@ -192,6 +192,13 @@ if($continue)
 					}
 				}
 				
+				if( isset($relations_array) )
+					unset($relations_array);
+					
+				if( isset($sugarrelations) )
+					unset($sugarrelations);
+				
+				unset($objectsMaster);
 			}
 		
 		}
@@ -199,6 +206,8 @@ if($continue)
 		unset($ez_properties);
 		unset($sugar_properties);
 		unset($sugarSynchro);
+		
+		gc_collect_cycles();
 		
 	}
 	
