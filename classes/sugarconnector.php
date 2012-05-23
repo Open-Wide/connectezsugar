@@ -132,21 +132,17 @@ class SugarConnector
     	if(is_null($login))
     		$login = $this->login;
     	if(is_null($password))
-    		$password = $this->password;
-        $this->logger->writeTimedString($login);
-        $this->logger->writeTimedString($password);    		
+    		$password = $this->password;   		
         $auth_array = array( 
                'user_name' => $login,
                'password' => md5( $password ),
                'version' => '?'
         );
-        $this->logger->writeTimedString($auth_array);
         $request = new eZSOAPRequest("login",$this->serverNamespace);
         $request->addParameter('user_auth',$auth_array);
         $request->addParameter('application_name','');
         $reponse = $this->client->send($request);
         $result  = $reponse->value(); 
-        $this->logger->writeTimedString($result);
         
 		if( $this->checkForErrors($result,"login") )
 			return false;
