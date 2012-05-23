@@ -545,7 +545,8 @@ class owObjectsMaster
                     }
                     case 'ezobjectrelation':
                     {
-                    	$test = true;
+                    	//vd($dataString);
+                    	//$test = true;
                     }
                     default:
                     	break;
@@ -553,8 +554,8 @@ class owObjectsMaster
 
                 $attribute->fromString( $dataString );
                 $attribute->store();
-                if( isset($test) )
-                	evd($attribute);
+                //if( isset($test) )
+                	//evd($attribute);
             }
         }
 
