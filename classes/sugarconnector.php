@@ -129,6 +129,8 @@ class SugarConnector
      */
     function login($login = null, $password = null)
     {
+        $this->logger->writeTimedString($login);
+        $this->logger->writeTimedString($password);
     	if(is_null($login))
     		$login = $this->login;
     	if(is_null($password))
