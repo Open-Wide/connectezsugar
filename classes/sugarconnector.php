@@ -109,8 +109,6 @@ class SugarConnector
         $this->client = new eZSOAPClient($serverUrl,$serverPath);
         
         $this->logger = owLogger::CreateForAdd(self::LOGFILE . date("d-m-Y") . ".log");
-        $this->logger->writeTimedString($this->login);
-        $this->logger->writeTimedString($this->password);
         
     }
 
@@ -131,13 +129,12 @@ class SugarConnector
      */
     function login($login = null, $password = null)
     {
-        $this->logger->writeTimedString($login);
-        $this->logger->writeTimedString($password);
     	if(is_null($login))
     		$login = $this->login;
     	if(is_null($password))
     		$password = $this->password;
-    		
+        $this->logger->writeTimedString($login);
+        $this->logger->writeTimedString($password);    		
         $auth_array = array( 
                'user_name' => $login,
                'password' => $password,
