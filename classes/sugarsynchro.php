@@ -804,6 +804,9 @@ class SugarSynchro
 		// tableau listant les datatypes timestamp
 		$timestamp_datatypes = array( "ezdatetime", "ezdate" );
 		
+		// class identifier
+		$class_identifier = $this->defClassIdentifier($this->properties['sugar_module']);
+		
 		/*
 		 * @!IMPORTANT!
 		 * c'est ici que on fait des traitement pour adapter/transformer
@@ -812,15 +815,28 @@ class SugarSynchro
 		 */
 		foreach( $input_array as $name => $value )
 		{
+			//evd( eZContentObjectAttribute::fetchByIdentifier($this->properties['class_attributes'][$name]['identifier']) );
 			$datatype = $this->properties['class_attributes'][$name]['datatype'];
 			
+			
 			// dans le cas d'une selection multiple on transforme la valeur par la valeur attendu par fromString() de ezselectiotype
-			if( $datatype == "ezselection" 
-				&& isset($this->properties['class_attributes'][$name]['multi']) 
-				&& $this->properties['class_attributes'][$name]['multi'] == 1 )
+			if( $datatype == "ezselection" )
 			{
 				$newvalue = str_replace ( "^" , "" , $value );
 				$newvalue = str_replace ( "," , "|" , $newvalue );
+				$selectedIDs = eZStringUtils::explodeStr( $newvalue, '|' );
+				$selectedNames = array();
+				foreach( $selectedIDs as $selectID )
+				{
+					$selectedNames[] = owObjectsMaster::getSelectionNameById( $selectID, $class_identifier, $this->properties['class_attributes'][$name]['identifier'] );	
+				}
+				$newvalue = eZStringUtils::implodeStr( $selectedNames, '|' );
+				$output_array[$name] = $newvalue;
+			}
+			// dans le cas d'un prix on formate selon la valeur attendu par fromString() de ezpricetype
+			elseif( $datatype == "ezprice" )
+			{
+				$newvalue = $value . "|0|1";
 				$output_array[$name] = $newvalue;
 			}
 			// dans le cas d'une relation d'objet on transforme l'ID sugar en ID ez

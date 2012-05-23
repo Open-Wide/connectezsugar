@@ -538,16 +538,6 @@ class owObjectsMaster
                         $dataString = $storageDir . $dataString;
                         break;
                     }
-                    case 'ezselection':
-                    {
-                    	$dataString = self::getSelectionNameById($attribute, $dataString);
-                    	break;
-                    }
-                    case 'ezobjectrelation':
-                    {
-                    	//vd($dataString);
-                    	//$test = true;
-                    }
                     default:
                     	break;
                 }
@@ -575,16 +565,23 @@ class owObjectsMaster
     }
     
     
-	public static function getSelectionNameById($contentObjectAttribute, $id )
+	public static function getSelectionNameById( $id, $contentClassIdentifier, $contentClassAttributeIdentifier )
     {
     	/*var_dump($contentObjectAttribute);
     	echo " / ";
     	var_dump($id);*/
     	
     	$result = '';
-    	if(!is_object($contentObjectAttribute))
+    		
+    	$class = eZContentClass::fetchByIdentifier($contentClassIdentifier);
+    	if(!is_object($class))
     		return false;
-    	$classContent = $contentObjectAttribute->attribute( 'class_content' );
+    	$classAttribute = $class->fetchAttributeByIdentifier($contentClassAttributeIdentifier);
+    	if(!is_object($classAttribute))
+    		return false;
+    		
+    	$classContent = $classAttribute->attribute('content');
+
         foreach ( $classContent['options'] as $option )
         {
             if ( $option['id'] == $id ){
@@ -592,6 +589,9 @@ class owObjectsMaster
             	return $result;
             }
         }
+        
+        unset( $class, $classAttribute );
+        
 		return $result;
     }
     
