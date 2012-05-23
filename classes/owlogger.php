@@ -9,12 +9,12 @@ class owLogger
 
     static function CreateNew($fileName)
     {
-        return new owLogger( $fileName, "wt" );
+        return new owLogger( $fileName, "wb" );
     }
 
     static function CreateForAdd($fileName)
     {
-        return new owLogger( $fileName, "a+t" );
+        return new owLogger( $fileName, "a+b" );
     }
 
 	static function getTime()

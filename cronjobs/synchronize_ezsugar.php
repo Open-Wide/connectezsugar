@@ -259,6 +259,7 @@ foreach($modules_list as $sugarmodule)
 			// get des valeurs des attributes de la table sugar
 			// ex.: $sugar_attributes_values = array('attr_1' => 'test attr 1', 'attr_2' => 'test attr 2');
 			$sugar_attributes_values = $sugarSynchro->getSugarFieldsValues($sugar_properties);
+			//vd($sugar_attributes_values);
 			if(!$sugar_attributes_values)
 				$cli->error("\$sugarSynchro->getSugarFieldsValues(\$sugar_properties) return false !!!");
 		

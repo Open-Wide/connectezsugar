@@ -165,6 +165,7 @@ class SugarConnector
      */
 	protected function checkForErrors($response_value, $queryname)
     {
+    	
     	$errorNumber = (int)$this->getResponseErrorNumber($response_value);
     	
     	if($errorNumber != 0)
@@ -178,6 +179,7 @@ class SugarConnector
     			}
     			else
     			{
+    				//evd($response_value);
     				$warning = "checkForErrors(\$response_value,$queryname) : \$response_value['error'] pas trouvé ! verifier le tableau envoyé à la mèthode !";
     				$this->logger->writeTimedString($warning);
     			}
@@ -308,6 +310,8 @@ class SugarConnector
     
 	function get_entry_list($module, $select_fields=array(), $offset='', $max_results=999, $query='', $order_by='', $deleted=false)
     {
+    	//mvd(array($module,$select_fields));
+    	
         $request = new eZSOAPRequest("get_entry_list",$this->serverNamespace);
         $request->addParameter('session',$this->session);
         $request->addParameter('module_name',$module);
@@ -319,7 +323,7 @@ class SugarConnector
         $request->addParameter('deleted',$deleted);
         
         $reponse = $this->client->send($request);
-        $result = $reponse->Value;
+        $result = $reponse->Value; //evd($reponse);
         
         return $this->standardQueryReturn($result, "get_entry_list");
     }

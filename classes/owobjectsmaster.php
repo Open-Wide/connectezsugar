@@ -231,7 +231,7 @@ class owObjectsMaster
 	 * @param $remoteID string
 	 * @return $id string OR false si ne trouve pas 
 	 */
-	public static function objectIDByRemoteID($remoteID)
+	public static function objectIDByRemoteID($remoteID, $writelog = true)
 	{
 		self::initLogger();
 		
@@ -241,8 +241,12 @@ class owObjectsMaster
 		
         if ( count( $resultArray ) != 1 )
         {
-        	$error = "Object non trouvé avec remote_id : $remoteID ";
-			self::$logger->writeTimedString("Erreur objectIDByRemoteID() : " . $error);
+        	if( $writelog )
+        	{
+        		$error = "Object non trouvé avec remote_id : $remoteID ";
+				self::$logger->writeTimedString("Erreur objectIDByRemoteID() : " . $error);
+        	}
+        	
 			return false;
         } 
         else
@@ -534,11 +538,23 @@ class owObjectsMaster
                         $dataString = $storageDir . $dataString;
                         break;
                     }
+                    case 'ezselection':
+                    {
+                    	$dataString = self::getSelectionNameById($attribute, $dataString);
+                    	break;
+                    }
+                    case 'ezobjectrelation':
+                    {
+                    	$test = true;
+                    }
                     default:
+                    	break;
                 }
 
                 $attribute->fromString( $dataString );
                 $attribute->store();
+                if( isset($test) )
+                	evd($attribute);
             }
         }
 
@@ -550,14 +566,48 @@ class owObjectsMaster
                                                                                      'version'   => $newVersion->attribute( 'version' ) ) );
 
 		echo "Mémoire utilisée après eZOperationHandler::execute : " . memory_get_usage_hr() . "\n";
-
-		unset($newVersion, $attributeList, $attributesData, $object);
-		echo "Mémoire utilisée après unset(newVersion) : " . memory_get_usage_hr() . "\n";
-
+		
         if( $operationResult['status'] == eZModuleOperationInfo::STATUS_CONTINUE )
             return true;
 
         return false;
+    }
+    
+    
+	public static function getSelectionNameById($contentObjectAttribute, $id )
+    {
+    	/*var_dump($contentObjectAttribute);
+    	echo " / ";
+    	var_dump($id);*/
+    	
+    	$result = '';
+    	if(!is_object($contentObjectAttribute))
+    		return false;
+    	$classContent = $contentObjectAttribute->attribute( 'class_content' );
+        foreach ( $classContent['options'] as $option )
+        {
+            if ( $option['id'] == $id ){
+            	$result = $option['name'];
+            	return $result;
+            }
+        }
+		return $result;
+    }
+    
+ 	public static function getSelectionIdByName($contentObjectAttribute, $name )
+    {	
+    	$result = '';
+    	if(!is_object($contentObjectAttribute))
+    		return false;
+    	$classContent = $contentObjectAttribute->attribute( 'class_content' );
+        foreach ( $classContent['options'] as $option )
+        {
+            if ( $option['name'] == $name ){
+            	$result = $option['id'];
+            	return $result;
+            }
+        }
+		return $result;
     }
     
     

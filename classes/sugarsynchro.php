@@ -833,7 +833,7 @@ class SugarSynchro
 				$explode_count = count($explode_name);
 				$related_class_identifier = $explode_name[$explode_count-1];
 				
-				$select_fields = array($name."_id_c");
+				$select_fields = array($name."_id_c"); 
 				$sugardata = $this->sugarConnector->get_entry($this->properties['sugar_module'], $this->properties['sugar_id'], $select_fields);
 				$related_sugar_id = $sugardata['data'][0]['value'];
 				
@@ -841,7 +841,7 @@ class SugarSynchro
 				//evd($name);
 				//vd($related_remoteID);
 				$related_object_id = owObjectsMaster::objectIDByRemoteID($related_remoteID);
-				//vd($related_object_id);
+				//if( $related_class_identifier != "company" ) evd($related_object_id);
 				//evd($this->properties['sugar_id']);
 				
 				if( $related_object_id !== false )
