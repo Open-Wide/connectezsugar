@@ -146,6 +146,7 @@ class SugarConnector
         $request->addParameter('application_name','');
         $reponse = $this->client->send($request);
         $result  = $reponse->value(); 
+        $this->logger->writeTimedString($result);
         
 		if( $this->checkForErrors($result,"login") )
 			return false;
