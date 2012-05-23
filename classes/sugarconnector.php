@@ -105,6 +105,8 @@ class SugarConnector
 		// chercher une autre façon de stockage plus securisé ?
         $this->login = $ini->variable("connexion", "login");
 		$this->password = $ini->variable("connexion", "password");
+        $this->logger->writeTimedString($this->login);
+        $this->logger->writeTimedString($this->password);
         
         $this->client = new eZSOAPClient($serverUrl,$serverPath);
         
