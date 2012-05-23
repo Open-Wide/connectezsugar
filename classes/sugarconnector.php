@@ -137,10 +137,10 @@ class SugarConnector
         $this->logger->writeTimedString($password);    		
         $auth_array = array( 
                'user_name' => $login,
-               'password' => $password,
+               'password' => md5( $password ),
                'version' => '?'
         );
-
+        $this->logger->writeTimedString($auth_array);
         $request = new eZSOAPRequest("login",$this->serverNamespace);
         $request->addParameter('user_auth',$auth_array);
         $request->addParameter('application_name','');
