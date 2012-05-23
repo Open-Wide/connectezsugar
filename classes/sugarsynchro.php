@@ -850,7 +850,7 @@ class SugarSynchro
 					$output_array[$name] = $value;
 			}
 			// dans le cas d'une valeur numerique à NULL on transforme en 0
-			elseif( in_array($$datatype, $numeric_datatypes) )
+			elseif( in_array($datatype, $numeric_datatypes) )
 			{
 				if( is_null($value) or empty($value) )
 					$output_array[$name] = "0";
