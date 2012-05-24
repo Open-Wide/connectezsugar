@@ -131,8 +131,8 @@ mapping_types[relate]=ezobjectrelation
 ##############
 [Synchro]
 modulesListToSynchro[]
-modulesListToSynchro[]=otcp_contact
-modulesListToSynchro[]=otcp_company
+#modulesListToSynchro[]=otcp_contact
+#modulesListToSynchro[]=otcp_company
 modulesListToSynchro[]=otcp_culture
 modulesListToSynchro[]=otcp_accommodation
 modulesListToSynchro[]=otcp_restaurant
