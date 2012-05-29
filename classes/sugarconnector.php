@@ -306,7 +306,7 @@ class SugarConnector
     }
     
     
-	function get_entry_list($module, $select_fields=array(), $offset='', $max_results=999, $query='', $order_by='', $deleted=false)
+	function get_entry_list($module, $select_fields=array(), $offset='', $max_results=9999, $query='', $order_by='', $deleted=false)
     {
     	//mvd(array($module,$select_fields));
     	

@@ -635,7 +635,7 @@ class SugarSynchro
 
 		$select_fields = array('id');
 		$offset = 0;
-		$max_results = 999;
+		$max_results = 9999;
 			
 		$sugardata = $this->sugarConnector->get_entry_list($this->properties['sugar_module'], $select_fields, $offset, $max_results);
 		

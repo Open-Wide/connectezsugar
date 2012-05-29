@@ -291,6 +291,123 @@ class owObjectsMaster
                                                     null,
                                                     $asObject );
     }
+    
+    
+	public static function contentClassObjectsIDList($classID)
+	{
+		self::initLogger();
+		
+		$db = eZDB::instance();
+        settype($classID, "int");
+        //select id from ezcontentobject where contentclass_id=99
+        $resultArray = $db->arrayQuery( "SELECT id FROM ezcontentobject WHERE contentclass_id=" . $classID );
+		
+        if ( count( $resultArray ) == 0 )
+        {
+        	if( $writelog )
+        	{
+        		$warning = "Aucun objet trouvé pour la class avec id : $classID ";
+				self::$logger->writeTimedString("Erreur objectIDByRemoteID() : " . $warning);
+        	}
+        	
+			return false;
+        } 
+        else
+            return $resultArray;
+
+	}
+    
+    
+    /*!
+     Removes content class and all data associated with it.
+     \static
+    */
+	public static function removeContentClass( $classID, $removeObjects = true )
+    {
+        $contentClass = eZContentClass::fetch( $classID );
+
+        if ( $contentClass == null or !$contentClass->isRemovable() )
+            return false;
+
+        if( $removeObjects )
+        {
+        	ivd( "memoire AVANT owObjectsMaster::contentClassObjectsIDList", memory_get_usage_hr() );
+        	// Remove all objects
+	        $contentObjectsIDs = self::contentClassObjectsIDList( $classID );
+	        
+	        ivd( "memoire APRES owObjectsMaster::contentClassObjectsIDList", memory_get_usage_hr() );
+	        
+	        foreach ( $contentObjectsIDs as $contentObjectID )
+	        {
+	            self::removeContentObject( $contentObjectID );
+	        }
+	
+	        if ( count( $contentObjectsIDs ) == 0 )
+	            eZContentObject::expireAllViewCache();
+	            
+	        ivd( "memoire APRES boucle sur contentObjectsIDs", memory_get_usage_hr() );
+	        
+	        unset( $contentObjectID, $contentObjectsIDs );
+	        
+	        ivd( "memoire APRES destruction contentObjectsIDs", memory_get_usage_hr() );
+        }
+        
+
+        eZContentClassClassGroup::removeClassMembers( $classID, 0 );
+        eZContentClassClassGroup::removeClassMembers( $classID, 1 );
+
+        // Fetch real version and remove it
+        $contentClass->remove( true );
+
+        // Fetch temp version and remove it
+        $tempDeleteClass = eZContentClass::fetch( $classID, true, 1 );
+        if ( $tempDeleteClass != null )
+            $tempDeleteClass->remove( true, 1 );
+
+        return true;
+    }
+    
+    
+	/*!
+     Removes content object and all data associated with it.
+     \static
+    */
+    static function removeContentObject( $objectID, $removeSubtrees = true )
+    {
+        eZContentCacheManager::clearContentCacheIfNeeded( $objectID );
+
+        $object = eZContentObject::fetch( $objectID );
+        if ( !is_object( $object ) )
+            return false;
+
+        // @TODO: Is content cache cleared for all objects in subtree ??
+
+        if ( $removeSubtrees )
+        {
+            $assignedNodes = $object->attribute( 'assigned_nodes' );
+            if ( count( $assignedNodes ) == 0 )
+            {
+                $object->purge();
+                eZContentObject::expireAllViewCache();
+                unset($assignedNodes, $object);
+                return true;
+            }
+            $assignedNodeIDArray = array();
+            foreach( $assignedNodes as $node )
+            {
+                $assignedNodeIDArray[] = $node->attribute( 'node_id' );
+            }
+            eZContentObjectTreeNode::removeSubtrees( $assignedNodeIDArray, false );
+            unset($assignedNodeIDArray);
+        }
+        else
+            $object->purge();
+
+        unset($object);
+            
+        return true;
+    }
+    
 	
 	/*
 	 * mèthode d'instance de la class eZContentObject

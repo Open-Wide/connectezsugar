@@ -107,8 +107,7 @@ mapping_types[bigint]=ezinteger
 mapping_types[decimal]=ezfloat
 mapping_types[double]=ezfloat
 mapping_types[float]=ezfloat
-# money
-mapping_types[currency]=ezprice
+mapping_types[currency]=ezfloat
 # date & time
 mapping_types[date]=ezdate
 mapping_types[datetime]=ezdatetime
@@ -135,12 +134,12 @@ modulesListToSynchro[]
 #modulesListToSynchro[]=otcp_company
 #modulesListToSynchro[]=otcp_culture
 modulesListToSynchro[]=otcp_accommodation
-modulesListToSynchro[]=otcp_restaurant
-modulesListToSynchro[]=otcp_transport
-modulesListToSynchro[]=otcp_shopping
-modulesListToSynchro[]=otcp_visit
-modulesListToSynchro[]=otcp_otherpro
-modulesListToSynchro[]=otcp_room
+#modulesListToSynchro[]=otcp_restaurant
+#modulesListToSynchro[]=otcp_transport
+#modulesListToSynchro[]=otcp_shopping
+#modulesListToSynchro[]=otcp_visit
+#modulesListToSynchro[]=otcp_otherpro
+#modulesListToSynchro[]=otcp_room
 
 #####################################################################################
 

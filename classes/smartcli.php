@@ -22,7 +22,7 @@ class SmartCLI extends eZCLI
     }
 	
 	/*!
-     \return the text \a $text wrapped in the style \a $styleName.
+     \return the text  $text wrapped in the style  $styleName.
     */
     public function instylize( $instyle, $text, $outstyle )
     {
@@ -119,6 +119,19 @@ class SmartCLI extends eZCLI
             return;
 		
     	$params['color'] = "dark-yellow";
+        $this->styleout($message, $params);
+    }
+    
+    /*
+	 * fais reference à eZCLI::notice
+	 * pour SmartCLI les message de type dynotice seront en magenta
+	 */
+	public function mnotice( $message = false, $params = array() )
+    {
+		if ( $this->isQuiet() )
+            return;
+            
+    	$params['color'] = "magenta";
         $this->styleout($message, $params);
     }
     

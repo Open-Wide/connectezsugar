@@ -1331,6 +1331,46 @@ relations_names[]
 
 [otcp_culture]
 include_fields[]
+<<<<<<< .mine
+include_fields[]=room_nb
+include_fields[]=name
+include_fields[]=room_type
+include_fields[]=room_surface
+include_fields[]=room_surface_exhibition
+include_fields[]=room_capacity_theater
+include_fields[]=room_capacity_cocktail
+include_fields[]=room_capacity_seated_dinner
+include_fields[]=room_has_daylight
+include_fields[]=room_has_air_conditioning
+include_fields[]=room_has_wifi
+include_fields[]=room_has_high_ceiling
+include_fields[]=room_has_not_pillar
+include_fields[]=room_has_flexible_space
+include_fields[]=room_capacity_u
+include_fields[]=room_capacity_rectangle
+include_fields[]=room_capacity_class
+include_fields[]=room_capacity_cabaret
+include_fields[]=room_capacity_seat
+include_fields[]=room_has_stage
+include_fields[]=description
+
+translate_fields[]
+
+editable_fields[]
+
+relations_names[]
+relations_names[otcp_accommodation]=many_room_one_acco
+relations_names[otcp_culture]=many_room_one_cult
+relations_names[otcp_otherpro]=many_room_one_othe
+relations_names[otcp_restaurant]=many_room_one_rest
+relations_names[otcp_shopping]=many_room_one_shop
+relations_names[otcp_transport]=many_room_one_tran
+relations_names[otcp_visit]=many_room_one_visi
+
+[otcp_restaurant]
+include_fields[]
+=======
+>>>>>>> .r375
 include_fields[]=acti_id
 include_fields[]=acti_company
 include_fields[]=acti_webcard_format
@@ -1498,6 +1538,7 @@ include_fields[]=cult_business_technical_services
 include_fields[]=cult_business_has_combined_services
 include_fields[]=cult_business_nb_meeting_room
 include_fields[]=cult_business_nb_private_room
+include_fields[]=description
 
 translate_fields[]
 translate_fields[]=acti_transport_other
