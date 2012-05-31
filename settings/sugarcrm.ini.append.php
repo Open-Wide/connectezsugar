@@ -46,16 +46,16 @@ mapping_names[otcp_room]=Salle
 # ex.: mapping_identifiers[nom_module_sugar]=class_identifier_ez
 #################
 mapping_identifiers[]
-mapping_identifiers[otcp_contact]=contact
 mapping_identifiers[otcp_company]=company
+mapping_identifiers[otcp_accommodation]=accommodation
+mapping_identifiers[otcp_restaurant]=restaurant
 mapping_identifiers[otcp_culture]=culture
 mapping_identifiers[otcp_shopping]=shopping
 mapping_identifiers[otcp_visit]=visit
 mapping_identifiers[otcp_otherpro]=otherpro
-mapping_identifiers[otcp_accommodation]=accommodation
-mapping_identifiers[otcp_restaurant]=restaurant
 mapping_identifiers[otcp_transport]=transport
 mapping_identifiers[otcp_room]=room
+mapping_identifiers[otcp_contact]=contact
 ##################
 
 ####################
