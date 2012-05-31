@@ -226,36 +226,18 @@ $cli->gnotice("Mémoire utilisée : " . memory_get_usage_hr());
 
 if($continue)
 {
-	$entry_list_ids = $sugarSynchro->getSugarModuleIdList();
+	//$entry_list_ids = $sugarSynchro->getSugarModuleIdList();
+	$entry_list_ids = $sugarSynchro->getSugarModuleIdListFromLastSynchro();
 	$cli->notice("Mémoire utilisée après getSugarModuleIdList() : " . memory_get_usage_hr());
-	/*
-	 * Hack pour limiter la consommation mémoire : au lieu de garder tous les éléments de l'entry_list, on reconstruit un tab 
-	 * constitué uniquement d'ids et on unset le tableau initial
-	 */
-	/*$entry_list_ids = array();
-	foreach ($entry_list as $entry) {
-	    $entry_list_ids[] = array('id' => $entry['id']);
-	}
-	if( !$entry_list )
-	{
-	  
-		$cli->error("SugarConnector ERROR : ");
-		$cli->warning("SugarSynchro.log : ");
-		$cli->dgnotice( show(SugarSynchro::lastLogContent()) );
-		$continue = false;
-	}
-	$cli->gnotice("Mémoire utilisée 2: " . memory_get_usage_hr());
-	unset($entry_list);
-	$cli->gnotice("Mémoire utilisée 3: " . memory_get_usage_hr());
-	*/
+	
 }
-$cli->notice("Mémoire utilisée avant boucle sur les éléments : " . memory_get_usage_hr());
 
+$cli->notice("Mémoire utilisée avant boucle sur les éléments : " . memory_get_usage_hr());
 
 if($continue)
 {
 	$objects_count[$sugar_properties['sugar_module']] = count($entry_list_ids);
-	
+	$cli->warning("nombre d'objets pour le module $sugar_module : " . $objects_count[$sugar_properties['sugar_module']]);	
 	foreach($entry_list_ids as $entry)
 	{
 	    $cli->notice("Mémoire utilisée boucle élément : " . memory_get_usage_hr());

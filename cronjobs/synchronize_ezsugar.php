@@ -21,7 +21,10 @@ $cli->beginout("synchronize_ezsugar.php");
 // connexion à SUGAR
 $sugarConnector=new SugarConnector();
 $connection=$sugarConnector->login();
- 
+
+// stocke la date de la synchronisation
+SugarSynchro::setLastDateSynchro();
+
 // modules SUGAR à synchroniser
 $modules_list = SugarSynchro::getModuleListToSynchro();
 $cli->gnotice("Mémoire utilisée avant boucle sur les modules : " . memory_get_usage_hr());

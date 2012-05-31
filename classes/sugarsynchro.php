@@ -238,6 +238,48 @@ class SugarSynchro
 	
 	
 	/*
+	 * datetime format : 2012-05-24 15:18:03
+	 */
+	public static function setLastDateSynchro($datetime = false)
+	{
+		if( !$datetime )
+			$datetime = date("Y-m-d H:i:s", time()-60);
+		
+		$inisynchro = eZINI::instance("synchro.ini.append.php", self::INIPATH);
+		$lastSynchroDate = $inisynchro->setVariable('Synchro','lastSynchroDatetime', $datetime);
+		$inisynchro->save(false,false,false,false,true,true,true);
+		
+		return $inisynchro->variable('Synchro','lastSynchroDatetime');
+	}
+	
+	
+	public static function verifieDateTime($datetime)
+	{
+		// init du fichier de log
+		self::initLogger();
+		
+		// verifie le format
+		// preg_match( '^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}$' , $datetime )
+		if( !preg_match('`^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}$`', $datetime) )
+		{
+			self::$logger->writeTimedString("verifieDateTime() : no valid format : $datetime");
+			return false;
+		}
+			
+		// verifie la validité du datetime
+		if (date('Y-m-d H:i:s', strtotime($datetime)) == $datetime)
+	        return true;
+	    else
+	    {
+	    	self::$logger->writeTimedString("verifieDateTime() : no valid date : $datetime");
+	    	return false;
+	    }
+	        
+	}
+	
+	
+	
+	/*
 	 * CONSTRUCTEUR
 	*/
 	
@@ -645,6 +687,45 @@ class SugarSynchro
 		return $sugardata['data'];
 		
 	}
+	
+	
+	public function getSugarModuleIdListFromDate($args = null, $datetime)
+	{
+		// verifie si la fonction a les parametres necessaires à son execution
+		$verify = $this->verifyArgsForFunction("getSugarModuleEntryList", $args);
+		if(!$verify)
+			return false;
+
+		$select_fields = array('id');
+		$offset = 0;
+		$max_results = 9999;
+		// date_entered, date_modified # 2012-05-24 15:18:03
+		$verifie_datetime = self::verifieDateTime($datetime);
+		if( $verifie_datetime )
+			$query = $this->properties['sugar_module'] . ".date_modified>='$datetime'";
+		else
+			$query = "";
+		
+		$sugardata = $this->sugarConnector->get_entry_list($this->properties['sugar_module'], $select_fields, $offset, $max_results, $query);
+		
+		if( $this->checkForConnectorErrors($sugardata, 'get_entry_list') )
+			return false;
+		
+		return $sugardata['data'];
+		
+	}
+	
+	
+	public function getSugarModuleIdListFromLastSynchro()
+	{
+		
+		$inisynchro = eZINI::instance("synchro.ini.append.php", self::INIPATH);
+		$lastSynchroDate = $inisynchro->variable('Synchro','lastSynchroDatetime');
+		
+		return $this->getSugarModuleIdListFromDate(null,$lastSynchroDate);
+	}
+	
+	
 	
 	
 	/*
@@ -1061,7 +1142,7 @@ class SugarSynchro
 	
 	
 	
-	public function getRelations($args = null, $relatedModules = "otcp_accommodation")
+	public function getRelations($args = null)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
 		$verify = $this->verifyArgsForFunction("getRelations", $args);
@@ -1069,6 +1150,7 @@ class SugarSynchro
 			return false;
 			
 		$relations_names = $this->checkForRelations();
+		self::$logger->writeTimedString( "relations pour " . $this->properties['sugar_module'] . " : " . show($relations_names) );
 		
 		if( $relations_names === false )
 		{
