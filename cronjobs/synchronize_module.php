@@ -226,8 +226,8 @@ $cli->gnotice("Mémoire utilisée : " . memory_get_usage_hr());
 
 if($continue)
 {
-	//$entry_list_ids = $sugarSynchro->getSugarModuleIdList();
-	$entry_list_ids = $sugarSynchro->getSugarModuleIdListFromLastSynchro();
+	$entry_list_ids = $sugarSynchro->getSugarModuleIdList();
+	//$entry_list_ids = $sugarSynchro->getSugarModuleIdListFromLastSynchro();
 	$cli->notice("Mémoire utilisée après getSugarModuleIdList() : " . memory_get_usage_hr());
 	
 }
