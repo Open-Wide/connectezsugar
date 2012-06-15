@@ -226,10 +226,16 @@ $cli->gnotice("Mémoire utilisée : " . memory_get_usage_hr());
 
 if($continue)
 {
-	$entry_list_ids = $sugarSynchro->getSugarModuleIdList();
+    $entry_list_ids = array();
+    $list_ids = array();
+    $package_size = 1000;
+    $i = 0;
+    while ($list_ids = $sugarSynchro->getSugarModuleIdList(null, ($i * $package_size), $package_size)) {
+	    $entry_list_ids = array_merge($entry_list_ids, $list_ids);
+	    $i++;
+    }
 	//$entry_list_ids = $sugarSynchro->getSugarModuleIdListFromLastSynchro();
 	$cli->notice("Mémoire utilisée après getSugarModuleIdList() : " . memory_get_usage_hr());
-	
 }
 
 $cli->notice("Mémoire utilisée avant boucle sur les éléments : " . memory_get_usage_hr());
