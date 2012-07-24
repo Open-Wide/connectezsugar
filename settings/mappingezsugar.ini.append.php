@@ -60,7 +60,6 @@ relations_names[]
 [otcp_culture]
 include_fields[]
 include_fields[]=acti_id
-include_fields[]=acti_company
 include_fields[]=acti_webcard_format
 include_fields[]=acti_webcard_area
 include_fields[]=name
@@ -280,11 +279,11 @@ editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_cult_many_cont
+relations_names[otcp_company]=many_cult_one_comp
 
 [otcp_accommodation]
 include_fields[]
 include_fields[]=acti_id
-include_fields[]=acti_company
 include_fields[]=acti_webcard_format
 include_fields[]=acti_webcard_area
 include_fields[]=name
@@ -565,11 +564,11 @@ editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_acco_many_cont
+relations_names[otcp_company]=many_acco_one_comp
 
 [otcp_transport]
 include_fields[]
 include_fields[]=acti_id
-include_fields[]=acti_company
 include_fields[]=acti_webcard_format
 include_fields[]=acti_webcard_area
 include_fields[]=name
@@ -750,11 +749,11 @@ editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_tran_many_cont
+relations_names[otcp_company]=many_tran_one_comp
 
 [otcp_shopping]
 include_fields[]
 include_fields[]=acti_id
-include_fields[]=acti_company
 include_fields[]=acti_webcard_format
 include_fields[]=acti_webcard_area
 include_fields[]=name
@@ -891,18 +890,19 @@ editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_shop_many_cont
+relations_names[otcp_company]=many_shop_one_comp
 
 [otcp_company]
 include_fields[]
 include_fields[]=comp_internal_comment
 include_fields[]=comp_id
-include_fields[]=comp_company_group
 include_fields[]=comp_company_group_is_buyer
 include_fields[]=comp_company_name
 include_fields[]=comp_company_is_buyer
 include_fields[]=name
 include_fields[]=comp_member_is_otcp
 include_fields[]=comp_member_otcp_year
+include_fields[]=comp_member_otcp_end
 include_fields[]=comp_member_is_cvb
 include_fields[]=comp_member_cvb_year
 include_fields[]=comp_address_address
@@ -941,11 +941,11 @@ editable_fields[]=comp_contact_facebook
 
 relations_names[]
 relations_names[otcp_contact]=many_comp_many_cont
+relations_names[otcp_company]=many_comp_one_comp
 
 [otcp_visit]
 include_fields[]
 include_fields[]=acti_id
-include_fields[]=acti_company
 include_fields[]=acti_webcard_format
 include_fields[]=acti_webcard_area
 include_fields[]=name
@@ -1135,11 +1135,11 @@ editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_visi_many_cont
+relations_names[otcp_company]=many_visi_one_comp
 
 [otcp_otherpro]
 include_fields[]
 include_fields[]=acti_id
-include_fields[]=acti_company
 include_fields[]=acti_webcard_format
 include_fields[]=acti_webcard_area
 include_fields[]=name
@@ -1272,6 +1272,7 @@ editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_othe_many_cont
+relations_names[otcp_company]=many_othe_one_comp
 
 [otcp_room]
 include_fields[]
@@ -1313,7 +1314,6 @@ relations_names[otcp_visit]=many_room_one_visi
 [otcp_restaurant]
 include_fields[]
 include_fields[]=acti_id
-include_fields[]=acti_company
 include_fields[]=acti_webcard_format
 include_fields[]=acti_webcard_area
 include_fields[]=name
@@ -1554,5 +1554,6 @@ editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_rest_many_cont
+relations_names[otcp_company]=many_rest_one_comp
 
 */ ?>
