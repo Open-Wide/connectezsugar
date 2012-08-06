@@ -896,6 +896,7 @@ relations_names[otcp_company]=many_shop_one_comp
 include_fields[]
 include_fields[]=comp_internal_comment
 include_fields[]=comp_id
+include_fields[]=comp_company_group
 include_fields[]=comp_company_group_is_buyer
 include_fields[]=comp_company_name
 include_fields[]=comp_company_is_buyer
@@ -941,7 +942,6 @@ editable_fields[]=comp_contact_facebook
 
 relations_names[]
 relations_names[otcp_contact]=many_comp_many_cont
-relations_names[otcp_company]=many_comp_one_comp
 
 [otcp_visit]
 include_fields[]
