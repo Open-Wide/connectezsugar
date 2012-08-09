@@ -677,7 +677,7 @@ class SugarSynchro
 
 		$select_fields = array('id');
 		//$offset = 0;
-		//$max_results = 9999;
+		$max_results = 500;
 			
 		$sugardata = $this->sugarConnector->get_entry_list($this->properties['sugar_module'], $select_fields, $offset, $max_results);
 		
@@ -698,7 +698,7 @@ class SugarSynchro
 
 		$select_fields = array('id');
 		$offset = 0;
-		$max_results = 9999;
+		$max_results = 15000;
 		// date_entered, date_modified # 2012-05-24 15:18:03
 		$verifie_datetime = self::verifieDateTime($datetime);
 		if( $verifie_datetime )
@@ -706,7 +706,12 @@ class SugarSynchro
 		else
 			$query = "";
 		
+		//$select_fields = array('id', 'name', 'date_modified');
+		//self::$logger->writeTimedString($query);
 		$sugardata = $this->sugarConnector->get_entry_list($this->properties['sugar_module'], $select_fields, $offset, $max_results, $query);
+		//self::$logger->writeTimedString($sugardata);
+		//self::$logger->writeTimedString(count($sugardata['data']));
+		//exit();
 		
 		if( $this->checkForConnectorErrors($sugardata, 'get_entry_list') )
 			return false;
@@ -921,6 +926,7 @@ class SugarSynchro
 				$output_array[$name] = $newvalue;
 			}
 			// dans le cas d'une relation d'objet on transforme l'ID sugar en ID ez
+			// SCReloaded: Code d'update de relation field
 			elseif( $datatype == "ezobjectrelation" )
 			{
 				// @IMPORTANT! : il nous faut le nom de la class pour determiner le remote_id de l'objet !!!
@@ -968,7 +974,7 @@ class SugarSynchro
 					$output_array[$name] = (string)$ezdate->timeStamp();
 				}
 				// dans le cas d'un datetime on calcule le timestamp avec le temps (h:m:s)
-				elseif( $$datatype == "ezdatetime" )
+				elseif( $datatype == "ezdatetime" )
 				{
 					$datetime_array = explode(" ", $value);
 					$date_array = explode("-", $datetime_array[0]);
@@ -1073,74 +1079,6 @@ class SugarSynchro
 		return $relations_names;
 	}
 	
-	public function OLD_getRelations($args = null, $relation_type = null)
-	{
-		// verifie si la fonction a les parametres necessaires à son execution
-		$verify = $this->verifyArgsForFunction("getRelations", $args);
-		if(!$verify)
-			return false;
-		
-		//$sugardata = $this->sugarConnector->get_relationships($this->properties['sugar_module'],$this->properties['sugar_id'],$this->properties['related_module']);
-		$sugardata = $this->sugarConnector->get_relationships($this->properties['sugar_module'],$this->properties['sugar_id']);
-		
-		if( $this->checkForConnectorErrors($sugardata, 'get_entry') )
-			return false;
-		
-		$relations_names = $this->checkForRelations();
-		
-		if( $relations_names === false )
-		{
-			return array();
-		}
-		
-		if( is_null($relation_type) )
-			$relation_type = "name";
-		
-		foreach( $relations_names as $rel_module_name => $relation_name )
-		{
-			$relation_name =  $relation_name . "_" . $relation_type;
-			if ( strlen($relation_name) > 25 )
-			{
-				$relation_name_part_1 = substr($relation_name,0,11);
-				$relation_name_part_2 = substr($relation_name,-14);
-				$relation_name = $relation_name_part_1 . $relation_name_part_2; //evd($relation_name);
-			}
-			
-			$rel_class_identifier = $this->defClassIdentifier($rel_module_name, false);
-			unset($relations_names[$rel_module_name]);
-			$relations_names[$rel_class_identifier] = $relation_name;
-			
-		}
-		
-		foreach( $sugardata['data'] as $k1 => $v1 )
-		{
-			foreach( $v1['name_value_list'] as $k2 => $v2 )
-			{
-
-				$rel_class_identifier =  array_search($v2['name'], $relations_names);
-				if( $rel_class_identifier !== false )
-				{
-					$relateds_names[$rel_class_identifier] = $v2['value'];
-				}
-			}
-			
-		}
-		
-		//vd($relateds_names);
-		
-		if( is_array($relateds_names) && count($relateds_names) > 0 )
-			return $relateds_names;
-		else
-		{
-			//evd($sugardata);
-			$error = "Aucune relation trouvé avec les noms de relation dans \$this->mappingdata['relations_names'] pour le module : " . $this->properties['sugar_module'];
-			self::$logger->writeTimedString($error);
-			return false;
-		}
-		
-	}
-	
-	
 	
 	public function getRelations($args = null)
 	{
@@ -1194,6 +1132,77 @@ class SugarSynchro
 		
 		return $sugarrelations;
 		
+	}
+	
+	/**
+	 * 
+	 * Synchro Ez Publish vers SugarCRM
+	 * 
+	 * @param array $params Tableau de paramètres
+	 *        - cli Instance SmartCli
+	 *        - sugarmodule Module SugarCRM (visit, transport, ...)
+	 *        - entry_list_ids Liste des ID SugarCRM déjà synchronisés
+	 * 
+	 * @return true si la synchro s'est bien passée, false sinon
+	 */
+	public function syncEzToSugar($params = array()) {
+		$cli 	        = $params['cli'];
+		$sugarmodule 	= $params['sugarmodule'];
+		$entry_list_ids = $params['entry_list_ids'];
+		
+		$class_name = $this->defClassName($sugarmodule);
+		$class_identifier = $this->defClassIdentifier($sugarmodule);
+		
+		$inisynchro = eZINI::instance("synchro.ini.append.php", self::INIPATH);
+		$lastSynchroDate = strtotime($inisynchro->variable('Synchro','lastSynchroDatetime'));
+		$lastSynchroDate = mktime(0, 0, 0, 8, 9, 2012); // Pour le test
+		$ini = eZIni::instance( 'otcp.ini' );
+		
+		// On remplit un tableau avec les listes d'identifiants SugarCRM pour faciliter la comparaison avec les ID externes eZ modifiés
+		$ez_init_ids = array();
+		foreach ($entry_list_ids as $entry) {
+			$id_sugar = $class_identifier . '_' . $entry['id']; // Ex : "visit_ea7548f0-1e5e-e4ba-0cfc-501941e09129"
+			if (!in_array($id_sugar, $ez_init_ids)) {
+				$ez_init_ids[] = $id_sugar;
+			}
+		}
+		
+		// Liste des nodes eZ modifiées depuis la dernière synchro
+		$nodes = eZFunctionHandler::execute(
+			'content',
+			'list',
+			array(
+				'parent_node_id'     => $ini->variable( 'crmDirectories', $class_identifier ),
+				'class_filter_type'  => 'include',
+				'class_filter_array' => array($class_identifier),
+				'attribute_filter'   => array(
+					array('modified', '>=', $lastSynchroDate)
+				),
+			)
+		);
+		$ez_remote_ids_to_sync = array(); // Tableau qui contiendra les ID SugarCRM dont l'objet eZ a été modifié => à envoyer à Sugar
+		foreach ($nodes as $node) {
+			$remote_id = $node->object()->remoteID();
+			if (!in_array($remote_id, $ez_init_ids)) {
+				// Si l'ID ne figure pas dans le tableau des ID déjà synchronisés Sugar => eZ
+				$ez_remote_ids_to_sync[] = $remote_id;
+			}
+		}
+		$cli->notice(print_r($ez_init_ids));
+		$cli->notice(print_r($ez_remote_ids_to_sync));
+		//$cli->notice('nodes='.count($ez_init_ids));
+		//$cli->notice('ez_module_remote_ids='.count($ez_remote_ids_to_sync));
+		// ->ContentObjectID
+		//->ContentObject->ContentObjectAttributes[5]['fre-FR'][0]
+		
+		/*
+		 * @TODO
+		 * Parcourir la liste des fields du module depuis le fichier ini de mapping
+		 * Envoyer la structure à set_entry ou set_entries
+		 */
+		exit();
+		
+		return true;
 	}
 	
 	
