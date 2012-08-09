@@ -24,8 +24,12 @@ class Module {
 		$schema = new Module_Sugar_Schema($this->module_name);
 		// @TODO: Enlever le 2 mis là pour les tests
 		foreach ( $this->get_sugar_ids( 2 ) as $sugar_id ) {
-			$object = new Module_Object( $this->module_name, $sugar_id, $schema );
-			$object->synchro( );
+			try {
+				$object = new Module_Object( $this->module_name, $sugar_id, $schema );
+				$object->synchro( );
+			} catch( Exception $e ) {
+				echo $e->getMessage( ) . PHP_EOL;
+			}
 		}
 	}
 	

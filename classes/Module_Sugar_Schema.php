@@ -13,19 +13,27 @@ class Module_Sugar_Schema {
 		$this->load();
 	}
 	
-	public function load() {
-		$this->load_sugar_schema();
-		$this->load_ez_sugar_mapping();
-		$this->load_ez_class_infos();
+	public function get_relations() {
+		return $this->relations;
 	}
 	
-	public function load_sugar_schema() {
+	private function load() {
+		$this->load_sugar_schema();
+		$this->load_ez_sugar_mapping();
+		$this->ez_class_name = $this->get_ez_class_name( $this->module_name );
+		$this->ez_class_identifier = $this->get_ez_class_identifier( $this->module_name );
+		$this->valid_ez_class( );
+	}
+	
+	private function load_sugar_schema() {
 		$ini = eZIni::instance( 'mappingezsugar.ini' );
 		if ($ini->hasVariable($this->module_name, 'relations_names')) {
 			foreach( $ini->variable($this->module_name, 'relations_names') as $related_module_name => $relation_name ) {
+				$related_class_identifier = $this->get_ez_class_identifier( $related_module_name );
 				$this->relations[ $relation_name ] = array(
 					'related_module_name'      => $related_module_name,
-					'related_class_identifier' => $this->get_ez_class_identifier( $related_module_name ),
+					'related_class_identifier' => $related_class_identifier,
+					'related_class_id'		   => eZContentClass::classIDByIdentifier($related_class_identifier),
 					'type' 		     		   => 'relation',
 					'name' 			      	   => $relation_name,
 				);
@@ -33,7 +41,7 @@ class Module_Sugar_Schema {
 		}
 	}
 		
-	public function load_ez_sugar_mapping() {
+	private function load_ez_sugar_mapping() {
 		$ini = eZIni::instance( 'mappingezsugarschema.ini' );
 		if ($ini->hasVariable($this->module_name, 'relation_to_attribute')) {
 			foreach( $ini->variable($this->module_name, 'relation_to_attribute') as $relation_name => $attribute ) {
@@ -47,12 +55,7 @@ class Module_Sugar_Schema {
 		}
 	}
 		
-	public function load_ez_class_infos() {
-		$this->ez_class_name = $this->get_ez_class_name( $this->module_name );
-		$this->ez_class_identifier = $this->get_ez_class_identifier( $this->module_name );
-	}
-		
-	public function get_ez_class_name( $module_name ) {
+	private function get_ez_class_name( $module_name ) {
 		$ini = eZIni::instance( 'sugarcrm.ini' );
 		if ($ini->hasVariable('Mapping', 'mapping_names')) {
 			$mapping = $ini->variable('Mapping', 'mapping_names');
@@ -62,7 +65,8 @@ class Module_Sugar_Schema {
 		}
 		return FALSE;
 	}
-	public function get_ez_class_identifier( $module_name ) {
+	
+	private function get_ez_class_identifier( $module_name ) {
 		$ini = eZIni::instance( 'sugarcrm.ini' );
 		if ($ini->hasVariable('Mapping', 'mapping_identifiers')) {
 			$mapping = $ini->variable('Mapping', 'mapping_identifiers');
@@ -72,9 +76,10 @@ class Module_Sugar_Schema {
 		}
 		return FALSE;
 	}
-	
-	public function get_relations() {
-		return $this->relations;
+		
+	private function valid_ez_class() {
+		// @TODO: Attribute class update 
+		echo 'TODO: Attribute class update' . PHP_EOL;
 	}
 }
 ?>
