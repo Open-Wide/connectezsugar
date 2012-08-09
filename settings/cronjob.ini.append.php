@@ -10,10 +10,6 @@ Scripts[]=cleanup_module.php
 Scripts[]=synchronize_relations.php
 Scripts[]=synchro_relations_module.php
 Scripts[]=update_classes.php
-# old scripts
-Scripts[]=old_synchronize_ezsugar.php
-Scripts[]=old_synchronize_relations.php
-Scripts[]=old_cleanup_dev.php
 # scripts de test
 #Scripts[]=test_mere.php
 #Scripts[]=test_fils.php
@@ -40,16 +36,6 @@ Scripts[]=cleanup_module.php
 
 [CronjobPart-upclasses]
 Scripts[]=update_classes.php
-
-# OLD SCRIPTS
-[CronjobPart-oldsynchro]
-Scripts[]=old_synchronize_ezsugar.php
-
-[CronjobPart-oldsynchrorelations]
-Scripts[]=old_synchronize_relations.php
-
-[CronjobPart-oldcleanup]
-Scripts[]=old_cleanup_dev.php
 
 # SCRIPTS DE TEST
 #[CronjobPart-mere]
