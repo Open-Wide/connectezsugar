@@ -12,7 +12,7 @@ class SugarConnector
 	private static $query_standard_return;
 	
     private $client;
-    private $session;
+    private static $session = FALSE;
     private $serverNamespace;
     private $login;
     private $password;
@@ -129,26 +129,28 @@ class SugarConnector
      */
     function login($login = null, $password = null)
     {
-    	if(is_null($login))
-    		$login = $this->login;
-    	if(is_null($password))
-    		$password = $this->password;   		
-        $auth_array = array( 
-               'user_name' => $login,
-               'password' => md5( $password ),
-               'version' => '?'
-        );
-        $request = new eZSOAPRequest("login",$this->serverNamespace);
-        $request->addParameter('user_auth',$auth_array);
-        $request->addParameter('application_name','');
-        $reponse = $this->client->send($request);
-        $result  = $reponse->value(); 
-        
-		if( $this->checkForErrors($result,"login") )
-			return false;
-		
-        $this->session = $result['id'];
-        return $this->session;
+    	if ( self::$session === FALSE ) { 
+	    	if(is_null($login))
+	    		$login = $this->login;
+	    	if(is_null($password))
+	    		$password = $this->password;   		
+	        $auth_array = array( 
+	               'user_name' => $login,
+	               'password' => md5( $password ),
+	               'version' => '?'
+	        );
+	        $request = new eZSOAPRequest("login",$this->serverNamespace);
+	        $request->addParameter('user_auth',$auth_array);
+	        $request->addParameter('application_name','');
+	        $reponse = $this->client->send($request);
+	        $result  = $reponse->value(); 
+	        
+			if( $this->checkForErrors($result,"login") )
+				return false;
+			
+	        self::$session = $result['id'];
+    	}
+        return self::$session;
     }
 
     /*
@@ -300,7 +302,6 @@ class SugarConnector
 			$resultdata = $result;
 		else
 			$resultdata = $result[$queryinfos['data']];
-		
 			
 		return array( 'data' => $resultdata);
     }
@@ -311,7 +312,7 @@ class SugarConnector
     	//mvd(array($module,$select_fields));
     	
         $request = new eZSOAPRequest("get_entry_list",$this->serverNamespace);
-        $request->addParameter('session',$this->session);
+        $request->addParameter('session',self::$session);
         $request->addParameter('module_name',$module);
         $request->addParameter('query',$query);
         $request->addParameter('order_by',$order_by);
@@ -334,7 +335,7 @@ class SugarConnector
 			$select_fields[] = "warning";
     	
         $request = new eZSOAPRequest("get_entry", $this->serverNamespace);
-        $request->addParameter('session',$this->session);
+        $request->addParameter('session',self::$session);
         $request->addParameter('module_name',$module);
         $request->addParameter('id',$id);
         $request->addParameter('select_fields',$select_fields);
@@ -357,7 +358,7 @@ class SugarConnector
     function get_module_fields($module_name)
     {
     	$request = new eZSOAPRequest("get_module_fields", $this->serverNamespace);
-    	$request->addParameter('session',$this->session);
+    	$request->addParameter('session',self::$session);
     	$request->addParameter('module_name',$module_name);
     	
     	$reponse = $this->client->send($request);
@@ -370,7 +371,7 @@ class SugarConnector
     function get_available_modules()
     {
     	$request = new eZSOAPRequest("get_available_modules", $this->serverNamespace);
-    	$request->addParameter('session',$this->session);
+    	$request->addParameter('session',self::$session);
     	
     	$reponse = $this->client->send($request);
         $result = $reponse->Value;
@@ -381,7 +382,7 @@ class SugarConnector
 	function get_relationships($module,$id,$related_module)
     {    	
         $request = new eZSOAPRequest("get_relationships", $this->serverNamespace);
-        $request->addParameter('session',$this->session);
+        $request->addParameter('session',self::$session);
         $request->addParameter('module_name',$module);
         $request->addParameter('module_id',$id);
         $request->addParameter('related_module',$related_module);
