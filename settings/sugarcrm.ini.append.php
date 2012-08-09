@@ -130,6 +130,7 @@ mapping_types[relate]=ezobjectrelation
 ##############
 [Synchro]
 modulesListToSynchro[]
+modulesListToSynchro[]=otcp_contact
 modulesListToSynchro[]=otcp_company
 modulesListToSynchro[]=otcp_accommodation
 modulesListToSynchro[]=otcp_restaurant
@@ -139,7 +140,6 @@ modulesListToSynchro[]=otcp_shopping
 modulesListToSynchro[]=otcp_visit
 modulesListToSynchro[]=otcp_otherpro
 modulesListToSynchro[]=otcp_room
-modulesListToSynchro[]=otcp_contact
 
 #####################################################################################
 
