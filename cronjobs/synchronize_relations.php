@@ -35,7 +35,7 @@ foreach($modules_list as $sugarmodule)
     //exec("php runcronjobs.php synchrorelationsmodule $sugarmodule");
     
     $module = new Module($sugarmodule);
-    $return = $module->synchro_module_objects();
+    $return = $module->import_module_objects();
     $cli->gnotice(print_r($return, true));    
     
     gc_collect_cycles();
