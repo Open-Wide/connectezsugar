@@ -80,7 +80,7 @@ class Module_Sugar_Schema {
 			$attribute_type = $ini->variable( $this->module_name, 'relation_to_attribute_type' );
 		}
 		if ($ini->hasVariable($this->module_name, 'relation_to_attribute')) {
-			foreach( $ini->variable($this->module_name, 'relation_to_attribute') as $relation_name => $attribute ) {
+			foreach( $ini->variable($this->module_name, 'relation_to_attribute') as $relation_name => $attribute_name ) {
 				if ( ! isset( $this->relations[ $relation_name ] ) ) {
 					throw new Exception( 'Essaie de convertir en attribut une relation non-définie : "'.$relation_name.'" de "'.$this->module_name.'" vers "'.$attribute.'"' );
 				} else {
@@ -90,7 +90,7 @@ class Module_Sugar_Schema {
 						$attribute_type = 'one';
 					}
 					$this->relations[ $relation_name ][ 'type' ] = 'attribute';
-					$this->relations[ $relation_name ][ 'attribute_name' ] = $attribute[ 'name' ];
+					$this->relations[ $relation_name ][ 'attribute_name' ] = $attribute_name;
 					$this->relations[ $relation_name ][ 'attribute_type' ] = $attribute_type;
 				}
 			}
@@ -102,15 +102,15 @@ class Module_Sugar_Schema {
 		foreach ( $this->relations as $relation ) {
 			if ( $relation[ 'type' ] == 'attribute' ) {
 				$attribute = $ez_class->fetchAttributeByIdentifier( $relation[ 'attribute_name' ], FALSE ); 
-				$this->cli( $attribute[ 'id' ] . $attribute[ 'identifier' ] );
+				$this->cli->notice( $attribute[ 'id' ] . $attribute[ 'identifier' ] );
 				if ( $attribute === NULL ) {
 					if ( $relation[ 'attribute_type' ] == 'list' ) {
 						// @TODO
-						$this->cli( 'TODO: Création d\'attribut relation object list' ); 
+						$this->cli->warning( 'TODO: Création d\'attribut relation object list' ); 
 					} else {
 						$this->create_object_relation_attribute( $ez_class, $relation );
 					}
-					$this->cli( 'Attribut ' . $relation[ 'attribute_name' ] . ' ajouté à la classe ' . $this->ez_class_name );
+					$this->cli->notice( 'Attribut ' . $relation[ 'attribute_name' ] . ' ajouté à la classe ' . $this->ez_class_name );
 				}
 			}
 		}
