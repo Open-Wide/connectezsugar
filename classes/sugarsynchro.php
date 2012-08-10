@@ -677,7 +677,7 @@ class SugarSynchro
 
 		$select_fields = array('id');
 		//$offset = 0;
-		$max_results = 500;
+		$max_results = 2;
 			
 		$sugardata = $this->sugarConnector->get_entry_list($this->properties['sugar_module'], $select_fields, $offset, $max_results);
 		
@@ -698,7 +698,7 @@ class SugarSynchro
 
 		$select_fields = array('id');
 		$offset = 0;
-		$max_results = 15000;
+		$max_results = 2;
 		// date_entered, date_modified # 2012-05-24 15:18:03
 		$verifie_datetime = self::verifieDateTime($datetime);
 		if( $verifie_datetime )
@@ -1133,78 +1133,6 @@ class SugarSynchro
 		return $sugarrelations;
 		
 	}
-	
-	/**
-	 * 
-	 * Synchro Ez Publish vers SugarCRM
-	 * 
-	 * @param array $params Tableau de paramètres
-	 *        - cli Instance SmartCli
-	 *        - sugarmodule Module SugarCRM (visit, transport, ...)
-	 *        - entry_list_ids Liste des ID SugarCRM déjà synchronisés
-	 * 
-	 * @return true si la synchro s'est bien passée, false sinon
-	 */
-	public function syncEzToSugar($params = array()) {
-		$cli 	        = $params['cli'];
-		$sugarmodule 	= $params['sugarmodule'];
-		$entry_list_ids = $params['entry_list_ids'];
-		
-		$class_name = $this->defClassName($sugarmodule);
-		$class_identifier = $this->defClassIdentifier($sugarmodule);
-		
-		$inisynchro = eZINI::instance("synchro.ini.append.php", self::INIPATH);
-		$lastSynchroDate = strtotime($inisynchro->variable('Synchro','lastSynchroDatetime'));
-		$lastSynchroDate = mktime(0, 0, 0, 8, 9, 2012); // Pour le test
-		$ini = eZIni::instance( 'otcp.ini' );
-		
-		// On remplit un tableau avec les listes d'identifiants SugarCRM pour faciliter la comparaison avec les ID externes eZ modifiés
-		$ez_init_ids = array();
-		foreach ($entry_list_ids as $entry) {
-			$id_sugar = $class_identifier . '_' . $entry['id']; // Ex : "visit_ea7548f0-1e5e-e4ba-0cfc-501941e09129"
-			if (!in_array($id_sugar, $ez_init_ids)) {
-				$ez_init_ids[] = $id_sugar;
-			}
-		}
-		
-		// Liste des nodes eZ modifiées depuis la dernière synchro
-		$nodes = eZFunctionHandler::execute(
-			'content',
-			'list',
-			array(
-				'parent_node_id'     => $ini->variable( 'crmDirectories', $class_identifier ),
-				'class_filter_type'  => 'include',
-				'class_filter_array' => array($class_identifier),
-				'attribute_filter'   => array(
-					array('modified', '>=', $lastSynchroDate)
-				),
-			)
-		);
-		$ez_remote_ids_to_sync = array(); // Tableau qui contiendra les ID SugarCRM dont l'objet eZ a été modifié => à envoyer à Sugar
-		foreach ($nodes as $node) {
-			$remote_id = $node->object()->remoteID();
-			if (!in_array($remote_id, $ez_init_ids)) {
-				// Si l'ID ne figure pas dans le tableau des ID déjà synchronisés Sugar => eZ
-				$ez_remote_ids_to_sync[] = $remote_id;
-			}
-		}
-		$cli->notice(print_r($ez_init_ids));
-		$cli->notice(print_r($ez_remote_ids_to_sync));
-		//$cli->notice('nodes='.count($ez_init_ids));
-		//$cli->notice('ez_module_remote_ids='.count($ez_remote_ids_to_sync));
-		// ->ContentObjectID
-		//->ContentObject->ContentObjectAttributes[5]['fre-FR'][0]
-		
-		/*
-		 * @TODO
-		 * Parcourir la liste des fields du module depuis le fichier ini de mapping
-		 * Envoyer la structure à set_entry ou set_entries
-		 */
-		exit();
-		
-		return true;
-	}
-	
 	
 }// fin de class
 
