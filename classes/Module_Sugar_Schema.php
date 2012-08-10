@@ -102,7 +102,7 @@ class Module_Sugar_Schema {
 		foreach ( $this->relations as $relation ) {
 			if ( $relation[ 'type' ] == 'attribute' ) {
 				$attribute = $ez_class->fetchAttributeByIdentifier( $relation[ 'attribute_name' ], FALSE ); 
-				$this->cli->notice( $attribute[ 'id' ] . $attribute[ 'identifier' ] );
+				// $this->cli->notice( $attribute[ 'id' ] . ' ' . $attribute[ 'identifier' ] );
 				if ( $attribute === NULL ) {
 					$datatype = ( $relation[ 'attribute_type' ] == 'list' ) ? 'ezobjectrelationlist' : 'ezobjectrelation';
 					$this->create_class_attribute( $ez_class, $datatype, $relation[ 'attribute_name' ], $relation[ 'related_class_name' ] );
