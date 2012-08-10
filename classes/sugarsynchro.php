@@ -677,7 +677,8 @@ class SugarSynchro
 
 		$select_fields = array('id');
 		//$offset = 0;
-		$max_results = 2;
+	    // @TEST
+		// $max_results = 5000;
 			
 		$sugardata = $this->sugarConnector->get_entry_list($this->properties['sugar_module'], $select_fields, $offset, $max_results);
 		
@@ -698,7 +699,9 @@ class SugarSynchro
 
 		$select_fields = array('id');
 		$offset = 0;
-		$max_results = 2;
+	    // @TEST
+		// $max_results = 5000;
+		
 		// date_entered, date_modified # 2012-05-24 15:18:03
 		$verifie_datetime = self::verifieDateTime($datetime);
 		if( $verifie_datetime )
