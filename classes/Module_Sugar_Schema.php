@@ -104,29 +104,25 @@ class Module_Sugar_Schema {
 				$attribute = $ez_class->fetchAttributeByIdentifier( $relation[ 'attribute_name' ], FALSE ); 
 				$this->cli->notice( $attribute[ 'id' ] . $attribute[ 'identifier' ] );
 				if ( $attribute === NULL ) {
-					if ( $relation[ 'attribute_type' ] == 'list' ) {
-						// @TODO
-						$this->cli->warning( 'TODO: Création d\'attribut relation object list' ); 
-					} else {
-						$this->create_object_relation_attribute( $ez_class, $relation );
-					}
+					$datatype = ( $relation[ 'attribute_type' ] == 'list' ) ? 'ezobjectrelationlist' : 'ezobjectrelation';
+					$this->create_class_attribute( $ez_class, $datatype, $relation[ 'attribute_name' ], $relation[ 'related_class_name' ] );
 					$this->cli->notice( 'Attribut ' . $relation[ 'attribute_name' ] . ' ajouté à la classe ' . $this->ez_class_name );
 				}
 			}
 		}
 	}
 		
-	private function create_object_relation_attribute( $ez_class, $relation ) {
+	private function create_class_attribute( $ez_class, $datatype, $identifier, $name ) {
 		$version = $ez_class->attribute( 'version' ); 
-		$attribute = eZContentClassAttribute::create( $this->ez_class_id, 'ezobjectrelation' );
+		$attribute = eZContentClassAttribute::create( $this->ez_class_id, $datatype );
 		
 		// Definition
 		$attribute->setAttribute( 'version'      , $version );
-		$attribute->setAttribute( 'name'         , $relation[ 'related_class_name' ] );
+		$attribute->setAttribute( 'name'         , $name );
 		$attribute->setAttribute( 'is_required'  , 0 );
 		$attribute->setAttribute( 'is_searchable', 1 );
 		$attribute->setAttribute( 'can_translate', 0 );
-		$attribute->setAttribute( 'identifier'   , $relation[ 'attribute_name' ] );
+		$attribute->setAttribute( 'identifier'   , $identifier );
 		
 		// Store
 		$dataType = $attribute->dataType();
