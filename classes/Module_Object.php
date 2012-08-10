@@ -5,14 +5,20 @@ class Module_Object {
 	private $module_name = '';
 	private $sugar_id;
 	private $sugar_schema;
+	private $cli;
 	private $ez_object_id;
 	private $ez_object;
 	private $sugar_connector;
 	
-	public function __construct($module_name, $sugar_id, $sugar_schema ) {
+	
+	/**
+	 * Constructor
+	*/
+	public function __construct($module_name, $sugar_id, $sugar_schema, $cli ) {
 		$this->module_name     = $module_name;
 		$this->sugar_id        = $sugar_id;
 		$this->sugar_schema    = $sugar_schema;
+		$this->cli             = $cli;
 		$this->ez_object_id    = $this->get_ez_object_id( $this->sugar_schema->ez_class_identifier, $this->sugar_id );
 		$this->ez_object       = eZContentObject::fetch( $this->ez_object_id );
 		$this->sugar_connector = new SugarConnector();
@@ -20,8 +26,23 @@ class Module_Object {
 
 	public function __destruct() {
 		unset( $this->sugar_connector, $this->sugar_schema, $this->ez_object );
+		eZContentObject::clearCache();
 	}
 	
+	
+	/**
+	 * Public
+	*/
+	public function import_relations() {
+		foreach ($this->sugar_schema->get_relations() as $relation) {
+			$this->import_relation($relation);
+		}
+	}
+	
+	
+	/**
+	 * Private Import
+	*/
 	private function get_ez_object_id($ez_class_identifier, $sugar_id) {
 		$remote_id = $ez_class_identifier . "_" . $sugar_id;
 		$ez_object_id = owObjectsMaster::objectIDByRemoteID($remote_id);
@@ -31,34 +52,27 @@ class Module_Object {
 		return $ez_object_id;
 	}
 	
-	public function import_relations() {
-		foreach ($this->sugar_schema->get_relations() as $relation) {
-			$this->import_relation($relation);
-		}
-	}
-	
 	private function import_relation($relation) {
-		$diff_related_ids = $this->diff_relations_common( $relation );
 		if ( $relation[ 'type' ] == 'relation' ) {
-			$this->import_relation_common($diff_related_ids);
+			$this->import_relation_common($relation);
 		} else if ( $relation[ 'type' ] == 'attribute' ) {
-			// @TODO
-			$this->import_relation_common($diff_related_ids);
+			$this->import_relation_attribute($relation);
 		}
 	}
 	
-	private function import_relation_common($diff_related_ids) {
+	private function import_relation_common($relation) {
+		$diff_related_ids = $this->diff_relations_common( $relation );
 		foreach ( $diff_related_ids[ 'to_add' ] as $related_ez_object_id ) {
 			if ( $this->ez_object->addContentObjectRelation( $related_ez_object_id ) === FALSE ) {
 				throw new Exception( 'Erreur de eZ Publish, impossible d\'ajouter une relation entre ' . $this->sugar_schema->ez_class_identifier . '#' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
 			}
-			echo 'Add relation between ' . $this->ez_object->attribute( 'name' ) . ' and ' . $related_ez_object_id . PHP_EOL;
+			$this->cli( 'Add relation between ' . $this->ez_object->attribute( 'name' ) . ' and ' . $related_ez_object_id );
 		}
 		foreach ( $diff_related_ids[ 'to_remove' ] as $related_ez_object_id ) {
 			if ( $this->ez_object->removeContentObjectRelation( $related_ez_object_id ) === FALSE ) {
 				throw new Exception( 'Erreur de eZ Publish, impossible de supprimer une relation entre ' . $this->sugar_schema->ez_class_identifier . '#' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
 			}
-			echo 'Remove relation between ' . $this->ez_object->attribute( 'name' ) . ' and ' . $related_ez_object_id . PHP_EOL;
+			$this->cli( 'Remove relation between ' . $this->ez_object->attribute( 'name' ) . ' and ' . $related_ez_object_id );
 		}
 	}
 	
@@ -73,7 +87,11 @@ class Module_Object {
 	
 	private function get_related_ez_object_ids_by_sugar( $relation ) {
 		$related_ez_object_ids = array( );
-		$values = $this->sugar_connector->get_relationships($this->module_name, $this->sugar_id, $relation[ 'related_module_name' ]);
+		try {
+			$values = $this->sugar_connector->get_relationships($this->module_name, $this->sugar_id, $relation[ 'related_module_name' ]);
+		} catch ( Exception $e ) {
+			throw new Exception( 'Exception du Sugar connecteur sur la liste des relations entre ' . $this->module_name . '#' . $this->sugar_id .' et ' . $relation[ 'related_module_name' ] );
+		}
 		if ( ! is_array( $values ) || ( isset($values['error'] ) && $values['error']['number'] !== '0' ) ) {
 			throw new Exception( 'Erreur du Sugar connecteur sur la liste des relations entre ' . $this->module_name . '#' . $this->sugar_id .' et ' . $relation[ 'related_module_name' ] );
 		}
@@ -103,8 +121,50 @@ class Module_Object {
 	}
 	
 	private function import_relation_attribute($relation) {
-		// @TODO: Attribute relation 
-		echo 'TODO: Relation attribute' . PHP_EOL;
+		if ( $relation[ 'attribute_type' ] == 'list' ) {
+			$this->import_relation_attribute_list($relation);
+		} else {
+			$this->import_relation_attribute_one($relation);
+		}
+	}
+	
+	private function import_relation_attribute_list($relation) {
+		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
+		// @TODO: Vérifier ce cas-là
+		$this->update_ez_attribute_value( $relation[ 'attribute_name' ], implode( '-', $related_ez_object_ids ) );
+	}
+	
+	private function import_relation_attribute_one($relation) {
+		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
+		if ( count( $related_ez_object_ids ) > 1 ) {
+			$this->cli( 'Warning on va perdre des données de relation, many-many to one-many' );
+		}
+		if ( count( $related_ez_object_ids ) == 1 ) {
+			$attribute_value = $related_ez_object_ids[ 0 ];
+		} else {
+			// @TODO: Vérifier ce cas-là
+			$attribute_value = '';
+		}
+		$this->update_ez_attribute_value( $relation[ 'attribute_name' ], $attribute_value );
+		$this->cli( 'Attribut mis à jour !?' );
+	}
+	
+	private function update_ez_attribute_value( $attribute_name, $attribute_value ) {
+        $dataMap = $this->ez_object->fetchDataMap( FALSE );
+        if ( isset( $dataMap[ $attribute_name ] ) ) {
+           	$current_attribute_value = $dataMap[ $attribute_name ]->value( );
+        }
+        if ( ! isset( $current_attribute_value ) || $current_attribute_value != $attribute_value ) {
+			$paramsUpdate = array( );
+			$paramsUpdate['attributes'] = array(
+				$attribute_name => $attribute_value,
+			);
+			$return = eZContentFunctions::updateAndPublishObject( $this->ez_object, $paramsUpdate );
+			if ( ! $return ) {
+				throw new Exception( 'Erreur de eZ Publish, impossible de mettre à jour l\'attribut relation "' . $relation[ 'attribute_name' ] . '" de ' . $this->sugar_schema->ez_class_identifier . '#' . $this->ez_object_id );
+			}
+			$this->cli( 'Attribut mis à jour !?' );
+        }
 	}
 	
 	/**
@@ -127,18 +187,22 @@ class Module_Object {
 	
 	/**
 	*
-	* Synchro Ez Publish vers SugarCRM -> à reprendre !
-	*
-	* @param array $params Tableau de paramètres
-	*        - cli Instance SmartCli
-	*        - entry_list_ids Liste des ID SugarCRM déjà synchronisés
+	* Synchro Ez Publish vers SugarCRM
 	*/
-	public function export($params = array()) {
-		$cli 	        = $params['cli'];
-		$entry_list_ids = $params['entry_list_ids'];
+	public function export() {
+		//$ez_object_ids = $this->get_ez_object_ids_to_send();
 		
-		$class_name = $this->defClassName($this->module_name);
-		$class_identifier = $this->defClassIdentifier($this->module_name);
+		// On souhaite récupérer la liste des champs utiles de l'objet pour envoi à SugarCRM
+		
+	}
+	
+	private function get_ez_object_ids_to_send() {
+		$class_name = $this->sugar_schema->get_ez_class_name($this->module_name);
+		$class_identifier = $this->sugar_schema->get_ez_class_identifier($this->module_name);
+
+		//$entry_list_ids = $this->sugar_connector->getSugarModuleIdListFromLastSynchro();
+		//@TODO : Pour ne pas renvoyer les objets eZ déjà mis à jour par l'import depuis Sugar, récupérer la liste des ID d'objets déjà à jour 
+		$entry_list_ids = array();
 		
 		$ini = eZIni::instance( 'otcp.ini' );
 		
@@ -172,16 +236,10 @@ class Module_Object {
 				$ez_remote_ids_to_sync[] = $remote_id;
 			}
 		}
-		$cli->notice(print_r($ez_init_ids));
-		$cli->notice(print_r($ez_remote_ids_to_sync));
+		print_r($ez_init_ids);
+		print_r($ez_remote_ids_to_sync);
 		// ->ContentObjectID
 		//->ContentObject->ContentObjectAttributes[5]['fre-FR'][0]
-		
-		/*
-		* @TODO
-		* Parcourir la liste des fields du module depuis le fichier ini de mapping
-		* Envoyer la structure à set_entry ou set_entries
-		*/
 	}
 	
 	private function get_last_synchro_date_time() {
@@ -189,6 +247,10 @@ class Module_Object {
 		$date = strtotime($inisynchro->variable('Synchro','lastSynchroDatetime'));
 		$date = mktime(0, 0, 0, 8, 9, 2012); // Pour le test
 		return $date;
+	}
+	
+	private function export_object($object_id) {
+		
 	}
 }
 ?>
