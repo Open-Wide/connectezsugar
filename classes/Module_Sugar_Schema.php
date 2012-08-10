@@ -121,10 +121,10 @@ class Module_Sugar_Schema {
 		$attribute = eZContentClassAttribute::create( $this->ez_class_id, 'ezobjectrelation' );
 		
 		// Definition
-		$attribute->setAttribute( 'version'      , $version);
+		$attribute->setAttribute( 'version'      , $version );
 		$attribute->setAttribute( 'name'         , $relation[ 'related_class_name' ] );
 		$attribute->setAttribute( 'is_required'  , 0 );
-		$attribute->setAttribute( 'is_searchable', 0 );
+		$attribute->setAttribute( 'is_searchable', 1 );
 		$attribute->setAttribute( 'can_translate', 0 );
 		$attribute->setAttribute( 'identifier'   , $relation[ 'attribute_name' ] );
 		
@@ -132,6 +132,130 @@ class Module_Sugar_Schema {
 		$dataType = $attribute->dataType();
 		$dataType->initializeClassAttribute( $attribute );
 		$attribute->store();
+		$ez_class->sync();
+		$this->update_class( $this->ez_class_id );
+	}
+	
+	// Code from https://raw.github.com/ezsystems/ezscriptmonitor/master/bin/addmissingobjectattributes.php
+	private function update_class( $classId ) {
+		$db = eZDB::instance();
+	
+	    // If the class is not stored yet, store it now
+	    $class = eZContentClass::fetch( $classId, true, eZContentClass::VERSION_STATUS_TEMPORARY );
+	    if ( $class )
+	    {
+	        $this->cli->output( "Storing class" );
+	        $class->storeDefined( $class->fetchAttributes() );
+	    }
+	
+	    // Fetch the stored class
+	    $class = eZContentClass::fetch( $classId );
+	    if ( !$class )
+	    {
+	        $this->cli->error( 'Could not fetch class with ID: ' . $classId );
+	        return;
+	    }
+	    $classAttributes = $class->fetchAttributes();
+	    $classAttributeIDs = array();
+	    foreach ( $classAttributes as $classAttribute )
+	    {
+	        $classAttributeIDs[] = $classAttribute->attribute( 'id' );
+	    }
+	
+	    $objectCount = eZContentObject::fetchSameClassListCount( $classId );
+	    $this->cli->output( 'Number of objects to be processed: ' . $objectCount );
+	
+	    $counter = 0;
+	    $offset = 0;
+	    $limit = 100;
+	    $objects = eZContentObject::fetchSameClassList( $classId, true, $offset, $limit );
+	
+	    // Add and/or remove attributes for all versions and translations of all objects of this class
+	    while ( count( $objects ) > 0 )
+	    {
+	        // Run a transaction per $limit objects
+	        $db->begin();
+	
+	        foreach ( $objects as $object )
+	        {
+	            $contentObjectID = $object->attribute( 'id' );
+	            $objectVersions = $object->versions();
+	            foreach ( $objectVersions as $objectVersion )
+	            {
+	                $versionID = $objectVersion->attribute( 'version' );
+	                $translations = $objectVersion->translations();
+	                foreach ( $translations as $translation )
+	                {
+	                    $translationName = $translation->attribute( 'language_code' );
+	
+	                    // Class attribute IDs of object attributes (not necessarily the same as those in the class, hence the manual sql)
+	                    $objectClassAttributeIDs = array();
+	                    $rows = $db->arrayQuery( "SELECT id,contentclassattribute_id, data_type_string
+	                                              FROM ezcontentobject_attribute
+	                                              WHERE contentobject_id = '$contentObjectID' AND
+	                                                    version = '$versionID' AND
+	                                                    language_code='$translationName'" );
+	                    foreach ( $rows as $row )
+	                    {
+	                        $objectClassAttributeIDs[ $row['id'] ] = $row['contentclassattribute_id'];
+	                    }
+	
+	                    // Quick array diffs
+	                    $attributesToRemove = array_diff( $objectClassAttributeIDs, $classAttributeIDs ); // Present in the object, not in the class
+	                    $attributesToAdd = array_diff( $classAttributeIDs, $objectClassAttributeIDs ); // Present in the class, not in the object
+	
+	                    // Remove old attributes
+	                    foreach ( $attributesToRemove as $objectAttributeID => $classAttributeID )
+	                    {
+	                        $objectAttribute = eZContentObjectAttribute::fetch( $objectAttributeID, $versionID );
+	                        if ( !is_object( $objectAttribute ) )
+	                            continue;
+	                        $objectAttribute->remove( $objectAttributeID );
+	                    }
+	
+	                    // Add new attributes
+	                    foreach ( $attributesToAdd as $classAttributeID )
+	                    {
+	                        $objectAttribute = eZContentObjectAttribute::create( $classAttributeID, $contentObjectID, $versionID, $translationName );
+	                        if ( !is_object( $objectAttribute ) )
+	                            continue;
+	                        $objectAttribute->setAttribute( 'language_code', $translationName );
+	                        $objectAttribute->initialize();
+	                        $objectAttribute->store();
+	                        $objectAttribute->postInitialize();
+	                    }
+	                }
+	            }
+	
+	            // Progress bar and Script Monitor progress
+	            $this->cli->output( '.', false );
+	            $counter++;
+	            if ( $counter % 70 == 0 or $counter >= $objectCount )
+	            {
+	                $progressPercentage = ( $counter / $objectCount ) * 100;
+	                $this->cli->output( sprintf( ' %01.1f %%', $progressPercentage ) );
+	            }
+	        }
+	
+	        $db->commit();
+	
+	        $offset += $limit;
+	        $objects = eZContentObject::fetchSameClassList( $classId, true, $offset, $limit );
+	    }
+	
+	    // Set the object name to the first attribute, if not set
+	    $classAttributes = $class->fetchAttributes();
+	
+	    // Fetch the first attribute
+	    if ( count( $classAttributes ) > 0 && trim( $class->attribute( 'contentobject_name' ) ) == '' )
+	    {
+	        $db->begin();
+	        $identifier = $classAttributes[0]->attribute( 'identifier' );
+	        $identifier = '<' . $identifier . '>';
+	        $class->setAttribute( 'contentobject_name', $identifier );
+	        $class->store();
+	        $db->commit();
+	    }
 	}
 }
 ?>
