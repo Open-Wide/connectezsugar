@@ -49,8 +49,8 @@ class Module {
 	private function call_module_objects( $method ) {
 		$schema = new Module_Sugar_Schema($this->module_name, $this->cli);
 		$schema->load_relations( );
-		// @TODO: Enlever le 2 mis là pour les tests
-		foreach ( $this->get_sugar_ids( 3 ) as $sugar_id ) {
+		// @TEST: Enlever le 2 mis là pour les tests
+		foreach ( $this->get_sugar_ids( ) as $sugar_id ) {
 			try {
 				$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
 				$object->$method( );
