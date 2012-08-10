@@ -66,13 +66,13 @@ class Module_Object {
 			if ( $this->ez_object->addContentObjectRelation( $related_ez_object_id ) === FALSE ) {
 				throw new Exception( 'Erreur de eZ Publish, impossible d\'ajouter une relation entre ' . $this->sugar_schema->ez_class_identifier . '#' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
 			}
-			$this->cli( 'Add relation between ' . $this->ez_object->attribute( 'name' ) . ' and ' . $related_ez_object_id );
+			$this->cli->notice( 'Add relation between ' . $this->ez_object->attribute( 'name' ) . ' and ' . $related_ez_object_id );
 		}
 		foreach ( $diff_related_ids[ 'to_remove' ] as $related_ez_object_id ) {
 			if ( $this->ez_object->removeContentObjectRelation( $related_ez_object_id ) === FALSE ) {
 				throw new Exception( 'Erreur de eZ Publish, impossible de supprimer une relation entre ' . $this->sugar_schema->ez_class_identifier . '#' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
 			}
-			$this->cli( 'Remove relation between ' . $this->ez_object->attribute( 'name' ) . ' and ' . $related_ez_object_id );
+			$this->cli->notice( 'Remove relation between ' . $this->ez_object->attribute( 'name' ) . ' and ' . $related_ez_object_id );
 		}
 	}
 	
