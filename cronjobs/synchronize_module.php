@@ -243,7 +243,7 @@ $cli->notice("Mémoire utilisée avant boucle sur les éléments : " . memory_ge
 if($continue)
 {
 	$objects_count[$sugar_properties['sugar_module']] = count($entry_list_ids);
-	$cli->warning("nombre d'objets pour le module $sugar_module : " . $objects_count[$sugar_properties['sugar_module']]);	
+	$cli->warning("nombre d'objets pour le module $sugarmodule : " . $objects_count[$sugar_properties['sugar_module']]);	
 	foreach($entry_list_ids as $entry)
 	{
 	    $cli->notice("Mémoire utilisée boucle élément : " . memory_get_usage_hr());
