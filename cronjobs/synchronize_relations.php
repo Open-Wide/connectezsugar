@@ -7,8 +7,6 @@ Cronjob pour la synchronisation des relations d'objets EZ depuis SUGAR
 
 include_once( 'extension/connectezsugar/scripts/genericfunctions.php' );
 
-include_once( 'extension/connectezsugar/classes/Module.php' );
-
 gc_enable();
 
 // init CLI
@@ -31,13 +29,7 @@ $cli->gnotice("Mémoire utilisée avant boucle sur les modules : " . memory_get_
 foreach($modules_list as $sugarmodule)
 {
     $cli->gnotice("Mémoire utilisée debut synchro module $sugarmodule : " . memory_get_usage_hr());
-    //SCReloaded : Ancienne version
-    //exec("php runcronjobs.php synchrorelationsmodule $sugarmodule");
-    
-    $module = new Module($sugarmodule);
-    $return = $module->import_module_objects();
-    $cli->gnotice(print_r($return, true));    
-    
+    exec("php runcronjobs.php synchrorelationsmodule $sugarmodule");  
     gc_collect_cycles();
     $cli->gnotice("Mémoire utilisée fin synchro module : " . memory_get_usage_hr());
 }
