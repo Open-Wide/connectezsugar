@@ -6,10 +6,12 @@ include_once( 'extension/connectezsugar/classes/Module_Object.php' );
 class Module {
 	
 	private $module_name = '';
+	private $cli;
 	private $sugar_connector;
 	
-	public function __construct($module_name) {
+	public function __construct($module_name, $cli) {
 		$this->module_name = $module_name;
+		$this->cli         = $cli;
 		$this->sugar_connector = new SugarConnector();
 		if ( ! $this->sugar_connector->login() ) {
 			throw new Exception( 'Impossible de se connecter avec le Sugar Connector' );
@@ -17,7 +19,7 @@ class Module {
 	}
 
 	public function __destruct() {
-		unset( $this->sugar_connector );
+		unset( $this->sugar_connector, $this->cli );
 	}
 	
 	public function import_module_objects() {
@@ -45,14 +47,16 @@ class Module {
 	}
 	
 	private function call_module_objects( $method ) {
-		$schema = new Module_Sugar_Schema($this->module_name);
+		$schema = new Module_Sugar_Schema($this->module_name, $this->cli);
+		$schema->load_relations( );
 		// @TODO: Enlever le 2 mis là pour les tests
 		foreach ( $this->get_sugar_ids( 3 ) as $sugar_id ) {
 			try {
-				$object = new Module_Object( $this->module_name, $sugar_id, $schema );
+				$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
 				$object->$method( );
+				unset( $object );
 			} catch( Exception $e ) {
-				echo $e->getMessage( ) . PHP_EOL;
+				$this->cli( $e->getMessage( ) );
 			}
 		}
 	}
