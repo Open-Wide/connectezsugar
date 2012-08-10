@@ -137,7 +137,7 @@ class Module_Object {
 	private function import_relation_attribute_one($relation) {
 		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
 		if ( count( $related_ez_object_ids ) > 1 ) {
-			$this->cli( 'Warning on va perdre des données de relation, many-many to one-many' );
+			$this->cli->warning( 'Warning on va perdre des données de relation, many-many to one-many' );
 		}
 		if ( count( $related_ez_object_ids ) == 1 ) {
 			$attribute_value = $related_ez_object_ids[ 0 ];
@@ -146,7 +146,6 @@ class Module_Object {
 			$attribute_value = '';
 		}
 		$this->update_ez_attribute_value( $relation[ 'attribute_name' ], $attribute_value );
-		$this->cli( 'Attribut mis à jour !?' );
 	}
 	
 	private function update_ez_attribute_value( $attribute_name, $attribute_value ) {
@@ -163,7 +162,7 @@ class Module_Object {
 			if ( ! $return ) {
 				throw new Exception( 'Erreur de eZ Publish, impossible de mettre à jour l\'attribut relation "' . $relation[ 'attribute_name' ] . '" de ' . $this->sugar_schema->ez_class_identifier . '#' . $this->ez_object_id );
 			}
-			$this->cli( 'Attribut mis à jour !?' );
+			$this->cli->notice( 'Attribut mis à jour !?' );
         }
 	}
 	

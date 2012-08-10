@@ -56,7 +56,7 @@ class Module {
 				$object->$method( );
 				unset( $object );
 			} catch( Exception $e ) {
-				$this->cli( $e->getMessage( ) );
+				$this->cli->error( $e->getMessage( ) );
 			}
 		}
 	}
