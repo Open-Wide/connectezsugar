@@ -5,33 +5,42 @@ class Module_Sugar_Schema {
 	private $module_name = '';
 	public $ez_class_name = '';
 	public $ez_class_identifier = '';
+	public $ez_class_id = '';
 	private $relations = array();
 
 	public function __construct($module_name) {
 		$this->module_name = $module_name;
-		
-		$this->load_relations();
 	}
 	
 	public function get_relations() {
 		return $this->relations;
 	}
 	
-	private function load_relations() {
+	public function load_fields() {
+	}
+	
+	public function load_relations() {
 		$this->load_relations_sugar_schema();
 		$this->load_relations_ez_sugar_mapping();
-		$this->ez_class_name = $this->get_ez_class_name( $this->module_name );
+		$this->ez_class_name       = $this->get_ez_class_name( $this->module_name );
 		$this->ez_class_identifier = $this->get_ez_class_identifier( $this->module_name );
-		$this->valid_ez_class( );
+		$this->ez_class_id         = eZContentClass::classIDByIdentifier( $this->ez_class_identifier );
+		$this->valid_ez_class_relations( );
 	}
+	
+	
+	
+	/* PRIVATE METHODS */
 	
 	private function load_relations_sugar_schema() {
 		$ini = eZIni::instance( 'mappingezsugar.ini' );
 		if ($ini->hasVariable($this->module_name, 'relations_names')) {
 			foreach( $ini->variable($this->module_name, 'relations_names') as $related_module_name => $relation_name ) {
+				$related_class_name       = $this->get_ez_class_name( $related_module_name );
 				$related_class_identifier = $this->get_ez_class_identifier( $related_module_name );
 				$this->relations[ $relation_name ] = array(
 					'related_module_name'      => $related_module_name,
+					'related_class_name'       => $related_class_name,
 					'related_class_identifier' => $related_class_identifier,
 					'related_class_id'		   => eZContentClass::classIDByIdentifier($related_class_identifier),
 					'type' 		     		   => 'relation',
@@ -77,9 +86,33 @@ class Module_Sugar_Schema {
 		return FALSE;
 	}
 		
-	private function valid_ez_class() {
-		// @TODO: Attribute class update 
-		echo 'TODO: Attribute class update' . PHP_EOL;
+	private function valid_ez_class_relations() {
+		$ez_class = eZContentClass::fetch( $this->ez_class_id );
+		foreach ( $this->relations as $relation ) {
+			if ( $relation[ 'type' ] == 'attribute' ) {
+				echo 'coco' . PHP_EOL;
+				// @TODO: Valider la présence de l'attribut, sinon :
+				$this->create_object_relation_attribute( $ez_class, $relation );
+			}
+		}
+	}
+		
+	private function create_object_relation_attribute( $ez_class, $relation ) {
+		$version = $ez_class->attribute( 'version' ); 
+		$attribute = eZContentClassAttribute::create( $this->ez_class_id, 'ezobjectrelation' );
+		
+		// Definition
+		$attribute->setAttribute( 'version'      , $version);
+		$attribute->setAttribute( 'name'         , $relation[ 'related_class_name' ] );
+		$attribute->setAttribute( 'is_required'  , 0 );
+		$attribute->setAttribute( 'is_searchable', 0 );
+		$attribute->setAttribute( 'can_translate', 0 );
+		$attribute->setAttribute( 'identifier'   , $relation[ 'attribute_name' ] );
+		
+		// Store
+		$dataType = $attribute->dataType();
+		$dataType->initializeClassAttribute( $attribute );
+		$attribute->store();
 	}
 }
 ?>
