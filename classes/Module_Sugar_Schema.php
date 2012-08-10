@@ -10,22 +10,22 @@ class Module_Sugar_Schema {
 	public function __construct($module_name) {
 		$this->module_name = $module_name;
 		
-		$this->load();
+		$this->load_relations();
 	}
 	
 	public function get_relations() {
 		return $this->relations;
 	}
 	
-	private function load() {
-		$this->load_sugar_schema();
-		$this->load_ez_sugar_mapping();
+	private function load_relations() {
+		$this->load_relations_sugar_schema();
+		$this->load_relations_ez_sugar_mapping();
 		$this->ez_class_name = $this->get_ez_class_name( $this->module_name );
 		$this->ez_class_identifier = $this->get_ez_class_identifier( $this->module_name );
 		$this->valid_ez_class( );
 	}
 	
-	private function load_sugar_schema() {
+	private function load_relations_sugar_schema() {
 		$ini = eZIni::instance( 'mappingezsugar.ini' );
 		if ($ini->hasVariable($this->module_name, 'relations_names')) {
 			foreach( $ini->variable($this->module_name, 'relations_names') as $related_module_name => $relation_name ) {
@@ -41,7 +41,7 @@ class Module_Sugar_Schema {
 		}
 	}
 		
-	private function load_ez_sugar_mapping() {
+	private function load_relations_ez_sugar_mapping() {
 		$ini = eZIni::instance( 'mappingezsugarschema.ini' );
 		if ($ini->hasVariable($this->module_name, 'relation_to_attribute')) {
 			foreach( $ini->variable($this->module_name, 'relation_to_attribute') as $relation_name => $attribute ) {
