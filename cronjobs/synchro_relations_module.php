@@ -18,7 +18,6 @@ $cli->notice("*******************************************");
 
 $module = new Module( $sugarmodule, $cli );
 $module->import_module_objects( );
-$cli->notice( var_dump( array_keys( $GLOBALS ) ) );
 
 $cli->endout("synchronize_relations.php");
 ?>
