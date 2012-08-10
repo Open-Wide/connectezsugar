@@ -3,13 +3,15 @@
 class Module_Sugar_Schema {
 	
 	private $module_name = '';
+	private $cli;
 	public $ez_class_name = '';
 	public $ez_class_identifier = '';
 	public $ez_class_id = '';
 	private $relations = array();
 
-	public function __construct($module_name) {
+	public function __construct($module_name, $cli) {
 		$this->module_name = $module_name;
+		$this->cli         = $cli;
 	}
 	
 	public function get_relations() {
@@ -26,6 +28,28 @@ class Module_Sugar_Schema {
 		$this->ez_class_identifier = $this->get_ez_class_identifier( $this->module_name );
 		$this->ez_class_id         = eZContentClass::classIDByIdentifier( $this->ez_class_identifier );
 		$this->valid_ez_class_relations( );
+	}
+		
+	public function get_ez_class_name( $module_name ) {
+		$ini = eZIni::instance( 'sugarcrm.ini' );
+		if ($ini->hasVariable('Mapping', 'mapping_names')) {
+			$mapping = $ini->variable('Mapping', 'mapping_names');
+			if ( isset( $mapping[ $module_name ] ) ) {
+				return $mapping[ $module_name ];
+			}
+		}
+		return FALSE;
+	}
+	
+	public function get_ez_class_identifier( $module_name ) {
+		$ini = eZIni::instance( 'sugarcrm.ini' );
+		if ($ini->hasVariable('Mapping', 'mapping_identifiers')) {
+			$mapping = $ini->variable('Mapping', 'mapping_identifiers');
+			if ( isset( $mapping[ $module_name ] ) ) {
+				return $mapping[ $module_name ];
+			}
+		}
+		return FALSE;
 	}
 	
 	
@@ -52,47 +76,42 @@ class Module_Sugar_Schema {
 		
 	private function load_relations_ez_sugar_mapping() {
 		$ini = eZIni::instance( 'mappingezsugarschema.ini' );
+		if ( $ini->hasVariable( $this->module_name, 'relation_to_attribute_type' ) ) {
+			$attribute_type = $ini->variable( $this->module_name, 'relation_to_attribute_type' );
+		}
 		if ($ini->hasVariable($this->module_name, 'relation_to_attribute')) {
 			foreach( $ini->variable($this->module_name, 'relation_to_attribute') as $relation_name => $attribute ) {
 				if ( ! isset( $this->relations[ $relation_name ] ) ) {
 					throw new Exception( 'Essaie de convertir en attribut une relation non-définie : "'.$relation_name.'" de "'.$this->module_name.'" vers "'.$attribute.'"' );
 				} else {
+					if ( isset( $attribute_type[ $relation_name ] ) ) {
+						$attribute_type = $attribute_type[ $relation_name ];
+					} else {
+						$attribute_type = 'one';
+					}
 					$this->relations[ $relation_name ][ 'type' ] = 'attribute';
-					$this->relations[ $relation_name ][ 'attribute_name' ] = $attribute;
+					$this->relations[ $relation_name ][ 'attribute_name' ] = $attribute[ 'name' ];
+					$this->relations[ $relation_name ][ 'attribute_type' ] = $attribute_type;
 				}
 			}
 		}
-	}
-		
-	private function get_ez_class_name( $module_name ) {
-		$ini = eZIni::instance( 'sugarcrm.ini' );
-		if ($ini->hasVariable('Mapping', 'mapping_names')) {
-			$mapping = $ini->variable('Mapping', 'mapping_names');
-			if ( isset( $mapping[ $module_name ] ) ) {
-				return $mapping[ $module_name ];
-			}
-		}
-		return FALSE;
-	}
-	
-	private function get_ez_class_identifier( $module_name ) {
-		$ini = eZIni::instance( 'sugarcrm.ini' );
-		if ($ini->hasVariable('Mapping', 'mapping_identifiers')) {
-			$mapping = $ini->variable('Mapping', 'mapping_identifiers');
-			if ( isset( $mapping[ $module_name ] ) ) {
-				return $mapping[ $module_name ];
-			}
-		}
-		return FALSE;
 	}
 		
 	private function valid_ez_class_relations() {
 		$ez_class = eZContentClass::fetch( $this->ez_class_id );
 		foreach ( $this->relations as $relation ) {
 			if ( $relation[ 'type' ] == 'attribute' ) {
-				echo 'coco' . PHP_EOL;
-				// @TODO: Valider la présence de l'attribut, sinon :
-				$this->create_object_relation_attribute( $ez_class, $relation );
+				$attribute = $ez_class->fetchAttributeByIdentifier( $relation[ 'attribute_name' ], FALSE ); 
+				$this->cli( $attribute[ 'id' ] . $attribute[ 'identifier' ] );
+				if ( $attribute === NULL ) {
+					if ( $relation[ 'attribute_type' ] == 'list' ) {
+						// @TODO
+						$this->cli( 'TODO: Création d\'attribut relation object list' ); 
+					} else {
+						$this->create_object_relation_attribute( $ez_class, $relation );
+					}
+					$this->cli( 'Attribut ' . $relation[ 'attribute_name' ] . ' ajouté à la classe ' . $this->ez_class_name );
+				}
 			}
 		}
 	}
