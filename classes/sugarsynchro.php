@@ -668,7 +668,7 @@ class SugarSynchro
 	}
 	
 	
-	public function getSugarModuleIdList($args = null, $offset = 0, $max_results = 9999)
+	public function getSugarModuleIdList($args = null, $offset = 0, $max_results = 99999)
 	{
 		// verifie si la fonction a les parametres necessaires à son execution
 		$verify = $this->verifyArgsForFunction("getSugarModuleEntryList", $args);
