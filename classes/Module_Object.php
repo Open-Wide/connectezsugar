@@ -130,7 +130,6 @@ class Module_Object {
 	
 	private function import_relation_attribute_list($relation) {
 		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
-		// @TODO: Vérifier ce cas-là
 		$this->update_ez_attribute_value( $relation[ 'attribute_name' ], implode( '-', $related_ez_object_ids ) );
 	}
 	
@@ -142,7 +141,7 @@ class Module_Object {
 		if ( count( $related_ez_object_ids ) == 1 ) {
 			$attribute_value = $related_ez_object_ids[ 0 ];
 		} else {
-			// @TODO: Vérifier ce cas-là
+			// @TODO: Ne réinitialise pas la relation, trouver comment faire
 			$attribute_value = '';
 		}
 		$this->update_ez_attribute_value( $relation[ 'attribute_name' ], $attribute_value );
