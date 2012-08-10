@@ -151,7 +151,7 @@ class Module_Object {
 	private function update_ez_attribute_value( $attribute_name, $attribute_value ) {
         $dataMap = $this->ez_object->fetchDataMap( FALSE );
         if ( isset( $dataMap[ $attribute_name ] ) ) {
-           	$current_attribute_value = $dataMap[ $attribute_name ]->value( );
+           	$current_attribute_value = $dataMap[ $attribute_name ]->toString( );
         }
         if ( ! isset( $current_attribute_value ) || $current_attribute_value != $attribute_value ) {
 			$paramsUpdate = array( );
@@ -162,7 +162,7 @@ class Module_Object {
 			if ( ! $return ) {
 				throw new Exception( 'Erreur de eZ Publish, impossible de mettre à jour l\'attribut relation "' . $relation[ 'attribute_name' ] . '" de ' . $this->sugar_schema->ez_class_identifier . '#' . $this->ez_object_id );
 			}
-			$this->cli->notice( 'Attribut mis à jour !?' );
+			$this->cli->notice( 'Attribut de ' . $this->sugar_schema->ez_class_identifier . '#' . $this->ez_object_id . ' mis à jour !?' );
         }
 	}
 	
