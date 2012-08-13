@@ -13,8 +13,8 @@ class Module_Schema {
 	public function __construct( $module_name, $cli ) {
 		$this->module_name         = $module_name;
 		$this->cli                 = $cli;
-		$this->ez_class_name       = $this->get_ez_class_name( $this->module_name );
-		$this->ez_class_identifier = $this->get_ez_class_identifier( $this->module_name );
+		$this->ez_class_name       = self::get_ez_class_name( $this->module_name );
+		$this->ez_class_identifier = self::get_ez_class_identifier( $this->module_name );
 		$this->ez_class_id         = eZContentClass::classIDByIdentifier( $this->ez_class_identifier );
 	}
 	
@@ -36,8 +36,11 @@ class Module_Schema {
 		$this->load_specific_attributes( );
 		$this->valid_ez_attributes( );
 	}
-		
-	public function get_ez_class_name( $module_name ) {
+	
+	
+	
+	/* STATIC METHODS */
+	public static function get_ez_class_name( $module_name ) {
 		$ini = eZIni::instance( 'sugarcrm.ini' );
 		if ( $ini->hasVariable( 'Mapping', 'mapping_names' ) ) {
 			$mapping = $ini->variable( 'Mapping', 'mapping_names' );
@@ -48,7 +51,7 @@ class Module_Schema {
 		return FALSE;
 	}
 	
-	public function get_ez_class_identifier( $module_name ) {
+	public static function get_ez_class_identifier( $module_name ) {
 		$ini = eZIni::instance( 'sugarcrm.ini' );
 		if ( $ini->hasVariable( 'Mapping', 'mapping_identifiers' ) ) {
 			$mapping = $ini->variable( 'Mapping', 'mapping_identifiers' );
@@ -66,8 +69,8 @@ class Module_Schema {
 		$ini = eZIni::instance( 'mappingezsugar.ini' );
 		if ( $ini->hasVariable( $this->module_name, 'relations_names' ) ) {
 			foreach( $ini->variable( $this->module_name, 'relations_names' ) as $related_module_name => $relation_name ) {
-				$related_class_name       = $this->get_ez_class_name( $related_module_name );
-				$related_class_identifier = $this->get_ez_class_identifier( $related_module_name );
+				$related_class_name       = self::get_ez_class_name( $related_module_name );
+				$related_class_identifier = self::get_ez_class_identifier( $related_module_name );
 				$this->relations[ $relation_name ] = array( 
 					'related_module_name'      => $related_module_name,
 					'related_class_name'       => $related_class_name,
@@ -111,7 +114,7 @@ class Module_Schema {
 		$ini = eZIni::instance( 'mappingezsugarschema.ini' );
 		if ( $ini->hasVariable( $this->module_name, 'specific_attribute' ) ) {
 			foreach( $ini->variable( $this->module_name, 'specific_attribute' ) as $attribute_name ) {
-				if ( ! isset( $ini->hasVariable( $this->module_name, 'specific_attribute_' . $attribute_name ) ) ) {
+				if ( ! $ini->hasVariable( $this->module_name, 'specific_attribute_' . $attribute_name ) ) {
 					throw new Exception( 'Pas d\'informations détaillées pour l\'attribut spécifique "' . $attribute_name . '"' );
 				} else {
 					$this->attributes[ $attribute_name ] =  $ini->variable( $this->module_name, 'specific_attribute_' . $attribute_name );
