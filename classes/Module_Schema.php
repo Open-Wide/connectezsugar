@@ -9,6 +9,7 @@ class Module_Schema {
 	public $ez_class_id = '';
 	private $relations = array( );
 	private $attributes = array( );
+	public $editable_attributes = array( );
 
 	public function __construct( $module_name, $cli ) {
 		$this->module_name         = $module_name;
@@ -35,6 +36,15 @@ class Module_Schema {
 	public function load_specific_schema( ) {
 		$this->load_specific_attributes( );
 		$this->valid_ez_attributes( );
+	}
+	
+	public function load_editable_attributes( ) {
+		$ini = eZIni::instance( 'mappingezsugar.ini' );
+		if ( $ini->hasVariable( $this->module_name, 'editable_fields' ) ) {
+			foreach( $ini->variable( $this->module_name, 'editable_fields' ) as $editable_attribute ) {
+				$this->editable_attributes[ ] = $editable_attribute;
+			}
+		}
 	}
 	
 	
@@ -130,9 +140,9 @@ class Module_Schema {
 			$fetch = $ez_class->fetchAttributeByIdentifier( $attribute[ 'identifier' ], FALSE );
 			if ( $fetch === NULL ) {
 				$this->create_class_attribute( $ez_class, $attribute[ 'type' ], $attribute[ 'identifier' ], $attribute[ 'name' ] );
-				$this->cli->notice( 'Attribut ' . $attribute[ 'name' ] . ' ajouté à la classe ' . $this->ez_class_name );
+				$this->cli->notice( 'Attribut ' . $attribute[ 'identifier' ] . ' ajouté à la classe ' . $this->ez_class_name );
 			} else {
-				$this->cli->notice( 'Attribut relation trouvé : ' . $fetch[ 'id' ] . ' ' . $fetch[ 'identifier' ] );
+				$this->cli->notice( 'Attribut trouvé : ' . $this->ez_class_name . '->' . $fetch[ 'identifier' ] . ' ' . $fetch[ 'id' ] );
 			}
 		}
 	}
