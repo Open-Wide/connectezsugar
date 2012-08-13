@@ -1,6 +1,6 @@
 <?php 
 
-include_once( 'extension/connectezsugar/classes/Module_Sugar_Schema.php' );
+include_once( 'extension/connectezsugar/classes/Module_Schema.php' );
 include_once( 'extension/connectezsugar/classes/Module_Object.php' );
 
 class Module {
@@ -57,7 +57,7 @@ class Module {
 	}
 	
 	private function call_module_objects( $method ) {
-		$schema = new Module_Sugar_Schema( $this->module_name, $this->cli );
+		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
 		while ( $sugar_ids = $this->get_sugar_ids( ) ) {
 			foreach ( $sugar_ids as $sugar_id ) {

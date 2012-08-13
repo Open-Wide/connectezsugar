@@ -1,6 +1,6 @@
 <?php 
 
-class Module_Sugar_Schema {
+class Module_Schema {
 	
 	private $module_name = '';
 	private $cli;
@@ -19,6 +19,15 @@ class Module_Sugar_Schema {
 	}
 	
 	public function load_fields() {
+	}
+	
+	public function load_relations() {
+		$this->load_relations_sugar_schema();
+		$this->load_relations_ez_sugar_mapping();
+		$this->ez_class_name       = $this->get_ez_class_name( $this->module_name );
+		$this->ez_class_identifier = $this->get_ez_class_identifier( $this->module_name );
+		$this->ez_class_id         = eZContentClass::classIDByIdentifier( $this->ez_class_identifier );
+		$this->valid_ez_class_relations( );
 	}
 	
 	public function load_relations() {
