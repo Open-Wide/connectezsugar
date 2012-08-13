@@ -7,6 +7,9 @@ relation_to_attribute[]
 relation_to_attribute[]
 relation_to_attribute[many_cult_one_comp]=acti_company
 relation_to_attribute_type[many_cult_one_comp]=one
+specific_attribute[]=media
+specific_attribute_media[type]=ezobjectrelationlist
+specific_attribute_media[name]=Média
 
 [otcp_accommodation]
 relation_to_attribute[]
