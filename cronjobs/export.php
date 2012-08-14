@@ -26,11 +26,7 @@ $cli->gnotice("Mémoire utilisée avant boucle sur les modules : " . memory_get_
 
 foreach($modules_list as $sugarmodule) {
     $cli->gnotice("Mémoire utilisée debut export module $sugarmodule : " . memory_get_usage_hr());
-    
-    $module = new Module($sugarmodule);
-    $return = $module->export_module_objects();
-    $cli->gnotice(print_r($return, true));    
-    
+    exec("php runcronjobs.php exportmodule $sugarmodule");  
     gc_collect_cycles();
     $cli->gnotice("Mémoire utilisée fin export module : " . memory_get_usage_hr());
 }
