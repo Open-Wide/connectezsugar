@@ -99,6 +99,7 @@ class SugarConnector
     	
         $ini = eZINI::instance("sugarcrm.ini");
         $serverUrl = $ini->variable("connexion", "ServerUrl");
+        echo 'SugarConnector __construct - ' . $serverUrl . PHP_EOL;
         $serverPath = $ini->variable("connexion", "ServerPath");
         $this->serverNamespace = $ini->variable("connexion", "ServerNamespace");
         // @TODO : user et mdp pour login sont ecrites en clair dans le fichier sugarcrm.ini
@@ -109,7 +110,7 @@ class SugarConnector
         $this->client = new eZSOAPClient($serverUrl,$serverPath);
         
         $this->logger = owLogger::CreateForAdd(self::LOGFILE . date("d-m-Y") . ".log");
-        
+        $this->logger->writeTimedString('Connexion à ' . $serverUrl);
     }
 
     
@@ -379,21 +380,57 @@ class SugarConnector
         return $this->standardQueryReturn($result, "get_available_modules");
     }
     
-	function get_relationships($module,$id,$related_module)
+	function get_relationships($module, $id, $related_module, $related_module_query = '') 
     {    	
         $request = new eZSOAPRequest("get_relationships", $this->serverNamespace);
         $request->addParameter('session',self::$session);
         $request->addParameter('module_name',$module);
         $request->addParameter('module_id',$id);
         $request->addParameter('related_module',$related_module);
+        $request->addParameter('related_module_query',$related_module_query);
         
         $reponse = $this->client->send($request);
         $result = $reponse->Value;
-
         
         return $this->standardQueryReturn($result, "get_relationships");
     }
     
+    /*
+     * Sens eZ => SugarCRM
+     */
     
+    public function set_entry( $module_name, $fields ) {
+	    $params = array(
+		    'session'         => $this->session,
+		    'module_name'     => $module_name,
+		    'name_value_list' => $this->name_value_list( $fields ),
+	    );
+	    $this->call( 'set_entry', $params );
+    	return $this->result[ 'id' ];
+    }
+    
+	private function call( $action, $params ) {
+		$this->logger->writeTimedString('Appel de ' . $action . ' ------------------');
+		$this->logger->writeTimedString($params);
+		throw new \Exception( 'Je ne veux pas travailler, signé le client SOAP' );
+		$this->result = $this->client->call( $action, $params, $this->serverNamespace, $this->serverNamespace );
+		return $this->result;
+	}
+
+	private function name_value_list( $fields ) {
+		$name_value_list = array( );
+		foreach ( $fields as $name => $value ) {
+			$name_value_list[ ] = array( 'name' => $name, 'value' => str_replace( '\'', '&#039;', $value ) );
+		}
+		return $name_value_list;
+	}
+
+	private function name_value_lists( $entries ) {
+		$name_value_lists = array( );
+		foreach ( $entries as $fields ) {
+			$name_value_lists[ ] = $this->name_value_list( $fields );
+		}
+		return $name_value_lists;
+	}
 }
 ?>
