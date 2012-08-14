@@ -40,6 +40,9 @@ Scripts[]=update_classes.php
 [CronjobPart-export]
 Scripts[]=export.php
 
+[CronjobPart-exportmodule]
+Scripts[]=export_module.php
+
 # SCRIPTS DE TEST
 #[CronjobPart-mere]
 #Scripts[]=test_mere.php
