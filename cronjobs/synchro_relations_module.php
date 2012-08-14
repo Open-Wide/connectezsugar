@@ -11,13 +11,20 @@ $cli->beginout("synchronize_relations.php");
 
 $arguments = array_slice( $_SERVER['argv'], 1 );
 $sugarmodule = $arguments[ 1 ];
+$all = isset ( $arguments[ 2 ] );
 
 $cli->notice("*******************************************");
 $cli->notice("Sugar Module : $sugarmodule");
 $cli->notice("*******************************************");
 
 $module = new Module( $sugarmodule, $cli );
-$module->import_module_objects( );
+if ( $all ) {
+	$cli->notice( '** Import all relations' );
+	$module->import_module_relations_all( );
+} else {
+	$cli->notice( '** Import relations from last synchro' );
+	$module->import_module_relations( );
+}
 
 $cli->endout("synchronize_relations.php");
 ?>
