@@ -6,6 +6,7 @@ class Module_Object_Accessor {
 	protected $last_query;
 	protected $paquet = 500;
 	protected $sugar_connector;
+	const INIPATH = 'extension/connectezsugar/settings/';
 	
 	public function __construct( ) {
 		$this->sugar_connector = new SugarConnector();
@@ -18,17 +19,33 @@ class Module_Object_Accessor {
 		unset( $this->sugar_connector );
 	}
 	
-	protected function get_last_synchro_date_time() {
-		$inisynchro = eZINI::instance('synchro.ini');
-		return strtotime( $inisynchro->variable('Synchro','lastSynchroDatetime') );
+	protected function get_last_synchro_date_time( $block_name ) {
+		$block_name .= '_' . $this->module_name;
+		$ini_synchro = eZINI::instance('synchro.ini');
+		$datetime = $ini_synchro->variable($block_name, 'last_synchro');
+		$this->cli->notice( 'Dernière synchro pour ' . $block_name . ' : ' . $datetime );
+		return strtotime( $datetime );
+	}
+	
+	protected function set_last_synchro_date_time( $block_name ) {
+		$block_name .= '_' . $this->module_name;
+		$datetime    = date("Y-m-d H:i:s", time());
+		$ini_synchro = eZINI::instance('synchro.ini.append.php', self::INIPATH);
+		$ini_synchro->setVariable($block_name, 'last_synchro', $datetime);
+		if ( $ini_synchro->save() ) {
+			$this->cli->notice( 'Sauvegarde de la date de synchro pour ' . $block_name . ' : ' . $datetime );
+			return $datetime;
+		} else {
+			$this->cli->notice( 'Erreur lors de la sauvegarde de la date de synchro pour ' . $block_name );
+			return false;
+		}
 	}
 	
 	public function get_sugar_ids_from_updated_relation( $relation, $since = TRUE ) {
-		//@TODO : Requêter sur les tables de relation au lieu de la table de l'objet (ex : many_rest_many_cont_c au lieu de otcp_restaurant)
 		$query = '';
 		if ( $since !== FALSE ) {
 			if ( $since === TRUE ) {
-				$timestamp = $this->get_last_synchro_date_time( );
+				$timestamp = $this->get_last_synchro_date_time( 'import_module_relations' );
 			} else {
 				$timestamp = $since;
 			}
