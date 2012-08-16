@@ -39,8 +39,10 @@ class Module extends Module_Object_Accessor {
 	public function import_module_relations() {
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
+		
+		
 		foreach ( $schema->get_relations() as $relation ) {
-			while ( $sugar_ids = $this->get_sugar_ids_from_updated_relation( $relation, mktime(16, 58, 16, 8, 1, 2012) ) ) {
+			while ( $sugar_ids = $this->get_sugar_ids_from_updated_relation( $relation/*, mktime(16, 58, 16, 8, 1, 2012)*/ ) ) {
 				foreach ( $sugar_ids as $sugar_id ) {
 					try {
 						$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
@@ -52,14 +54,16 @@ class Module extends Module_Object_Accessor {
 				}
 			}
 		}
+		//@TODO décommenter lors de la mise en prod 
+		$this->set_last_synchro_date_time( 'import_module_relations' );
 	}
 	
 	/*
 	 * EXPORT SugarCRM
 	 */
 	
-	protected function get_ez_remote_ids_since_last_sync( ) {
-		return $this->get_ez_remote_ids( $this->get_last_synchro_date_time( ) );
+	protected function get_ez_remote_ids_since_last_sync( $mode ) {
+		return $this->get_ez_remote_ids( $this->get_last_synchro_date_time( $mode ) );
 	}
 	
 	protected function get_ez_remote_ids( $timestamp = false ) {
@@ -97,7 +101,8 @@ class Module extends Module_Object_Accessor {
 	public function export_module_objects() {
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_editable_attributes( );
-		$ez_remote_ids = $this->get_ez_remote_ids_since_last_sync( );
+		$ez_remote_ids = $this->get_ez_remote_ids_since_last_sync( 'export_module' );
+		
 		foreach ($ez_remote_ids as $ez_remote_id) {
 			try {
 				$object = new Module_Object( $this->module_name, $ez_remote_id, $schema, $this->cli );
@@ -107,6 +112,8 @@ class Module extends Module_Object_Accessor {
 				$this->cli->error( $e->getMessage( ) );
 			}
 		}
+		//@TODO décommenter lors de la mise en prod 
+		//$this->set_last_synchro_date_time( 'export_module' );
 	}
 }
 ?>
