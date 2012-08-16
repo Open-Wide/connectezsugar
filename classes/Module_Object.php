@@ -178,17 +178,15 @@ class Module_Object {
 	}
 	
 	private function export_data() {
-		$this->cli->notice('TODO export_data');
 		$entry = array( );
         $dataMap = $this->ez_object->fetchDataMap( FALSE );
+        $this->cli->notice('Export des données éditables côté eZ pour "' . $this->ez_object->Name . '" (id=' . $this->ez_object->ID . ')');
 		foreach ( $this->schema->editable_attributes as $field ) {
 			if ( isset( $dataMap[ $field ] ) ) {
 				$entry[ $field ] = $dataMap[ $field ]->value( );
 			}
 		}
-		$this->cli->notice( print_r( $entry ) );
-		$this->cli->notice( 'TODO set_entry' );
-		//$this->sugar_connector->set_entry( $this->module_name, $entry );
+		$this->sugar_connector->set_entry( $this->module_name, $this->sugar_id, $entry );
 	}
 }
 ?>
