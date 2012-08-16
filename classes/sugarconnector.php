@@ -14,6 +14,7 @@ class SugarConnector
     private $client;
     private static $session = FALSE;
     private $serverNamespace;
+    private $serverUrl;
     private $login;
     private $password;
 	protected $logger;
@@ -44,6 +45,7 @@ class SugarConnector
 		$query_standard_return = array( 'get_available_modules' => array( 'data' => 'modules' ),
 										'get_module_fields' 	=> array( 'data' => 'module_fields' ),
 										'get_entry_list' 		=> array( 'data' => 'entry_list' ),
+										'set_entry' 			=> array( 'data' => 'id' ),
 										'get_relationships'		=> array( 'data' => 'ids' ),
 										'get_entry'	=> array( 	'data' 				=> array( 'entry_list',0,'name_value_list'),
 																'checkForWarning' 	=> array( 	'check'		=> array( 	'who' => 'field_list',
@@ -98,8 +100,7 @@ class SugarConnector
     	self::definition();
     	
         $ini = eZINI::instance("sugarcrm.ini");
-        $serverUrl = $ini->variable("connexion", "ServerUrl");
-        echo 'SugarConnector __construct - ' . $serverUrl . PHP_EOL;
+        $this->serverUrl = $ini->variable("connexion", "ServerUrl");
         $serverPath = $ini->variable("connexion", "ServerPath");
         $this->serverNamespace = $ini->variable("connexion", "ServerNamespace");
         // @TODO : user et mdp pour login sont ecrites en clair dans le fichier sugarcrm.ini
@@ -107,10 +108,9 @@ class SugarConnector
         $this->login = $ini->variable("connexion", "login");
 		$this->password = $ini->variable("connexion", "password");
         
-        $this->client = new eZSOAPClient($serverUrl,$serverPath);
+        $this->client = new eZSOAPClient($this->serverUrl, $serverPath);
         
         $this->logger = owLogger::CreateForAdd(self::LOGFILE . date("d-m-Y") . ".log");
-        $this->logger->writeTimedString('Connexion à ' . $serverUrl);
     }
 
     
@@ -131,6 +131,9 @@ class SugarConnector
     function login($login = null, $password = null)
     {
     	if ( self::$session === FALSE ) { 
+    		echo 'SugarConnector login - ' . $this->serverUrl . PHP_EOL;
+    		$this->logger->writeTimedString('Connexion à ' . $this->serverUrl);
+    		
 	    	if(is_null($login))
 	    		$login = $this->login;
 	    	if(is_null($password))
@@ -144,7 +147,7 @@ class SugarConnector
 	        $request->addParameter('user_auth',$auth_array);
 	        $request->addParameter('application_name','');
 	        $reponse = $this->client->send($request);
-	        $result  = $reponse->value(); 
+	        $result  = $reponse->value();
 	        
 			if( $this->checkForErrors($result,"login") )
 				return false;
@@ -399,23 +402,28 @@ class SugarConnector
      * Sens eZ => SugarCRM
      */
     
-    public function set_entry( $module_name, $fields ) {
+    public function set_entry( $module_name, $id, $fields ) {
+    	$fields = array_merge(
+    		array( 'id' => $id ), 
+    		$fields 
+    	);
 	    $params = array(
-		    'session'         => $this->session,
 		    'module_name'     => $module_name,
 		    'name_value_list' => $this->name_value_list( $fields ),
 	    );
-	    $this->call( 'set_entry', $params );
-    	return $this->result[ 'id' ];
+	    
+	    //throw new \Exception( 'Je ne veux pas travailler, signé le client SOAP' );
+	    $request = new eZSOAPRequest( 'set_entry', $this->serverNamespace );
+	    $request->addParameter( 'session', self::$session );
+	    $request->addParameter( 'module_name', $params['module_name'] );
+	    $request->addParameter( 'name_value_list', $params['name_value_list'] );
+
+	    $reponse = $this->client->send( $request );
+	    $result  = $reponse->Value;
+	    $this->logger->writeTimedString($result);
+    	
+	    return $this->standardQueryReturn($result, 'set_entry');
     }
-    
-	private function call( $action, $params ) {
-		$this->logger->writeTimedString('Appel de ' . $action . ' ------------------');
-		$this->logger->writeTimedString($params);
-		throw new \Exception( 'Je ne veux pas travailler, signé le client SOAP' );
-		$this->result = $this->client->call( $action, $params, $this->serverNamespace, $this->serverNamespace );
-		return $this->result;
-	}
 
 	private function name_value_list( $fields ) {
 		$name_value_list = array( );
