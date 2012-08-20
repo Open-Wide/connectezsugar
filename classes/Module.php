@@ -113,7 +113,7 @@ class Module extends Module_Object_Accessor {
 			}
 		}
 		//@TODO décommenter lors de la mise en prod 
-		//$this->set_last_synchro_date_time( 'export_module' );
+		$this->set_last_synchro_date_time( 'export_module' );
 	}
 }
 ?>
