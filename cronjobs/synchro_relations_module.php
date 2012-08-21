@@ -7,7 +7,7 @@ include_once( 'extension/connectezsugar/classes/Module.php' );
 // init CLI
 $cli = SmartCLI::instance();
 $cli->setIsQuiet(false);
-$cli->beginout("synchronize_relations.php");
+$cli->beginout("synchro_relations_module.php");
 
 $arguments = array_slice( $_SERVER['argv'], 1 );
 $sugarmodule = $arguments[ 1 ];
@@ -26,5 +26,5 @@ if ( $all ) {
 	$module->import_module_relations( );
 }
 
-$cli->endout("synchronize_relations.php");
+$cli->endout("synchro_relations_module.php");
 ?>
