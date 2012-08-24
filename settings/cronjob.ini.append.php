@@ -10,12 +10,18 @@ Scripts[]=cleanup_module.php
 Scripts[]=synchronize_relations.php
 Scripts[]=synchro_relations_module.php
 Scripts[]=update_classes.php
-# scripts de test
-#Scripts[]=test_mere.php
-#Scripts[]=test_fils.php
+Scripts[]=export.php
+Scripts[]=export_module.php
+Scripts[]=import.php
+Scripts[]=import_module.php
 
 
 [CronjobPart-synchro]
+Scripts[]=export.php
+Scripts[]=synchronize_ezsugar.php
+Scripts[]=synchronize_relations.php
+
+[CronjobPart-synchrosugartoez]
 Scripts[]=synchronize_ezsugar.php
 #Scripts[]=synchronize_relations.php
 
@@ -43,20 +49,25 @@ Scripts[]=export.php
 [CronjobPart-exportmodule]
 Scripts[]=export_module.php
 
-# SCRIPTS DE TEST
-#[CronjobPart-mere]
-#Scripts[]=test_mere.php
-#[CronjobPart-fils]
-#Scripts[]=test_fils.php
+[CronjobPart-import]
+Scripts[]=import.php
+
+[CronjobPart-importmodule]
+Scripts[]=import_module.php
 
 
 # php runcronjobs.php synchro
-# php runcronjobs.php synchromodule
+# php runcronjobs.php synchroezsugar
+# php runcronjobs.php synchromodule [otcp_xxx]
 # php runcronjobs.php synchrorelations
-# php runcronjobs.php synchrorelationsmodule
+# php runcronjobs.php synchrorelationsmodule [otcp_xxx]
 # php runcronjobs.php cleanup
-# php runcronjobs.php cleanupmodule
+# php runcronjobs.php cleanupmodule [otcp_xxx]
 # php runcronjobs.php upclasses
+# php runcronjobs.php export
+# php runcronjobs.php exportmodule [otcp_xxx]
+# php runcronjobs.php import
+# php runcronjobs.php importmodule [otcp_xxx]
 
 
 */ ?>
