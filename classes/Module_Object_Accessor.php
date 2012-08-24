@@ -23,7 +23,7 @@ class Module_Object_Accessor {
 		$block_name .= '_' . $this->module_name;
 		$ini_synchro = eZINI::instance('synchro.ini');
 		$datetime = $ini_synchro->variable($block_name, 'last_synchro');
-		$this->cli->notice( 'Dernière synchro pour ' . $block_name . ' : ' . $datetime );
+		//$this->cli->notice( 'Dernière synchro pour ' . $block_name . ' : ' . $datetime );
 		return strtotime( $datetime );
 	}
 	
