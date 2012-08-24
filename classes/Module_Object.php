@@ -9,6 +9,8 @@ class Module_Object {
 	private $ez_object_id;
 	private $ez_object;
 	private $sugar_connector;
+	
+	const SIMULATION = false; // @TODO Mettre à true pour faire des tests
 
 
 	/**
@@ -27,44 +29,56 @@ class Module_Object {
 		eZContentObject::clearCache();
 	}
 	
+	public function delete( ) {
+		$this->charge_ez_object( );
+		
+		$this->cli->warning( 'Suppression de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object->ID . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
+		if ( !self::SIMULATION ) {
+			$this->ez_object->removeThis( ); // add to trash
+		}
+	}
+	
 	private function charge_ez_object() {
 		if (!$this->ez_object_id) {
 			$this->ez_object_id = $this->get_ez_object_id( $this->schema->ez_class_identifier, $this->sugar_id );
 			$this->ez_object    = eZContentObject::fetch( $this->ez_object_id );
+			
+			//$this->cli->notice( 'charge_ez_object ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' );
 		}
 	}
 
 	public function create_ez_object( $attributes ) {
-		$ini 			  = eZINI::instance('owobjectsmaster.ini.append.php');
-		$class_identifier = Module_Schema::get_ez_class_identifier($this->module_name);
-		$remote_id		  = $this->schema->ez_class_identifier . '_' . $this->sugar_id;
-		$parent_node_id   = $ini->variable( 'Tree', 'DefaultParentNodeID' );
+		$ini 			= eZINI::instance('owobjectsmaster.ini.append.php');
+		$remote_id		= $this->schema->ez_class_identifier . '_' . $this->sugar_id;
+		$parent_node_id = $ini->variable( 'Tree', 'DefaultParentNodeID' );
 		
 		if ( $ini->hasVariable( 'Tree', 'ClassParentNodeID' ) ) {
 			$node_ids = $ini->variable( 'Tree', 'ClassParentNodeID' );
-			if ( isset( $node_ids[ $class_identifier ] ) ) {
-				$parent_node_id = $node_ids[ $class_identifier ];
+			if ( isset( $node_ids[ $this->schema->ez_class_identifier ] ) ) {
+				$parent_node_id = $node_ids[ $this->schema->ez_class_identifier ];
 			}
 		}
 		
 		$params = array(
 			'creator_id'       => $ini->variable('Users', 'AdminID'),
 			'section_id'       => $ini->variable('Tree', 'DefaultSectionID'),
-			'class_identifier' => $class_identifier,
+			'class_identifier' => $this->schema->ez_class_identifier,
 			'parent_node_id'   => $parent_node_id,
 			'remote_id'		   => $remote_id,
 			'attributes'	   => $this->get_ez_attribute_value( $attributes ),
 		);
-
-		$contentObject = eZContentFunctions::createAndPublishObject( $params );
-		//$contentObject = false;
-		if ($contentObject) {
-			$this->ez_object    = $contentObject;
-			$this->ez_object_id = $contentObject->ID;
-			$this->cli->warning( 'Ajout de ' . $class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' );
-			unset( $contentObject );
+		if ( !self::SIMULATION ) {
+			$contentObject = eZContentFunctions::createAndPublishObject( $params );
+			if ($contentObject) {
+				$this->ez_object    = $contentObject;
+				$this->ez_object_id = $contentObject->ID;
+				$this->cli->warning( 'Ajout de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
+				unset( $contentObject );
+			} else {
+				throw new Exception( 'Ajout de ' . $this->schema->ez_class_identifier . ' impossible pour remote_id=' . $remote_id);
+			}
 		} else {
-			throw new Exception( 'create_ez_object - ajout de l\'objet ' . $class_identifier . ' dans eZ impossible pour remote_id=' . $remote_id);
+			$this->cli->warning( 'Ajout de ' . $this->schema->ez_class_identifier . ' remote_id=' . $remote_id . ' [memory=' . memory_get_usage_hr() . ']' . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
 		}
 	}
 
@@ -73,12 +87,12 @@ class Module_Object {
 	 * Public
 	 */
 	public function import_relations() {
-		foreach ( $this->schema->get_relations() as $relation ) {
-			$this->import_relation($relation);
+		foreach ( $this->schema->get_relations( ) as $relation ) {
+			$this->import_relation( $relation );
 		}
 	}
 
-	public function update_ez_object ( $datas ) {
+	public function update ( $datas ) {
 		if ( isset( $datas[ 'data' ] ) ) {
 			$remote_id    = $this->schema->ez_class_identifier . '_' . $this->sugar_id;
 			$object_found = eZContentObject::fetchByRemoteID( $remote_id );
@@ -134,30 +148,34 @@ class Module_Object {
 		return $ez_object_id;
 	}
 
-	public function import_relation($relation) {
+	public function import_relation( $relation ) {
 		
 		$this->charge_ez_object( );
 		
 		if ( $relation[ 'type' ] == 'relation' ) {
-			$this->import_relation_common($relation);
+			$this->import_relation_common( $relation );
 		} else if ( $relation[ 'type' ] == 'attribute' ) {
-			$this->import_relation_attribute($relation);
+			$this->import_relation_attribute( $relation );
 		}
 	}
 
 	private function import_relation_common($relation) {
 		$diff_related_ids = $this->diff_relations_common( $relation );
 		foreach ( $diff_related_ids[ 'to_add' ] as $related_ez_object_id ) {
-			if ( $this->ez_object->addContentObjectRelation( $related_ez_object_id ) === FALSE ) {
-				throw new Exception( 'Erreur de eZ Publish, impossible d\'ajouter une relation entre ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
+			if ( !self::SIMULATION ) {
+				if ( $this->ez_object->addContentObjectRelation( $related_ez_object_id ) === FALSE ) {
+					throw new Exception( 'Erreur de eZ Publish, impossible d\'ajouter une relation entre ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
+				}
 			}
-			$this->cli->notice( 'Add relation between ' . $this->module_name . ' #'. $this->ez_object_id . ' and ' . $relation[ 'related_module_name' ] . ' #' . $related_ez_object_id );
+			$this->cli->notice( 'Add relation between ' . $this->module_name . ' #'. $this->ez_object_id . ' ' . $this->ez_object->Name . ' and ' . $relation[ 'related_module_name' ] . ' #' . $related_ez_object_id . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
 		}
 		foreach ( $diff_related_ids[ 'to_remove' ] as $related_ez_object_id ) {
-			if ( $this->ez_object->removeContentObjectRelation( $related_ez_object_id ) === FALSE ) {
-				throw new Exception( 'Erreur de eZ Publish, impossible de supprimer une relation entre ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
+			if ( !self::SIMULATION ) {
+				if ( $this->ez_object->removeContentObjectRelation( $related_ez_object_id ) === FALSE ) {
+					throw new Exception( 'Erreur de eZ Publish, impossible de supprimer une relation entre ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
+				}
 			}
-			$this->cli->notice( 'Remove relation between ' . $this->module_name . ' #'. $this->ez_object_id . ' and ' . $relation[ 'related_module_name' ] . ' #' . $related_ez_object_id );
+			$this->cli->notice( 'Remove relation between ' . $this->module_name . ' #'. $this->ez_object_id . ' ' . $this->ez_object->Name . ' and ' . $relation[ 'related_module_name' ] . ' #' . $related_ez_object_id . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
 		}
 	}
 
@@ -259,13 +277,14 @@ class Module_Object {
 	private function update_ez_attribute_value( $attributes ) {
 		
 		if ( count ( $attributes ) > 0) {
-			//$return = true; //@TODO à commenter/supprimer après le debug
-			$return = eZContentFunctions::updateAndPublishObject( $this->ez_object, array( 'attributes' => $attributes ) );
-			if ( ! $return ) {
-				throw new Exception( 'Erreur de eZ Publish, impossible de mettre à jour ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id );
+			if ( !self::SIMULATION ) {
+				$return = eZContentFunctions::updateAndPublishObject( $this->ez_object, array( 'attributes' => $attributes ) );
+				if ( ! $return ) {
+					throw new Exception( 'Erreur de eZ Publish, impossible de mettre à jour ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id );
+				}
+				unset($return);
 			}
-			unset($return);
-			$this->cli->notice( 'Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' );
+			$this->cli->notice( 'Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
 		} else {
 			$this->cli->notice( 'Pas de modification de ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id . ' - ' . $this->ez_object->Name );
 		}
@@ -348,15 +367,16 @@ class Module_Object {
 		if ($this->ez_object_id) {
 			$entry   = array( );
 			$dataMap = $this->ez_object->fetchDataMap( FALSE );
-			$this->cli->notice('Export de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object->ID . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']');
+			$this->cli->notice('Export de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object->ID . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
 			foreach ( $this->schema->editable_attributes as $field ) {
 				if ( isset( $dataMap[ $field ] ) ) {
 					$value = self::get_selected_value_ez($dataMap[ $field ]);
-					//$this->cli->notice(' - ' . $field . ' => ' . $value );
 					$entry[ $field ] = utf8_encode( $value ); // Pour la prise en compte des accents côté Sugar
 				}
 			}
-			$this->sugar_connector->set_entry( $this->module_name, $this->sugar_id, $entry );
+			if ( !self::SIMULATION ) {
+				$this->sugar_connector->set_entry( $this->module_name, $this->sugar_id, $entry );
+			}
 		} else {
 			throw new Exception( 'ez_object_id vide pour ID=' . $this->sugar_id );
 		}
