@@ -20,23 +20,23 @@ class Module_Object_Accessor {
 	}
 	
 	protected function get_last_synchro_date_time( $block_name ) {
-		$block_name .= '_' . $this->module_name;
-		$ini_synchro = eZINI::instance('synchro.ini');
-		$datetime = $ini_synchro->variable($block_name, 'last_synchro');
-		//$this->cli->notice( 'Dernière synchro pour ' . $block_name . ' : ' . $datetime );
+		$ini_synchro = eZINI::instance( 'synchro.ini.append.php', self::INIPATH );
+		$ini_synchro->resetCache(); // Plusieurs scripts sont lancés successivement, on vide donc le cache à chaque appel
+		$datetime = $ini_synchro->variable( $block_name, 'last_synchro_' . $this->module_name );
 		return strtotime( $datetime );
 	}
 	
 	protected function set_last_synchro_date_time( $block_name ) {
-		$block_name .= '_' . $this->module_name;
 		$datetime    = date("Y-m-d H:i:s", time());
-		$ini_synchro = eZINI::instance('synchro.ini.append.php', self::INIPATH);
-		$ini_synchro->setVariable($block_name, 'last_synchro', $datetime);
+		$ini_synchro = eZINI::instance( 'synchro.ini.append.php', self::INIPATH );
+		
+		$ini_synchro->setVariable($block_name, 'last_synchro_' . $this->module_name, $datetime);
 		if ( $ini_synchro->save() ) {
-			$this->cli->notice( 'Sauvegarde de la date de synchro pour ' . $block_name . ' : ' . $datetime );
+			$this->cli->notice( 'Sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name . ' : ' . $datetime );
+			$ini_synchro->resetCache(); // Plusieurs scripts sont lancés successivement, on vide donc le cache à chaque sauvegarde pour ne pas réécrire des valeurs incorrectes
 			return $datetime;
 		} else {
-			$this->cli->notice( 'Erreur lors de la sauvegarde de la date de synchro pour ' . $block_name );
+			$this->cli->error( 'Erreur lors de la sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name );
 			return false;
 		}
 	}
