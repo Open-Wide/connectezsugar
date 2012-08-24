@@ -28,10 +28,10 @@ Scripts[]=synchronize_ezsugar.php
 [CronjobPart-synchromodule]
 Scripts[]=synchronize_module.php
 
-[CronjobPart-synchrorelations]
+[CronjobPart-importrelations]
 Scripts[]=synchronize_relations.php
 
-[CronjobPart-synchrorelationsmodule]
+[CronjobPart-importrelationsmodule]
 Scripts[]=synchro_relations_module.php
 
 [CronjobPart-cleanup]
@@ -57,17 +57,19 @@ Scripts[]=import_module.php
 
 
 # php runcronjobs.php synchro
-# php runcronjobs.php synchroezsugar
-# php runcronjobs.php synchromodule [otcp_xxx]
-# php runcronjobs.php synchrorelations
-# php runcronjobs.php synchrorelationsmodule [otcp_xxx]
-# php runcronjobs.php cleanup
-# php runcronjobs.php cleanupmodule [otcp_xxx]
-# php runcronjobs.php upclasses
+# php runcronjobs.php importrelations
+# php runcronjobs.php importrelationsmodule [otcp_xxx]
 # php runcronjobs.php export
 # php runcronjobs.php exportmodule [otcp_xxx]
 # php runcronjobs.php import
 # php runcronjobs.php importmodule [otcp_xxx]
+
+# php runcronjobs.php synchroezsugar
+# php runcronjobs.php synchromodule [otcp_xxx]
+
+# php runcronjobs.php cleanup
+# php runcronjobs.php cleanupmodule [otcp_xxx]
+# php runcronjobs.php upclasses
 
 
 */ ?>
