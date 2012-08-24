@@ -700,7 +700,7 @@ class SugarSynchro
 		$select_fields = array('id');
 		$offset = 0;
 	    // @TEST
-		// $max_results = 5000;
+		$max_results = 99999;
 		
 		// date_entered, date_modified # 2012-05-24 15:18:03
 		$verifie_datetime = self::verifieDateTime($datetime);
