@@ -8,9 +8,9 @@ class Module extends Module_Object_Accessor {
 	
 	protected $module_name = '';
 	protected $cli;
-	const SET_DATE_SYNCHRO = false;
+	const SET_DATE_SYNCHRO = false; // @TODO Mettre à false pour faire des tests
 	
-	public function __construct($module_name, $cli) {
+	public function __construct( $module_name, $cli ) {
 		$this->module_name = $module_name;
 		$this->cli         = $cli;
 		parent::__construct( );
@@ -23,6 +23,9 @@ class Module extends Module_Object_Accessor {
 	
 	// Import de toutes les relations, sans check sur la date de dernière modification
 	public function import_module_relations_all( ) {
+		
+		$this->cli->warning( 'import_module_relations_all [memory=' . memory_get_usage_hr() . ']' );
+		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
 		while ( $sugar_ids = $this->get_sugar_ids( ) ) {
@@ -40,9 +43,11 @@ class Module extends Module_Object_Accessor {
 	
 	// Import des relations depuis la date de dernière modification côté SugarCRM
 	public function import_module_relations() {
+		
+		$this->cli->warning( 'import_module_relations [memory=' . memory_get_usage_hr() . ']' );
+		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
-		
 		
 		foreach ( $schema->get_relations() as $relation ) {
 			while ( $sugar_ids = $this->get_sugar_ids_from_updated_relation( $relation/*, mktime(16, 58, 16, 8, 1, 2012)*/ ) ) {
@@ -108,6 +113,9 @@ class Module extends Module_Object_Accessor {
 	
 	// Export des objets eZ vers SugarCRM (valeurs des champs éditables)
 	public function export_module_objects() {
+		
+		$this->cli->warning( 'export_module_objects [memory=' . memory_get_usage_hr() . ']' );
+		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_editable_attributes( );
 		$ez_remote_ids = $this->get_ez_remote_ids_since_last_sync( 'export_module' );
@@ -134,10 +142,11 @@ class Module extends Module_Object_Accessor {
 		
 		//@TODO Création classe eZ si absente (import initial)
 		
+		$this->cli->warning( 'import_module_objects [memory=' . memory_get_usage_hr() . ']' );
+
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		
 		$this->import_module_objects_update( $schema );
-		
 		$this->import_module_objects_delete( $schema );
 		
 		if ( self::SET_DATE_SYNCHRO ) {
@@ -156,7 +165,7 @@ class Module extends Module_Object_Accessor {
 			if (isset ( $sugardata[ 'data' ] ) ) {
 				try {
 					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
-					$object->update_ez_object( $sugardata );
+					$object->update( $sugardata );
 					unset( $object );
 				} catch ( Exception $e) {
 					$this->cli->error( $e->getMessage( ) );
@@ -171,17 +180,13 @@ class Module extends Module_Object_Accessor {
 	private function import_module_objects_delete( $schema ) {
 		$sugar_ids_deleted = $this->get_sugar_ids_since_last_sync( 'import_module', true );
 		if ( count ( $sugar_ids_deleted ) ) {
-			//$this->cli->warning( count($sugar_ids_deleted) . ' éléments de type ' . $schema->ez_class_identifier . ' à mettre à la corbeille');
 			foreach ( $sugar_ids_deleted as $sugar_id_deleted ) {
-				$remote_id = $schema->ez_class_identifier . "_" . $sugar_id_deleted;
-				$object    = eZContentObject::fetchByRemoteID( $remote_id );
-				if ( $object ) {
-					$this->cli->warning( '-> ' . $schema->ez_class_identifier . ' #' . $object->ID . ' - ' . $object->Name );
-					//$object->purge( ); // Non -> supprime vraiment en base
-					$object->removeThis( ); // add to trash
+				try {
+					$object = new Module_Object( $this->module_name, $sugar_id_deleted, $schema, $this->cli );
+					$object->delete( );
 					unset( $object );
-				} else {
-					$this->cli->notice( '-> ' . $remote_id . ' introuvable' );
+				} catch ( Exception $e) {
+					$this->cli->error( $e->getMessage( ) );
 				}
 			}
 		}
