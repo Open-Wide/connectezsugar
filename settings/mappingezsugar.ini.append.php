@@ -288,11 +288,9 @@ editable_fields[]
 editable_fields[]=acti_phone_office
 editable_fields[]=acti_phone_fax
 editable_fields[]=acti_website
-editable_fields[]=acti_description_new
 editable_fields[]=acti_description_promo
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description
-editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_rest_many_cont
@@ -514,11 +512,9 @@ editable_fields[]
 editable_fields[]=acti_phone_office
 editable_fields[]=acti_phone_fax
 editable_fields[]=acti_website
-editable_fields[]=acti_description_new
 editable_fields[]=acti_description_promo
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description
-editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_cult_many_cont
@@ -710,11 +706,9 @@ editable_fields[]
 editable_fields[]=acti_phone_office
 editable_fields[]=acti_phone_fax
 editable_fields[]=acti_website
-editable_fields[]=acti_description_new
 editable_fields[]=acti_description_promo
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description
-editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_visi_many_cont
@@ -897,11 +891,9 @@ editable_fields[]
 editable_fields[]=acti_phone_office
 editable_fields[]=acti_email
 editable_fields[]=acti_website
-editable_fields[]=acti_description_new
 editable_fields[]=acti_description_promo
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description
-editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_tran_many_cont
@@ -1036,11 +1028,9 @@ editable_fields[]
 editable_fields[]=acti_phone_office
 editable_fields[]=acti_phone_fax
 editable_fields[]=acti_website
-editable_fields[]=acti_description_new
 editable_fields[]=acti_description_promo
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description
-editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_othe_many_cont
@@ -1179,11 +1169,9 @@ editable_fields[]
 editable_fields[]=acti_phone_office
 editable_fields[]=acti_phone_fax
 editable_fields[]=acti_website
-editable_fields[]=acti_description_new
 editable_fields[]=acti_description_promo
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description
-editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_shop_many_cont
@@ -1560,11 +1548,9 @@ editable_fields[]
 editable_fields[]=acti_phone_office
 editable_fields[]=acti_phone_fax
 editable_fields[]=acti_website
-editable_fields[]=acti_description_new
 editable_fields[]=acti_description_promo
 editable_fields[]=acti_description_infomercial
 editable_fields[]=acti_sustainable_description
-editable_fields[]=acti_sustainable_description_partner
 
 relations_names[]
 relations_names[otcp_contact]=many_acco_many_cont
