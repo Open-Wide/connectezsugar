@@ -18,7 +18,7 @@ Scripts[]=import_module.php
 
 [CronjobPart-synchro]
 Scripts[]=export.php
-Scripts[]=synchronize_ezsugar.php
+Scripts[]=import.php
 Scripts[]=synchronize_relations.php
 
 [CronjobPart-synchrosugartoez]
