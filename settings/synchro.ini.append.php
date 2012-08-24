@@ -1,59 +1,41 @@
 <?php /* #?ini charset="utf-8"?
 
 [Synchro]
-lastSynchroDatetime=false
+lastSynchroDatetime=2012-08-20 18:00:00
 
-[export_module_otcp_room]
-last_synchro=false
+[export_module]
+last_synchro_otcp_accommodation=2012-08-10 23:00:00
+last_synchro_otcp_company=2012-08-10 23:00:00
+last_synchro_otcp_contact=2012-08-10 23:00:00
+last_synchro_otcp_culture=2012-08-10 23:00:00
+last_synchro_otcp_otherpro=2012-08-10 23:00:00
+last_synchro_otcp_restaurant=2012-08-10 23:00:00
+last_synchro_otcp_room=2012-08-10 23:00:00
+last_synchro_otcp_shopping=2012-08-10 23:00:00
+last_synchro_otcp_transport=2012-08-10 23:00:00
+last_synchro_otcp_visit=2012-08-10 23:00:00
 
-[export_module_otcp_visit]
-last_synchro=false
+[import_module]
+last_synchro_otcp_accommodation=2012-08-10 23:00:00
+last_synchro_otcp_company=2012-08-10 23:00:00
+last_synchro_otcp_contact=2012-08-10 23:00:00
+last_synchro_otcp_culture=2012-08-10 23:00:00
+last_synchro_otcp_otherpro=2012-08-10 23:00:00
+last_synchro_otcp_restaurant=2012-08-10 23:00:00
+last_synchro_otcp_room=2012-08-10 23:00:00
+last_synchro_otcp_shopping=2012-08-10 23:00:00
+last_synchro_otcp_transport=2012-08-10 23:00:00
+last_synchro_otcp_visit=2012-08-10 23:00:00
 
-[export_module_otcp_accomodation]
-last_synchro=false
-
-[export_module_otcp_culture]
-last_synchro=false
-
-[export_module_otcp_contact]
-last_synchro=false
-
-[export_module_otcp_company]
-last_synchro=false
-
-[export_module_otcp_shopping]
-last_synchro=false
-
-[export_module_otcp_restaurant]
-last_synchro=2012-08-15 12:46:30
-
-[export_module_otcp_otherpro]
-last_synchro=false
-
-[import_module_relations_otcp_room]
-last_synchro=false
-
-[import_module_relations_otcp_visit]
-last_synchro=false
-
-[import_module_relations_otcp_accomodation]
-last_synchro=false
-
-[import_module_relations_otcp_culture]
-last_synchro=false
-
-[import_module_relations_otcp_contact]
-last_synchro=false
-
-[import_module_relations_otcp_company]
-last_synchro=false
-
-[import_module_relations_otcp_shopping]
-last_synchro=false
-
-[import_module_relations_otcp_restaurant]
-last_synchro=false
-
-[import_module_relations_otcp_otherpro]
-last_synchro=false
+[import_module_relations]
+last_synchro_otcp_accommodation=2012-08-10 23:00:00
+last_synchro_otcp_company=2012-08-10 23:00:00
+last_synchro_otcp_contact=2012-08-10 23:00:00
+last_synchro_otcp_culture=2012-08-10 23:00:00
+last_synchro_otcp_otherpro=2012-08-10 23:00:00
+last_synchro_otcp_restaurant=2012-08-10 23:00:00
+last_synchro_otcp_room=2012-08-10 23:00:00
+last_synchro_otcp_shopping=2012-08-10 23:00:00
+last_synchro_otcp_transport=2012-08-10 23:00:00
+last_synchro_otcp_visit=2012-08-10 23:00:00
 */ ?>
