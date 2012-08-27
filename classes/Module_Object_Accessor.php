@@ -53,6 +53,7 @@ class Module_Object_Accessor {
 			$field_name     = $this->get_relation_field_name( $relation[ 'name' ] );
 			$sub_query      = 'SELECT ' . $field_name . ' FROM ' . $relation_table . ' WHERE date_modified >= "' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . '"';
 			$query          = $this->module_name . '.id IN (' . $sub_query . ')';
+			$this->cli->error( $query );
 		}
 		return $this->get_sugar_ids( $query );
 	}
@@ -100,7 +101,8 @@ class Module_Object_Accessor {
 		} else {
 			$suffixe     = '_idb';
 		}
-		return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE );
+		//return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE ); // OK EN LOCAL
+		return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, FALSE, 50 ); // OK EN PROD
 	}
 	
 	// cf fonction identique côté sugarCRM getValidDBName()
