@@ -50,6 +50,7 @@ class Module extends Module_Object_Accessor {
 		$schema->load_relations( );
 		
 		foreach ( $schema->get_relations() as $relation ) {
+			$this->cli->warning( 'Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] );
 			while ( $sugar_ids = $this->get_sugar_ids_from_updated_relation( $relation/*, mktime(16, 58, 16, 8, 1, 2012)*/ ) ) {
 				foreach ( $sugar_ids as $sugar_id ) {
 					try {
