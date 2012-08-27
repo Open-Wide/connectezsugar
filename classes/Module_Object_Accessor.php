@@ -53,7 +53,7 @@ class Module_Object_Accessor {
 			$field_name     = $this->get_relation_field_name( $relation[ 'name' ] );
 			$sub_query      = 'SELECT ' . $field_name . ' FROM ' . $relation_table . ' WHERE date_modified >= "' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . '"';
 			$query          = $this->module_name . '.id IN (' . $sub_query . ')';
-			$this->cli->error( $query );
+			$this->cli->notice( $query );
 		}
 		return $this->get_sugar_ids( $query );
 	}
@@ -78,6 +78,7 @@ class Module_Object_Accessor {
 			! is_array( $entries[ 'data' ] ) || 
 			( isset($entries['error'] ) && $entries['error']['number'] !== '0' )
 		) {
+			$this->cli->notice( show( $entries ) );
 			throw new Exception( 'Erreur du Sugar connecteur sur la liste des entrées du module ' . $this->module_name );
 		}
 		
