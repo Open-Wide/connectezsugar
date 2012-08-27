@@ -140,7 +140,7 @@ class SugarConnector
 	    		$password = $this->password;   		
 	        $auth_array = array( 
 	               'user_name' => $login,
-	               'password' => $password,
+	               'password' => md5( $password ),
 	               'version' => '?'
 	        );
 	        $request = new eZSOAPRequest("login",$this->serverNamespace);
