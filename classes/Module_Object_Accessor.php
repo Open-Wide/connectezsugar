@@ -82,11 +82,10 @@ class Module_Object_Accessor {
 		
 		// TREATMENT
 		$sugar_ids = array( );
-		$this->cli->notice( 'get_entry_list = ' . count( $entries[ 'data' ] ) );
 		foreach ( $entries[ 'data' ] as $entry ) {
 			$sugar_ids[ ] = $entry[ 'id' ];
 		}
-		$this->cli->notice( '-- Checkpoint: ' . $this->offset );
+		$this->cli->notice( '-- Checkpoint: ' . $this->offset . ' - entries: ' . count( $sugar_ids ) );
 		$this->offset += $this->paquet;
 		return $sugar_ids;
 	}
