@@ -106,7 +106,7 @@ class SugarConnector
         // @TODO : user et mdp pour login sont ecrites en clair dans le fichier sugarcrm.ini
 		// chercher une autre façon de stockage plus securisé ?
         $this->login = $ini->variable("connexion", "login");
-		$this->password = md5($ini->variable("connexion", "password"));
+		$this->password = $ini->variable("connexion", "password");
         
         $this->client = new eZSOAPClient($this->serverUrl, $serverPath);
         
@@ -140,7 +140,7 @@ class SugarConnector
 	    		$password = $this->password;   		
 	        $auth_array = array( 
 	               'user_name' => $login,
-	               'password' => md5( $password ),
+	               'password' => $password,
 	               'version' => '?'
 	        );
 	        $request = new eZSOAPRequest("login",$this->serverNamespace);
