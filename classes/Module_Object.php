@@ -10,7 +10,7 @@ class Module_Object {
 	private $ez_object;
 	private $sugar_connector;
 	
-	const SIMULATION = false; // @TODO Mettre à true pour faire des tests
+	const SIMULATION = true; // @TODO Mettre à true pour faire des tests
 
 
 	/**
@@ -109,10 +109,13 @@ class Module_Object {
 				if ( isset($data_types[ $data[ 'name' ] ]) ) {
 					$value = $this->get_selected_value_sugar( $data, $data_types[ $data[ 'name' ] ] );
 					$attributes[ $data[ 'name' ] ] = $value;
-					/*if ( in_array( $data_types[ $data[ 'name' ] ], array( 'ezstring' ) ) ) {
-						// Pour logguer des datatypes en particulier
-						$this->cli->warning( $data_types[ $data[ 'name' ] ] . ' / ' . $data[ 'name' ] . ' => ' . $value );
-					}*/
+					if ( self::SIMULATION ) {
+						// En mode Simulation, on affiche plus de logs
+						if ( in_array( $data_types[ $data[ 'name' ] ], array( 'ezstring', 'ezselection' ) ) ) {
+							// Pour logguer des datatypes en particulier
+							$this->cli->warning( '- ' . $data_types[ $data[ 'name' ] ] . ' / ' . $data[ 'name' ] . ' => ' . $value );
+						}
+					}
 				}
 			}
 			
@@ -372,6 +375,10 @@ class Module_Object {
 				if ( isset( $dataMap[ $field ] ) ) {
 					$value = self::get_selected_value_ez($dataMap[ $field ]);
 					$entry[ $field ] = utf8_encode( $value ); // Pour la prise en compte des accents côté Sugar
+					if ( self::SIMULATION ) {
+						// En mode Simulation, on affiche la liste des champs envoyés à Sugar 
+						$this->cli->notice( '- ' . $field . ' -> ' . $value );
+					}
 				}
 			}
 			if ( !self::SIMULATION ) {
