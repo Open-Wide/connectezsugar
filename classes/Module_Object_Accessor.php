@@ -3,7 +3,7 @@
 class Module_Object_Accessor {
 	
 	protected $offset = 0;
-	protected $last_query;
+	protected $last_related_module;
 	protected $paquet = 500;
 	protected $sugar_connector;
 	const INIPATH = 'extension/connectezsugar/settings/';
@@ -41,50 +41,46 @@ class Module_Object_Accessor {
 		}
 	}
 	
-	public function get_sugar_ids_from_updated_relation( $relation, $since = TRUE ) {
-		$query = '';
-		if ( $since !== FALSE ) {
-			if ( $since === TRUE ) {
-				$timestamp = $this->get_last_synchro_date_time( 'import_module_relations' );
-			} else {
-				$timestamp = $since;
-			}
-			$relation_table = $relation[ 'name' ] . '_c';
-			$field_name     = $this->get_relation_field_name( $relation[ 'name' ] );
-			$sub_query      = 'SELECT ' . $field_name . ' FROM ' . $relation_table . ' WHERE date_modified >= "' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . '"';
-			$query          = $this->module_name . '.id IN (' . $sub_query . ')';
-			$this->cli->notice( $query );
-		}
-		return $this->get_sugar_ids( $query );
-	}
-	
-	protected function get_sugar_ids( $query = '' ) {
+	protected function get_sugar_ids( $related_module, $timestamp = '' ) {
 		
 		// OFFSET MANAGEMENT
-		if ( $this->last_query != $query ) {
+		if ( $this->last_related_module != $related_module ) {
 			$this->offset = 0;
 		}
-		$this->last_query = $query;
+		$this->last_related_module = $related_module;
 		
-		// SOAP REQUEST
-		if ($query) {
-			$this->cli->notice( 'offset = ' . $this->offset . ' - query = ' . $query );
+		if ($timestamp) {
+			$from_date = date('Y-m-d H:i:s', $timestamp); //'2012-08-10 23:00:00';
+			$to_date   = date('Y-m-d H:i:s');
+		} else {
+			$from_date = '1970-01-01 00:00:00';
+			$to_date   = date('Y-m-d H:i:s');
 		}
-		$entries = $this->sugar_connector->get_entry_list( $this->module_name, array( 'id' ), $this->offset, $this->paquet, $query );
+		$this->cli->notice( 'offset = ' . $this->offset . ' - related_module = ' . $related_module . ' - from=' . $from_date );
+		
+		$max_results = 99999;
+		$deleted = true;
+		
+		$entries = $this->sugar_connector->sync_get_relationships( $this->module_name, $related_module, $from_date, $to_date, $this->offset, $max_results, $deleted);
 		
 		// ERROR MANAGEMENT
 		if (
 			! is_array( $entries ) ||
-			! is_array( $entries[ 'data' ] ) || 
+			! isset( $entries[ 'data' ] ) ||
 			( isset($entries['error'] ) && $entries['error']['number'] !== '0' )
 		) {
-			$this->cli->notice( show( $entries ) );
-			throw new Exception( 'Erreur du Sugar connecteur sur la liste des entrées du module ' . $this->module_name );
+			if (isset( $entries[ 'error' ] ) && $entries[ 'error' ][ 'number' ] !== '0' ) {
+				throw new Exception( 'Erreur du Sugar connecteur sur la liste des entrées du module ' . $this->module_name . ' : ' . $entries[ 'error' ][ 'number' ] . ' - ' . $entries[ 'error' ][ 'name' ] . ' - ' . $entries[ 'error' ][ 'description' ] );
+			} else {
+				throw new Exception( 'Erreur du Sugar connecteur sur la liste des entrées du module ' . $this->module_name );
+			}
 		}
+		
+		$entries_decoded = unserialize( base64_decode( $entries[ 'data' ] ) );
 		
 		// TREATMENT
 		$sugar_ids = array( );
-		foreach ( $entries[ 'data' ] as $entry ) {
+		foreach ( $entries_decoded as $entry ) {
 			$sugar_ids[ ] = $entry[ 'id' ];
 		}
 		$this->cli->notice( '-- Checkpoint: ' . $this->offset . ' - entries: ' . count( $sugar_ids ) );
@@ -102,8 +98,7 @@ class Module_Object_Accessor {
 		} else {
 			$suffixe     = '_idb';
 		}
-		//return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE ); // OK EN LOCAL
-		return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, FALSE, 50 ); // OK EN PROD
+		return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE );
 	}
 	
 	// cf fonction identique côté sugarCRM getValidDBName()

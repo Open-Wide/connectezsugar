@@ -28,7 +28,7 @@ class Module extends Module_Object_Accessor {
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
-		while ( $sugar_ids = $this->get_sugar_ids( ) ) {
+		while ( $sugar_ids = $this->get_sugar_ids( $relation[ 'related_module_name' ] ) ) {
 			foreach ( $sugar_ids as $sugar_id ) {
 				try {
 					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
@@ -49,9 +49,11 @@ class Module extends Module_Object_Accessor {
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
 		
+		$timestamp = self::get_last_synchro_date_time( 'import_module_relations' );
+		
 		foreach ( $schema->get_relations() as $relation ) {
 			$this->cli->warning( 'Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] );
-			while ( $sugar_ids = $this->get_sugar_ids_from_updated_relation( $relation/*, mktime(16, 58, 16, 8, 1, 2012)*/ ) ) {
+			while ( $sugar_ids = $this->get_sugar_ids( $relation[ 'related_module_name' ], $timestamp ) ) {
 				foreach ( $sugar_ids as $sugar_id ) {
 					try {
 						$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );

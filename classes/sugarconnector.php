@@ -45,6 +45,7 @@ class SugarConnector
 		$query_standard_return = array( 'get_available_modules' => array( 'data' => 'modules' ),
 										'get_module_fields' 	=> array( 'data' => 'module_fields' ),
 										'get_entry_list' 		=> array( 'data' => 'entry_list' ),
+										'sync_get_relationships' => array( 'data' => 'entry_list' ),
 										'set_entry' 			=> array( 'data' => 'id' ),
 										'get_relationships'		=> array( 'data' => 'ids' ),
 										'get_entry'	=> array( 	'data' 				=> array( 'entry_list',0,'name_value_list'),
@@ -439,6 +440,23 @@ class SugarConnector
 			$name_value_lists[ ] = $this->name_value_list( $fields );
 		}
 		return $name_value_lists;
+	}
+	
+	public function sync_get_relationships( $module_name, $related_module, $from_date, $to_date, $offset, $max_results, $deleted ) {
+		$request = new eZSOAPRequest( 'sync_get_relationships', $this->serverNamespace );
+		$request->addParameter( 'session', self::$session );
+		$request->addParameter( 'module_name', $module_name );
+		$request->addParameter( 'related_module', $related_module );
+		$request->addParameter( 'from_date', $from_date );
+		$request->addParameter( 'to_date', $to_date );
+		$request->addParameter( 'offset', $offset);
+		$request->addParameter( 'max_results', $max_results );
+		$request->addParameter( 'deleted', $deleted );
+		
+		$reponse = $this->client->send( $request );
+		$result  = $reponse->Value;
+		
+		return $this->standardQueryReturn( $result, 'sync_get_relationships' );
 	}
 }
 ?>
