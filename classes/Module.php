@@ -28,10 +28,13 @@ class Module extends Module_Object_Accessor {
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
+		
 		while ( $sugar_ids = $this->get_sugar_ids( $relation ) ) {
+			$i = 1;
+			$count_sugar_ids = count( $sugar_ids );
 			foreach ( $sugar_ids as $sugar_id ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
+					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->import_relations( );
 					unset( $object );
 				} catch( Exception $e ) {
@@ -54,9 +57,11 @@ class Module extends Module_Object_Accessor {
 		foreach ( $schema->get_relations() as $relation ) {
 			$this->cli->warning( 'Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] );
 			while ( $sugar_ids = $this->get_sugar_ids( $relation, $timestamp ) ) {
+				$i = 1;
+				$count_sugar_ids = count( $sugar_ids );
 				foreach ( $sugar_ids as $sugar_id ) {
 					try {
-						$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
+						$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, ( $i++ . '/' . $count_sugar_ids ) );
 						$object->import_relation( $relation );
 						unset( $object );
 					} catch( Exception $e ) {
@@ -123,9 +128,11 @@ class Module extends Module_Object_Accessor {
 		$schema->load_editable_attributes( );
 		$ez_remote_ids = $this->get_ez_remote_ids_since_last_sync( 'export_module' );
 		
+		$i = 1;
+		$count_ez_remote_ids = count( $ez_remote_ids );
 		foreach ($ez_remote_ids as $ez_remote_id) {
 			try {
-				$object = new Module_Object( $this->module_name, $ez_remote_id, $schema, $this->cli );
+				$object = new Module_Object( $this->module_name, $ez_remote_id, $schema, $this->cli, ( $i++ . '/' . $count_ez_remote_ids ) );
 				$object->export( );
 				unset( $object );
 			} catch( Exception $e ) {
@@ -163,11 +170,13 @@ class Module extends Module_Object_Accessor {
 		$select_fields   = $this->load_include_fields( );
 		$select_fields[] = 'deleted';
 		
+		$i = 1;
+		$count_sugar_ids = count( $sugar_ids );
 		foreach ( $sugar_ids as $sugar_id ) {
 			$sugardata = $this->sugar_connector->get_entry( $this->module_name, $sugar_id, $select_fields );
 			if (isset ( $sugardata[ 'data' ] ) ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
+					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->update( $sugardata );
 					unset( $object );
 				} catch ( Exception $e) {
@@ -183,9 +192,11 @@ class Module extends Module_Object_Accessor {
 	private function import_module_objects_delete( $schema ) {
 		$sugar_ids_deleted = $this->get_sugar_ids_since_last_sync( 'import_module', true );
 		if ( count ( $sugar_ids_deleted ) ) {
-			foreach ( $sugar_ids_deleted as $sugar_id_deleted ) {
+			$i = 1;
+			$count_sugar_ids = count( $sugar_ids );
+			foreach ( $sugar_ids as $sugar_id ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id_deleted, $schema, $this->cli );
+					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->delete( );
 					unset( $object );
 				} catch ( Exception $e) {
