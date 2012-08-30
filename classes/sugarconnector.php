@@ -19,6 +19,7 @@ class SugarConnector
     private $password;
 	protected $logger;
     
+    public $testFieldNameRelation;
 	
 	public static function definition()
 	{
@@ -108,6 +109,7 @@ class SugarConnector
 		// chercher une autre façon de stockage plus securisé ?
         $this->login = $ini->variable("connexion", "login");
 		$this->password = $ini->variable("connexion", "password");
+		$this->testFieldNameRelation = $ini->variable( 'connexion', 'TestFieldNameRelation' );
         
         $this->client = new eZSOAPClient($this->serverUrl, $serverPath);
         

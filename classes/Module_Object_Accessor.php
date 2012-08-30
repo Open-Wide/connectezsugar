@@ -86,7 +86,9 @@ class Module_Object_Accessor {
 		$sugar_ids = array( );
 		foreach ( $entries_decoded as $entry ) {
 			if ( isset( $entry[ 'name_value_list' ] ) && isset( $entry[ 'name_value_list' ][ $relation_field_name ] ) && isset( $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ] ) ) {
-				$sugar_ids[ ] = $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ];
+				if ( !in_array( $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ], $sugar_ids ) ) {
+					$sugar_ids[ ] = $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ];
+				}
 			} else {
 				$this->cli->warning( 'Entry invalide' );
 			}
@@ -106,8 +108,14 @@ class Module_Object_Accessor {
 		} else {
 			$suffixe     = '_idb';
 		}
-		//return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE ); // Local OK
-		return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, FALSE, 50 ); // Prod OK
+		
+		if ( $this->sugar_connector->testFieldNameRelation == 'true' ) {
+			// Nommage des champs de relation de la forme "many_visi_5019p_visit_ida"
+			return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE ); // Local / Recette
+		} else {
+			// Nommage des champs de relation de la forme "many_visi_many_contotcp_visit_ida"
+			return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, FALSE, 50 ); // Prod
+		}
 	}
 	
 	// cf fonction identique côté sugarCRM getValidDBName()
