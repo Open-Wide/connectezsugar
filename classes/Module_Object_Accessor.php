@@ -41,7 +41,9 @@ class Module_Object_Accessor {
 		}
 	}
 	
-	protected function get_sugar_ids( $related_module, $timestamp = '' ) {
+	protected function get_sugar_ids( $relation, $timestamp = '' ) {
+		
+		$related_module = $relation[ 'related_module_name' ];
 		
 		// OFFSET MANAGEMENT
 		if ( $this->last_related_module != $related_module ) {
@@ -77,11 +79,17 @@ class Module_Object_Accessor {
 		}
 		
 		$entries_decoded = unserialize( base64_decode( $entries[ 'data' ] ) );
+		$this->cli->notice( show( $entries_decoded ) );
+		$relation_field_name = self::get_valid_db_name( $this->get_relation_field_name( $relation[ 'name' ] ) );
 		
 		// TREATMENT
 		$sugar_ids = array( );
 		foreach ( $entries_decoded as $entry ) {
-			$sugar_ids[ ] = $entry[ 'id' ];
+			if ( isset( $entry[ 'name_value_list' ] ) && isset( $entry[ 'name_value_list' ][ $relation_field_name ] ) && isset( $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ] ) ) {
+				$sugar_ids[ ] = $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ];
+			} else {
+				$this->cli->warning( 'Entry invalide' );
+			}
 		}
 		$this->cli->notice( '-- Checkpoint: ' . $this->offset . ' - entries: ' . count( $sugar_ids ) );
 		$this->offset += $this->paquet;

@@ -28,7 +28,7 @@ class Module extends Module_Object_Accessor {
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
-		while ( $sugar_ids = $this->get_sugar_ids( $relation[ 'related_module_name' ] ) ) {
+		while ( $sugar_ids = $this->get_sugar_ids( $relation ) ) {
 			foreach ( $sugar_ids as $sugar_id ) {
 				try {
 					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
@@ -53,7 +53,7 @@ class Module extends Module_Object_Accessor {
 		
 		foreach ( $schema->get_relations() as $relation ) {
 			$this->cli->warning( 'Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] );
-			while ( $sugar_ids = $this->get_sugar_ids( $relation[ 'related_module_name' ], $timestamp ) ) {
+			while ( $sugar_ids = $this->get_sugar_ids( $relation, $timestamp ) ) {
 				foreach ( $sugar_ids as $sugar_id ) {
 					try {
 						$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli );
