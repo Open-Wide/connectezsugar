@@ -287,7 +287,7 @@ class Module_Object {
 				}
 				unset($return);
 			}
-			$this->cli->notice( 'Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
+			$this->cli->notice( 'Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' (' . implode(', ', array_keys( $attributes ) ) . ') [memory=' . memory_get_usage_hr() . ']' . ( self::SIMULATION ? ' [SIMULATION]' : '' ) );
 		} else {
 			$this->cli->notice( 'Pas de modification de ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id . ' - ' . $this->ez_object->Name );
 		}

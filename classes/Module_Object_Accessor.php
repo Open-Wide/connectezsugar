@@ -78,9 +78,9 @@ class Module_Object_Accessor {
 			}
 		}
 		
-		$entries_decoded = unserialize( base64_decode( $entries[ 'data' ] ) );
-		$this->cli->notice( show( $entries_decoded ) );
-		$relation_field_name = self::get_valid_db_name( $this->get_relation_field_name( $relation[ 'name' ] ) );
+		$entries_decoded     = unserialize( base64_decode( $entries[ 'data' ] ) );
+		$relation_field_name = $this->get_relation_field_name( $relation[ 'name' ] );
+		$this->cli->notice( 'relation_field_name=' . $relation_field_name );
 		
 		// TREATMENT
 		$sugar_ids = array( );
@@ -106,7 +106,8 @@ class Module_Object_Accessor {
 		} else {
 			$suffixe     = '_idb';
 		}
-		return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE );
+		//return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE ); // Local OK
+		return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, FALSE, 50 ); // Prod OK
 	}
 	
 	// cf fonction identique côté sugarCRM getValidDBName()
