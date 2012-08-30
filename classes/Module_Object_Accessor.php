@@ -58,7 +58,6 @@ class Module_Object_Accessor {
 			$from_date = '1970-01-01 00:00:00';
 			$to_date   = date('Y-m-d H:i:s');
 		}
-		$this->cli->notice( 'offset = ' . $this->offset . ' - related_module = ' . $related_module . ' - from=' . $from_date );
 		
 		$max_results = 99999;
 		$deleted = true;
@@ -80,7 +79,6 @@ class Module_Object_Accessor {
 		
 		$entries_decoded     = unserialize( base64_decode( $entries[ 'data' ] ) );
 		$relation_field_name = $this->get_relation_field_name( $relation[ 'name' ] );
-		$this->cli->notice( 'relation_field_name=' . $relation_field_name );
 		
 		// TREATMENT
 		$sugar_ids = array( );
@@ -93,7 +91,7 @@ class Module_Object_Accessor {
 				$this->cli->warning( 'Entry invalide' );
 			}
 		}
-		$this->cli->notice( '-- Checkpoint: ' . $this->offset . ' - entries: ' . count( $sugar_ids ) );
+		$this->cli->notice( 'offset=' . $this->offset . ' - entries=' . count( $sugar_ids ) );
 		$this->offset += $this->paquet;
 		return $sugar_ids;
 	}
