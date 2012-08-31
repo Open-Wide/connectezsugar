@@ -8,11 +8,15 @@ class Module extends Module_Object_Accessor {
 	
 	protected $module_name = '';
 	protected $cli;
-	const SET_DATE_SYNCHRO = false; // @TODO Mettre à false pour faire des tests
+	public $save_date_synchro;
+	public $simulation;
 	
-	public function __construct( $module_name, $cli ) {
-		$this->module_name = $module_name;
-		$this->cli         = $cli;
+	public function __construct( $module_name, $cli, $simulation ) {
+		$this->module_name       = $module_name;
+		$this->cli               = $cli;
+		$this->simulation        = $simulation;
+		$this->cli->warning( '[' . $this->module_name . '] - mode Simulation : ' . ($this->simulation ? 'ON' : 'OFF') );
+		
 		parent::__construct( );
 	}
 
@@ -34,7 +38,7 @@ class Module extends Module_Object_Accessor {
 			$count_sugar_ids = count( $sugar_ids );
 			foreach ( $sugar_ids as $sugar_id ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, ( $i++ . '/' . $count_sugar_ids ) );
+					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->import_relations( );
 					unset( $object );
 				} catch( Exception $e ) {
@@ -61,7 +65,7 @@ class Module extends Module_Object_Accessor {
 				$count_sugar_ids = count( $sugar_ids );
 				foreach ( $sugar_ids as $sugar_id ) {
 					try {
-						$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, ( $i++ . '/' . $count_sugar_ids ) );
+						$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
 						$object->import_relation( $relation );
 						unset( $object );
 					} catch( Exception $e ) {
@@ -70,7 +74,7 @@ class Module extends Module_Object_Accessor {
 				}
 			}
 		}
-		if ( self::SET_DATE_SYNCHRO ) {
+		if ( !$this->simulation ) {
 			$this->set_last_synchro_date_time( 'import_module_relations' );
 		}
 	}
@@ -132,14 +136,14 @@ class Module extends Module_Object_Accessor {
 		$count_ez_remote_ids = count( $ez_remote_ids );
 		foreach ($ez_remote_ids as $ez_remote_id) {
 			try {
-				$object = new Module_Object( $this->module_name, $ez_remote_id, $schema, $this->cli, ( $i++ . '/' . $count_ez_remote_ids ) );
+				$object = new Module_Object( $this->module_name, $ez_remote_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_ez_remote_ids ) );
 				$object->export( );
 				unset( $object );
 			} catch( Exception $e ) {
 				$this->cli->error( $e->getMessage( ) );
 			}
 		}
-		if ( self::SET_DATE_SYNCHRO ) {
+		if ( !$this->simulation ) {
 			$this->set_last_synchro_date_time( 'export_module' );
 		}
 	}
@@ -159,7 +163,7 @@ class Module extends Module_Object_Accessor {
 		$this->import_module_objects_update( $schema );
 		$this->import_module_objects_delete( $schema );
 		
-		if ( self::SET_DATE_SYNCHRO ) {
+		if ( !$this->simulation ) {
 			$this->set_last_synchro_date_time( 'import_module' );
 		}
 	}
@@ -176,7 +180,7 @@ class Module extends Module_Object_Accessor {
 			$sugardata = $this->sugar_connector->get_entry( $this->module_name, $sugar_id, $select_fields );
 			if (isset ( $sugardata[ 'data' ] ) ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, ( $i++ . '/' . $count_sugar_ids ) );
+					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->update( $sugardata );
 					unset( $object );
 				} catch ( Exception $e) {
@@ -196,7 +200,7 @@ class Module extends Module_Object_Accessor {
 			$count_sugar_ids = count( $sugar_ids );
 			foreach ( $sugar_ids as $sugar_id ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, ( $i++ . '/' . $count_sugar_ids ) );
+					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->delete( );
 					unset( $object );
 				} catch ( Exception $e) {
