@@ -114,7 +114,7 @@ class Module_Object {
 						// En mode Simulation, on affiche plus de logs
 						if ( in_array( $data_types[ $data[ 'name' ] ], array( 'ezstring', 'ezselection' ) ) ) {
 							// Pour logguer des datatypes en particulier
-							$this->cli->warning( '- ' . $data_types[ $data[ 'name' ] ] . ' / ' . $data[ 'name' ] . ' => ' . $value );
+							$this->cli->notice( '- ' . $data_types[ $data[ 'name' ] ] . ' / ' . $data[ 'name' ] . ' => ' . $value );
 						}
 					}
 				}
@@ -381,7 +381,7 @@ class Module_Object {
 					$entry[ $field ] = utf8_encode( $value ); // Pour la prise en compte des accents côté Sugar
 					if ( $this->simulation ) {
 						// En mode Simulation, on affiche la liste des champs envoyés à Sugar 
-						$this->cli->notice( '- ' . $field . ' -> ' . $value );
+						//$this->cli->notice( '- ' . $field . ' -> ' . $value );
 					}
 				}
 			}
