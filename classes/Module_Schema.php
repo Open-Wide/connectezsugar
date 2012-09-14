@@ -10,6 +10,8 @@ class Module_Schema {
 	private $relations = array( );
 	private $attributes = array( );
 	public $editable_attributes = array( );
+	
+	public $logs = array();
 
 	public function __construct( $module_name, $cli ) {
 		$this->module_name         = $module_name;
@@ -140,9 +142,9 @@ class Module_Schema {
 			$fetch = $ez_class->fetchAttributeByIdentifier( $attribute[ 'identifier' ], FALSE );
 			if ( $fetch === NULL ) {
 				$this->create_class_attribute( $ez_class, $attribute[ 'type' ], $attribute[ 'identifier' ], $attribute[ 'name' ] );
-				$this->cli->notice( 'Attribut ' . $attribute[ 'identifier' ] . ' ajouté à la classe ' . $this->ez_class_name );
+				$this->notice( 'Attribut ' . $attribute[ 'identifier' ] . ' ajouté à la classe ' . $this->ez_class_name );
 			} else {
-				$this->cli->notice( 'Attribut trouvé : ' . $this->ez_class_name . '->' . $fetch[ 'identifier' ] . ' ' . $fetch[ 'id' ] );
+				$this->notice( 'Attribut trouvé : ' . $this->ez_class_name . '->' . $fetch[ 'identifier' ] . ' ' . $fetch[ 'id' ] );
 			}
 		}
 	}
@@ -183,7 +185,7 @@ class Module_Schema {
 	    $class = eZContentClass::fetch( $classId );
 	    if ( !$class )
 	    {
-	        $this->cli->error( 'Could not fetch class with ID: ' . $classId );
+	        $this->error( 'Could not fetch class with ID: ' . $classId );
 	        return;
 	    }
 	    $classAttributes = $class->fetchAttributes( );
@@ -287,6 +289,30 @@ class Module_Schema {
 	        $class->store( );
 	        $db->commit( );
 	    }
+	}
+	
+	protected function notice( $str ) {
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->notice( $str );
+		} else {
+			$this->logs[ ] = 'NOTICE : ' . $str;
+		}
+	}
+	
+	protected function warning( $str ) {
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->warning( $str );
+		} else {
+			$this->logs[ ] = '<font color="blue">WARNING : ' . $str . '</font>';
+		}
+	}
+	
+	protected function error( $str ) {
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->error( $str );
+		} else {
+			$this->logs[ ] = '<font color="red">ERROR : ' . $str . '</font>';
+		}
 	}
 }
 ?>
