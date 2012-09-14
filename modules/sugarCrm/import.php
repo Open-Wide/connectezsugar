@@ -37,8 +37,12 @@ if( is_null( $sugar_module ) or is_null( $sugar_id ) ) {
 	if (isset ( $sugardata[ 'data' ] ) ) {
 		try {
 			$schema = new Module_Schema( $sugar_module, $cli );
+			$schema->load_relations( );
+			
 			$object = new Module_Object( $sugar_module, $sugar_id, $schema, $cli, $simulation, $num_item );
 			$object->update( $sugardata );
+			$object->import_relations( );
+			
 			$notice[ ] = implode( '<br />', $object->logs );
 			unset( $object, $sugardata );
 		} catch ( Exception $e ) {
