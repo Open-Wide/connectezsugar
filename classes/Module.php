@@ -171,7 +171,7 @@ class Module extends Module_Object_Accessor {
 	// Ajout / Mises à jour des objets modifiés/ajoutés dans Sugar
 	private function import_module_objects_update( $schema ) {
 		$sugar_ids 		 = $this->get_sugar_ids_since_last_sync( 'import_module' );
-		$select_fields   = $this->load_include_fields( );
+		$select_fields   = self::load_include_fields( $this->module_name );
 		$select_fields[] = 'deleted';
 		
 		$i = 1;
@@ -182,7 +182,7 @@ class Module extends Module_Object_Accessor {
 				try {
 					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->update( $sugardata );
-					unset( $object );
+					unset( $object, $sugardata );
 				} catch ( Exception $e) {
 					$this->cli->error( $e->getMessage( ) );
 				}
@@ -211,11 +211,11 @@ class Module extends Module_Object_Accessor {
 	}
 	
 	// Chargement de la liste des champs à synchroniser SugarCRM vers eZ
-	protected function load_include_fields( ) {
+	public static function load_include_fields( $module_name ) {
 		$ini = eZIni::instance( 'mappingezsugar.ini' );
 		$include_fields = array( );
-		if ( $ini->hasVariable( $this->module_name, 'include_fields' ) ) {
-			foreach( $ini->variable( $this->module_name, 'include_fields' ) as $include_field ) {
+		if ( $ini->hasVariable( $module_name, 'include_fields' ) ) {
+			foreach( $ini->variable( $module_name, 'include_fields' ) as $include_field ) {
 				$include_fields[ ] = $include_field;
 			}
 		}

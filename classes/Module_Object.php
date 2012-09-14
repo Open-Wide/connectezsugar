@@ -12,6 +12,8 @@ class Module_Object {
 	private $num_item;
 	private $simulation;
 	
+	public $logs = array();
+	
 	/**
 	 * Constructor
 	 */
@@ -33,7 +35,7 @@ class Module_Object {
 	public function delete( ) {
 		$this->charge_ez_object( );
 		
-		$this->cli->warning( '[' . $this->num_item . '] Suppression de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object->ID . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+		$this->warning( '[' . $this->num_item . '] Suppression de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object->ID . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 		if ( !$this->simulation ) {
 			$this->ez_object->removeThis( ); // add to trash
 		}
@@ -44,7 +46,7 @@ class Module_Object {
 			$this->ez_object_id = $this->get_ez_object_id( $this->schema->ez_class_identifier, $this->sugar_id );
 			$this->ez_object    = eZContentObject::fetch( $this->ez_object_id );
 			
-			//$this->cli->notice( 'charge_ez_object ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' );
+			//$this->notice( 'charge_ez_object ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' );
 		}
 	}
 
@@ -73,13 +75,13 @@ class Module_Object {
 			if ($contentObject) {
 				$this->ez_object    = $contentObject;
 				$this->ez_object_id = $contentObject->ID;
-				$this->cli->warning( '[' . $this->num_item . '] Ajout de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+				$this->warning( '[' . $this->num_item . '] Ajout de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 				unset( $contentObject );
 			} else {
 				throw new Exception( '[' . $this->num_item . '] Ajout de ' . $this->schema->ez_class_identifier . ' impossible pour remote_id=' . $remote_id);
 			}
 		} else {
-			$this->cli->warning( '[' . $this->num_item . '] Ajout de ' . $this->schema->ez_class_identifier . ' remote_id=' . $remote_id . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+			$this->warning( '[' . $this->num_item . '] Ajout de ' . $this->schema->ez_class_identifier . ' remote_id=' . $remote_id . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 		}
 	}
 
@@ -114,7 +116,7 @@ class Module_Object {
 						// En mode Simulation, on affiche plus de logs
 						if ( in_array( $data_types[ $data[ 'name' ] ], array( 'ezstring', 'ezselection' ) ) ) {
 							// Pour logguer des datatypes en particulier
-							$this->cli->notice( '- ' . $data_types[ $data[ 'name' ] ] . ' / ' . $data[ 'name' ] . ' => ' . $value );
+							$this->notice( '- ' . $data_types[ $data[ 'name' ] ] . ' / ' . $data[ 'name' ] . ' => ' . $value );
 						}
 					}
 				}
@@ -165,7 +167,7 @@ class Module_Object {
 
 	private function import_relation_common($relation) {
 		$diff_related_ids = $this->diff_relations_common( $relation );
-		$this->cli->notice( '[' . $this->num_item . '] Relations common : à ajouter : ' . count( $diff_related_ids[ 'to_add' ] ) . ' - à supprimer : ' . count( $diff_related_ids[ 'to_remove' ] ) );
+		$this->notice( '[' . $this->num_item . '] Relations common : à ajouter : ' . count( $diff_related_ids[ 'to_add' ] ) . ' - à supprimer : ' . count( $diff_related_ids[ 'to_remove' ] ) );
 		$i = 1;
 		foreach ( $diff_related_ids[ 'to_add' ] as $related_ez_object_id ) {
 			if ( !$this->simulation ) {
@@ -173,7 +175,7 @@ class Module_Object {
 					throw new Exception( 'Erreur de eZ Publish, impossible d\'ajouter une relation entre ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
 				}
 			}
-			$this->cli->notice( '[' . $this->num_item . '-' . $i++ . '] Add relation between ' . $this->module_name . ' #'. $this->ez_object_id . ' ' . $this->ez_object->Name . ' and ' . $relation[ 'related_module_name' ] . ' #' . $related_ez_object_id . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+			$this->notice( '[' . $this->num_item . '-' . $i++ . '] Add relation between ' . $this->module_name . ' #'. $this->ez_object_id . ' ' . $this->ez_object->Name . ' and ' . $relation[ 'related_module_name' ] . ' #' . $related_ez_object_id . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 		}
 		$i = 1;
 		foreach ( $diff_related_ids[ 'to_remove' ] as $related_ez_object_id ) {
@@ -182,7 +184,7 @@ class Module_Object {
 					throw new Exception( 'Erreur de eZ Publish, impossible de supprimer une relation entre ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id .' et ' . $relation[ 'related_class_identifier' ] . '#' . $related_ez_object_id );
 				}
 			}
-			$this->cli->notice( '[' . $this->num_item . '-' . $i++ . '] Remove relation between ' . $this->module_name . ' #'. $this->ez_object_id . ' ' . $this->ez_object->Name . ' and ' . $relation[ 'related_module_name' ] . ' #' . $related_ez_object_id . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+			$this->notice( '[' . $this->num_item . '-' . $i++ . '] Remove relation between ' . $this->module_name . ' #'. $this->ez_object_id . ' ' . $this->ez_object->Name . ' and ' . $relation[ 'related_module_name' ] . ' #' . $related_ez_object_id . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 		}
 	}
 
@@ -249,7 +251,7 @@ class Module_Object {
 	private function import_relation_attribute_one($relation) {
 		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
 		if ( count( $related_ez_object_ids ) > 1 ) {
-			$this->cli->warning( 'Warning on va perdre des données de relation, many-many to one-many' );
+			$this->warning( 'Warning on va perdre des données de relation, many-many to one-many' );
 		}
 		if ( count( $related_ez_object_ids ) == 1 ) {
 			$attribute_value = $related_ez_object_ids[ 0 ];
@@ -290,10 +292,10 @@ class Module_Object {
 					throw new Exception( 'Erreur de eZ Publish, impossible de mettre à jour ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id );
 				}
 				unset($return);
-			}
-			$this->cli->notice( '[' . $this->num_item . '] Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+			} 
+			$this->notice( '[' . $this->num_item . '] Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 		} else {
-			$this->cli->notice( '[' . $this->num_item . '] Pas de modification de ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id . ' - ' . $this->ez_object->Name );
+			$this->notice( '[' . $this->num_item . '] Pas de modification de ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id . ' - ' . $this->ez_object->Name );
 		}
 	}
 
@@ -374,14 +376,14 @@ class Module_Object {
 		if ($this->ez_object_id) {
 			$entry   = array( );
 			$dataMap = $this->ez_object->fetchDataMap( FALSE );
-			$this->cli->notice( '[' . $this->num_item . '] Export de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object->ID . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+			$this->notice( '[' . $this->num_item . '] Export de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object->ID . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 			foreach ( $this->schema->editable_attributes as $field ) {
 				if ( isset( $dataMap[ $field ] ) ) {
 					$value = self::get_selected_value_ez($dataMap[ $field ]);
 					$entry[ $field ] = utf8_encode( $value ); // Pour la prise en compte des accents côté Sugar
 					if ( $this->simulation ) {
 						// En mode Simulation, on affiche la liste des champs envoyés à Sugar 
-						//$this->cli->notice( '- ' . $field . ' -> ' . $value );
+						//$this->notice( '- ' . $field . ' -> ' . $value );
 					}
 				}
 			}
@@ -412,6 +414,30 @@ class Module_Object {
 				//@TODO : Si d'autres types de champs éditables, les gérer dans un case
 				throw new Exception ('get_selected_value : ' . $datamap->DataTypeString . ' non traité !');
 			return false;
+		}
+	}
+	
+	protected function notice( $str ) {
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->notice( $str );
+		} else {
+			$this->logs[ ] = 'NOTICE : ' . $str;
+		}
+	}
+	
+	protected function warning( $str ) {
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->warning( $str );
+		} else {
+			$this->logs[ ] = '<font color="blue">WARNING : ' . $str . '</font>';
+		}
+	}
+	
+	protected function error( $str ) {
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->error( $str );
+		} else {
+			$this->logs[ ] = '<font color="red">ERROR : ' . $str . '</font>';
 		}
 	}
 }
