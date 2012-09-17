@@ -197,10 +197,10 @@ class Module extends Module_Object_Accessor {
 		$sugar_ids_deleted = $this->get_sugar_ids_since_last_sync( 'import_module', true );
 		if ( count ( $sugar_ids_deleted ) ) {
 			$i = 1;
-			$count_sugar_ids = count( $sugar_ids );
-			foreach ( $sugar_ids as $sugar_id ) {
+			$count_sugar_ids = count( $sugar_ids_deleted );
+			foreach ( $sugar_ids_deleted as $sugar_id_deleted ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
+					$object = new Module_Object( $this->module_name, $sugar_id_deleted, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->delete( );
 					unset( $object );
 				} catch ( Exception $e) {
