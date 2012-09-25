@@ -89,10 +89,42 @@ class Module_Object {
 	/**
 	 * Public
 	 */
+	
+	/* Import de toutes les relations (common / attribute) via le script de synchro */
 	public function import_relations() {
 		foreach ( $this->schema->get_relations( ) as $relation ) {
 			$this->import_relation( $relation );
 		}
+	}
+	/* Import des relationships uniquement via le script de synchro manuelle d'une fiche */
+	private function import_relations_common() {
+		foreach ( $this->schema->get_relations( ) as $relation ) {
+			if ( $relation[ 'type' ] == 'relation' ) {
+				$this->import_relation( $relation );
+			}
+		}
+	}
+	
+	/* Import manuel d'une fiche */
+	public function import( $datas ) {
+		// Récupération des relations sur attributs
+		$attributes_relation = $this->set_relations_attribute( );
+
+		// On merge avec les champs
+		foreach ( $attributes_relation as $k => $v ) {
+			$datas[ 'data' ][ ] = array(
+				'name' => $k,
+				'value' => $v,
+			);
+		}
+		/*foreach ( $datas[ 'data' ] as $k => $v ) {
+			$this->warning( 'datas ' . $k . ' => ' . implode(', ', array_values($v)) );
+		}*/
+		// On enregistre les données dans eZ avec création d'une nouvelle version
+		$this->update( $datas );
+		
+		// Enfin, import des relationships 
+		$this->import_relations_common( );
 	}
 
 	public function update ( $datas ) {
@@ -232,23 +264,46 @@ class Module_Object {
 		return $related_ez_object_ids;
 	}
 
-	private function import_relation_attribute($relation) {
+	private function import_relation_attribute( $relation ) {
 		if ( $relation[ 'attribute_type' ] == 'list' ) {
-			$this->import_relation_attribute_list($relation);
+			$this->import_relation_attribute_list( $relation );
 		} else {
-			$this->import_relation_attribute_one($relation);
+			$this->import_relation_attribute_one( $relation );
 		}
 	}
-
-	private function import_relation_attribute_list($relation) {
+	
+	/* On renvoie la liste des relations de type attribut */
+	private function set_relations_attribute( ) {
+		$attributes = array();
+		foreach ( $this->schema->get_relations( ) as $relation ) {
+			if ( $relation[ 'type' ] == 'attribute' ) {
+				$attributes_relation = $this->set_relation_attribute( $relation );
+				$attributes 		 = array_merge($attributes_relation, $attributes);
+			}
+		}
+		return $attributes;
+	}
+	
+	private function set_relation_attribute( $relation ) {
+		if ( $relation[ 'attribute_type' ] == 'list' ) {
+			return $this->set_relation_attribute_list( $relation );
+		} else {
+			return $this->set_relation_attribute_one( $relation );
+		}
+	}
+	
+	
+	/* On renvoie l'attribut dane le cas d'une relation Liste d'objets */
+	private function set_relation_attribute_list( $relation ) {
 		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
 		$attributes 		   = array(
 			$relation[ 'attribute_name' ] => implode( '-', $related_ez_object_ids ),
 		);
-		$this->update_ez_attribute_value( $this->get_ez_attribute_value( $attributes ) );
+		return $this->get_ez_attribute_value( $attributes );
 	}
-
-	private function import_relation_attribute_one($relation) {
+	
+	/* On renvoie l'attribut dans le cas d'une relation d'objet simple */
+	private function set_relation_attribute_one( $relation ) {
 		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
 		if ( count( $related_ez_object_ids ) > 1 ) {
 			$this->warning( 'Warning on va perdre des données de relation, many-many to one-many' );
@@ -262,7 +317,17 @@ class Module_Object {
 		$attributes = array(
 			$relation[ 'attribute_name' ] => $attribute_value,
 		);
-		$this->update_ez_attribute_value( $this->get_ez_attribute_value( $attributes ) );
+		return $this->get_ez_attribute_value( $attributes );
+	}
+
+	/* Lancement de la requête de màj d'eZ */
+	private function import_relation_attribute_list( $relation ) {
+		$this->update_ez_attribute_value( $this->set_relation_attribute_list( $relation ) );
+	}
+
+	/* Lancement de la requête de màj d'eZ */
+	private function import_relation_attribute_one( $relation ) {
+		$this->update_ez_attribute_value( $this->set_relation_attribute_one( $relation ) );
 	}
 	
 	private function get_ez_attribute_value( $attributes ) {
@@ -286,6 +351,14 @@ class Module_Object {
 	private function update_ez_attribute_value( $attributes ) {
 		
 		if ( count ( $attributes ) > 0) {
+			
+			if ( is_null( $this->cli ) ) {
+				// On log la liste exhaustive des modifs uniquement lors d'une synchro manuelle d'une fiche côté Sugar
+				foreach ( $attributes as $k => $v ) {
+					$this->notice( 'màj ' . $k . ' => ' . $v );
+				}
+			}
+			
 			if ( !$this->simulation ) {
 				$return = eZContentFunctions::updateAndPublishObject( $this->ez_object, array( 'attributes' => $attributes ) );
 				if ( ! $return ) {
