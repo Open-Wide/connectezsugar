@@ -40,8 +40,7 @@ if( is_null( $sugar_module ) or is_null( $sugar_id ) ) {
 			$schema->load_relations( );
 			
 			$object = new Module_Object( $sugar_module, $sugar_id, $schema, $cli, $simulation, $num_item );
-			$object->update( $sugardata );
-			$object->import_relations( );
+			$object->import( $sugardata );
 			
 			$notice[ ] = implode( '<br />', $object->logs );
 			unset( $object, $sugardata );
