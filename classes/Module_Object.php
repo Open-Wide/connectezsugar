@@ -427,7 +427,7 @@ class Module_Object {
 				return (string)$ezdatetime->timeStamp();
 					
 			default :
-				return html_entity_decode( $value );
+				return str_replace('&#039;', '\'', html_entity_decode( $value ) ); // Remplacement de l'apostrophe de Word
 		}
 	}
 
