@@ -194,6 +194,21 @@ class SmartCLI extends eZCLI
 		$this->gnotice("********************************************");
 		$this->emptyline();
 	}
+	
+	public function notice( $str ) {
+		eZDebug::writeDebug( 'NOTICE : ' . $str );
+		parent::notice( $str );
+	}
+	
+	public function warning( $str ) {
+		eZDebug::writeDebug( 'WARNING : ' . $str );
+		parent::warning( $str );
+	}
+	
+	public function error( $str ) {
+		eZDebug::writeDebug( 'ERROR : ' . $str );
+		parent::error( $str );
+	}
 
 	
 } // END of CLASS

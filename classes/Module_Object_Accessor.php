@@ -8,6 +8,8 @@ class Module_Object_Accessor {
 	protected $sugar_connector;
 	const INIPATH = 'extension/connectezsugar/settings/';
 	
+	public $logs = array();
+	
 	public function __construct( ) {
 		$this->sugar_connector = new SugarConnector();
 		if ( ! $this->sugar_connector->login() ) {
@@ -32,11 +34,11 @@ class Module_Object_Accessor {
 		
 		$ini_synchro->setVariable($block_name, 'last_synchro_' . $this->module_name, $datetime);
 		if ( $ini_synchro->save() ) {
-			$this->cli->notice( 'Sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name . ' : ' . $datetime );
+			$this->notice( 'Sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name . ' : ' . $datetime );
 			$ini_synchro->resetCache(); // Plusieurs scripts sont lancés successivement, on vide donc le cache à chaque sauvegarde pour ne pas réécrire des valeurs incorrectes
 			return $datetime;
 		} else {
-			$this->cli->error( 'Erreur lors de la sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name );
+			$this->error( 'Erreur lors de la sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name );
 			return false;
 		}
 	}
@@ -88,10 +90,10 @@ class Module_Object_Accessor {
 					$sugar_ids[ ] = $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ];
 				}
 			} else {
-				$this->cli->warning( 'Entry invalide' );
+				$this->warning( 'Entry invalide' );
 			}
 		}
-		$this->cli->notice( 'offset=' . $this->offset . ' - entries=' . count( $sugar_ids ) );
+		$this->notice( 'offset=' . $this->offset . ' - entries=' . count( $sugar_ids ) );
 		$this->offset += $this->paquet;
 		return $sugar_ids;
 	}
@@ -132,6 +134,29 @@ class Module_Object_Accessor {
 	        $result = substr ( $name, 0, 11 ) . substr ( $name, 11 - $maxLen + 5 );
 	    }
 	    return strtolower ( $result ) ;
+	}
+	
+	
+	
+	protected function notice( $str ) {
+		$this->logs[ ] = 'NOTICE : ' . $str;
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->notice( $str );
+		}
+	}
+	
+	protected function warning( $str ) {
+		$this->logs[ ] = 'WARNING : ' . $str;
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->warning( $str );
+		}
+	}
+	
+	protected function error( $str ) {
+		$this->logs[ ] = 'ERROR : ' . $str;
+		if ( !is_null( $this->cli ) ) {
+			$this->cli->error( $str );
+		}
 	}
 }
 ?>

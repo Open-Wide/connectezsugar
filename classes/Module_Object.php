@@ -491,26 +491,23 @@ class Module_Object {
 	}
 	
 	protected function notice( $str ) {
+		$this->logs[ ] = 'NOTICE : ' . $str;
 		if ( !is_null( $this->cli ) ) {
 			$this->cli->notice( $str );
-		} else {
-			$this->logs[ ] = 'NOTICE : ' . $str;
 		}
 	}
 	
 	protected function warning( $str ) {
+		$this->logs[ ] = 'WARNING : ' . $str;
 		if ( !is_null( $this->cli ) ) {
 			$this->cli->warning( $str );
-		} else {
-			$this->logs[ ] = '<font color="blue">WARNING : ' . $str . '</font>';
 		}
 	}
 	
 	protected function error( $str ) {
+		$this->logs[ ] = 'ERROR : ' . $str;
 		if ( !is_null( $this->cli ) ) {
 			$this->cli->error( $str );
-		} else {
-			$this->logs[ ] = '<font color="red">ERROR : ' . $str . '</font>';
 		}
 	}
 }

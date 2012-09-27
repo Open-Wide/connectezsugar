@@ -15,7 +15,7 @@ class Module extends Module_Object_Accessor {
 		$this->module_name       = $module_name;
 		$this->cli               = $cli;
 		$this->simulation        = $simulation !== false ? true : false;
-		$this->cli->warning( '[' . $this->module_name . '] - mode Simulation : ' . ($this->simulation ? 'ON' : 'OFF') );
+		$this->warning( '[' . $this->module_name . '] - mode Simulation : ' . ($this->simulation ? 'ON' : 'OFF') );
 		
 		parent::__construct( );
 		
@@ -32,7 +32,7 @@ class Module extends Module_Object_Accessor {
 	// Import de toutes les relations, sans check sur la date de dernière modification
 	public function import_module_relations_all( ) {
 		
-		$this->cli->warning( 'import_module_relations_all [memory=' . memory_get_usage_hr() . ']' );
+		$this->warning( 'import_module_relations_all [memory=' . memory_get_usage_hr() . ']' );
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
@@ -46,16 +46,18 @@ class Module extends Module_Object_Accessor {
 					$object->import_relations( );
 					unset( $object );
 				} catch( Exception $e ) {
-					$this->cli->error( $e->getMessage( ) );
+					$this->error( $e->getMessage( ) );
 				}
 			}
 		}
+		$this->logs[ ] = '------------------';
+		eZDebug::writeDebug( implode( "\n", $this->logs ) );
 	}
 	
 	// Import des relations depuis la date de dernière modification côté SugarCRM
 	public function import_module_relations() {
 		
-		$this->cli->warning( 'import_module_relations [memory=' . memory_get_usage_hr() . ']' );
+		$this->warning( 'import_module_relations [memory=' . memory_get_usage_hr() . ']' );
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
@@ -63,7 +65,7 @@ class Module extends Module_Object_Accessor {
 		$timestamp = self::get_last_synchro_date_time( 'import_module_relations' );
 		
 		foreach ( $schema->get_relations() as $relation ) {
-			$this->cli->warning( 'Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] );
+			$this->warning( 'Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] );
 			while ( $sugar_ids = $this->get_sugar_ids( $relation, $timestamp ) ) {
 				$i = 1;
 				$count_sugar_ids = count( $sugar_ids );
@@ -73,7 +75,7 @@ class Module extends Module_Object_Accessor {
 						$object->import_relation( $relation );
 						unset( $object );
 					} catch( Exception $e ) {
-						$this->cli->error( $e->getMessage( ) );
+						$this->error( $e->getMessage( ) );
 					}
 				}
 			}
@@ -81,12 +83,14 @@ class Module extends Module_Object_Accessor {
 		if ( !$this->simulation ) {
 			$this->set_last_synchro_date_time( 'import_module_relations' );
 		}
+		$this->logs[ ] = '------------------';
+		eZDebug::writeDebug( implode( "\n", $this->logs ) );
 	}
 	
 	// Check de la cohérence des data (différences entre eZ et Sugar)
 	public function check( ) {
 		
-		$this->cli->notice( 'Check de la cohérence des bases eZ et Sugar ... work in progress ...' );
+		$this->notice( 'Check de la cohérence des bases eZ et Sugar ... work in progress ...' );
 		
 		$sugar_ids 	   = array( ); // Tableau qui contiendra les ID SugarCRM modifiés, donc à récupérer côté eZ
 		$select_fields = array( 'id' );
@@ -97,7 +101,7 @@ class Module extends Module_Object_Accessor {
 		$deleted	   = false;
 		$sugardata     = $this->sugar_connector->get_entry_list( $this->module_name, $select_fields, $offset, $max_results, $query, $order_by, $deleted );
 		
-		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' dans SugarCRM : ' . count( $sugardata[ 'data' ] ) );
+		$this->warning( 'Nb d\'objets ' . $this->module_name . ' dans SugarCRM : ' . count( $sugardata[ 'data' ] ) );
 		
 		$ez_remote_ids 	  = array();
 		$ini 		   	  = eZIni::instance( 'otcp.ini' );
@@ -116,31 +120,31 @@ class Module extends Module_Object_Accessor {
 		);
 		$nodes = eZFunctionHandler::execute( 'content', 'list', $params );
 		
-		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' dans eZPublish : ' . count( $nodes ) );
+		$this->warning( 'Nb d\'objets ' . $this->module_name . ' dans eZPublish : ' . count( $nodes ) );
 		
 		if ( count( $nodes ) != count( $sugardata[ 'data' ] ) ) {
 			
-			$this->cli->notice( 'Chargement des nodes eZ ...' );
+			$this->notice( 'Chargement des nodes eZ ...' );
 			foreach ( $nodes as $node ) {
 				$remote_id = $node->object()->remoteID( );
 				// On a un ID du genre "room_e7bd0519-2802-69ce-1f2f-501941f1e8e0", on supprime le préfixe "room_" pour ne conserver que l'ID
 				list($ez_class_identifier, $sugar_id) = explode('_', $remote_id, 2);
 				$ez_remote_ids[ ] = $sugar_id;
 			}
-			$this->cli->notice( 'Chargement des remote_ids Sugar ...' );
+			$this->notice( 'Chargement des remote_ids Sugar ...' );
 			foreach ( $sugardata[ 'data' ] as $data ) {
 				$sugar_ids[ ] = $data[ 'id' ];
 			}
 			
 			$diff = array_diff( $sugar_ids, $ez_remote_ids );
 			if ( count( $diff ) ) {
-				$this->cli->warning( count( $diff ) . ' éléments dans Sugar absents dans eZ' );
+				$this->warning( count( $diff ) . ' éléments dans Sugar absents dans eZ' );
 				$cpt = 1;
 				foreach ( $diff as $diff_sugar_id ) {
 					$select_fields = array( 'name', 'deleted' );
 					$sugardata = $this->sugar_connector->get_entry( $this->module_name, $diff_sugar_id, $select_fields );
 					if ( isset( $sugardata['data'] ) && isset( $sugardata['data'][0] ) ) {
-						$this->cli->notice( '[' . $cpt . '] ' . $diff_sugar_id . ' - ' . $sugardata['data'][0]['value'] );
+						$this->notice( '[' . $cpt . '] ' . $diff_sugar_id . ' - ' . $sugardata['data'][0]['value'] );
 					}
 					$cpt++;
 				}
@@ -149,14 +153,14 @@ class Module extends Module_Object_Accessor {
 			// Au cas où, check de l'existence d'objets dans eZ mais pas dans Sugar
 			$diff = array_diff( $ez_remote_ids, $sugar_ids );
 			if ( count( $diff ) ) {
-				$this->cli->warning( count( $diff ) . ' éléments dans eZ absents dans Sugar !!' );
+				$this->warning( count( $diff ) . ' éléments dans eZ absents dans Sugar !!' );
 				$cpt = 1;
 				foreach ( $diff as $diff_remote_id ) {
 					$object_found = eZContentObject::fetchByRemoteID( $diff_remote_id );
 					if ( $object_found ) {
-						$this->cli->notice( '[' . $cpt . '] ' . $diff_remote_id . $object_found->Name );
+						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . $object_found->Name );
 					} else {
-						$this->cli->notice( '[' . $cpt . '] ' . $diff_remote_id . ' Objet introuvable');
+						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' Objet introuvable');
 					}
 					$cpt++;
 				}
@@ -204,7 +208,7 @@ class Module extends Module_Object_Accessor {
 			list($ez_class_identifier, $sugar_id) = explode('_', $remote_id, 2);
 			$ez_remote_ids[ ] = $sugar_id;
 		}
-		$this->cli->warning( 'Nb d\'objets ' . $class_identifier . ' modifiés dans eZ depuis le ' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . ' : ' . count($ez_remote_ids) );
+		$this->warning( 'Nb d\'objets ' . $class_identifier . ' modifiés dans eZ depuis le ' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . ' : ' . count($ez_remote_ids) );
 		
 		return $ez_remote_ids;
 	}
@@ -212,7 +216,7 @@ class Module extends Module_Object_Accessor {
 	// Export des objets eZ vers SugarCRM (valeurs des champs éditables)
 	public function export_module_objects() {
 		
-		$this->cli->warning( 'export_module_objects [memory=' . memory_get_usage_hr() . ']' );
+		$this->warning( 'export_module_objects [memory=' . memory_get_usage_hr() . ']' );
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_editable_attributes( );
@@ -228,12 +232,14 @@ class Module extends Module_Object_Accessor {
 				$object->export( );
 				unset( $object );
 			} catch( Exception $e ) {
-				$this->cli->error( $e->getMessage( ) );
+				$this->error( $e->getMessage( ) );
 			}
 		}
 		if ( !$this->simulation ) {
 			$this->set_last_synchro_date_time( 'export_module' );
 		}
+		$this->logs[ ] = '------------------';
+		eZDebug::writeDebug( implode( "\n", $this->logs ) );
 	}
 	
 	/*
@@ -244,7 +250,7 @@ class Module extends Module_Object_Accessor {
 		
 		//@TODO Création classe eZ si absente (import initial)
 		
-		$this->cli->warning( 'import_module_objects [memory=' . memory_get_usage_hr() . ']' );
+		$this->warning( 'import_module_objects [memory=' . memory_get_usage_hr() . ']' );
 
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		
@@ -254,6 +260,8 @@ class Module extends Module_Object_Accessor {
 		if ( !$this->simulation ) {
 			$this->set_last_synchro_date_time( 'import_module' );
 		}
+		$this->logs[ ] = '------------------';
+		eZDebug::writeDebug( implode( "\n", $this->logs ) );
 	}
 	
 	// Ajout / Mises à jour des objets modifiés/ajoutés dans Sugar
@@ -270,12 +278,13 @@ class Module extends Module_Object_Accessor {
 				try {
 					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
 					$object->update( $sugardata );
+					$this->logs = array_merge( $this->logs, $object->logs );
 					unset( $object, $sugardata );
 				} catch ( Exception $e) {
-					$this->cli->error( $e->getMessage( ) );
+					$this->error( $e->getMessage( ) );
 				}
 			} else {
-				$this->cli->error('Aucune donnée récupérée par get_entry() pour ID=' . $sugar_id);
+				$this->error('Aucune donnée récupérée par get_entry() pour ID=' . $sugar_id);
 			}
 		}
 	}
@@ -289,10 +298,11 @@ class Module extends Module_Object_Accessor {
 			foreach ( $sugar_ids_deleted as $sugar_id_deleted ) {
 				try {
 					$object = new Module_Object( $this->module_name, $sugar_id_deleted, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
+					$this->logs = array_merge( $this->logs, $object->logs );
 					$object->delete( );
 					unset( $object );
 				} catch ( Exception $e) {
-					$this->cli->error( $e->getMessage( ) );
+					$this->error( $e->getMessage( ) );
 				}
 			}
 		}
@@ -330,7 +340,7 @@ class Module extends Module_Object_Accessor {
 			}
 		}
 		
-		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' ' . ( $deleted ? 'supprimés' : 'modifiés' ) . ' dans SugarCRM depuis le ' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . ' : ' . count($sugar_ids) );
+		$this->warning( 'Nb d\'objets ' . $this->module_name . ' ' . ( $deleted ? 'supprimés' : 'modifiés' ) . ' dans SugarCRM depuis le ' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . ' : ' . count($sugar_ids) );
 		
 		return $sugar_ids;
 	}
