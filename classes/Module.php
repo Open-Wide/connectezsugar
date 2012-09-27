@@ -97,12 +97,7 @@ class Module extends Module_Object_Accessor {
 		$deleted	   = false;
 		$sugardata     = $this->sugar_connector->get_entry_list( $this->module_name, $select_fields, $offset, $max_results, $query, $order_by, $deleted );
 		
-		if ( isset( $sugardata['data'] ) ) {
-			foreach ( $sugardata['data'] as $data ) {
-				$sugar_ids[ ] = $data['id'];
-			}
-		}
-		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' dans SugarCRM : ' . count($sugar_ids) );
+		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' dans SugarCRM : ' . count( $sugardata[ 'data' ] ) );
 		
 		$ez_remote_ids 	  = array();
 		$ini 		   	  = eZIni::instance( 'otcp.ini' );
@@ -120,25 +115,51 @@ class Module extends Module_Object_Accessor {
 			'class_filter_array' => array( $class_identifier ),
 		);
 		$nodes = eZFunctionHandler::execute( 'content', 'list', $params );
-		foreach ($nodes as $node) {
-			$remote_id = $node->object()->remoteID( );
-			// On a un ID du genre "room_e7bd0519-2802-69ce-1f2f-501941f1e8e0", on supprime le préfixe "room_" pour ne conserver que l'ID
-			list($ez_class_identifier, $sugar_id) = explode('_', $remote_id, 2);
-			$ez_remote_ids[ ] = $sugar_id;
-		}
 		
-		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' dans eZPublish : ' . count( $ez_remote_ids ) );
+		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' dans eZPublish : ' . count( $nodes ) );
 		
-		if ( count( $ez_remote_ids ) != count( $sugar_ids ) ) {
+		if ( count( $nodes ) != count( $sugardata[ 'data' ] ) ) {
+			
+			$this->cli->notice( 'Chargement des nodes eZ ...' );
+			foreach ( $nodes as $node ) {
+				$remote_id = $node->object()->remoteID( );
+				// On a un ID du genre "room_e7bd0519-2802-69ce-1f2f-501941f1e8e0", on supprime le préfixe "room_" pour ne conserver que l'ID
+				list($ez_class_identifier, $sugar_id) = explode('_', $remote_id, 2);
+				$ez_remote_ids[ ] = $sugar_id;
+			}
+			$this->cli->notice( 'Chargement des remote_ids Sugar ...' );
+			foreach ( $sugardata[ 'data' ] as $data ) {
+				$sugar_ids[ ] = $data[ 'id' ];
+			}
+			
 			$diff = array_diff( $sugar_ids, $ez_remote_ids );
-			$this->cli->warning( count( $diff ) . ' éléments dans Sugar absents dans eZ' );
-			$cpt = 1;
-			foreach ( $diff as $diff_sugar_id ) {
-				$select_fields = array( 'name', 'deleted' );
-				$sugardata = $this->sugar_connector->get_entry( $this->module_name, $diff_sugar_id, $select_fields );
-				if ( isset( $sugardata['data'] ) && isset( $sugardata['data'][0] ) )
-				$this->cli->notice( '[' . $cpt . '] ' . $diff_sugar_id . ' - ' . $sugardata['data'][0]['value'] );
-				$cpt++;
+			if ( count( $diff ) ) {
+				$this->cli->warning( count( $diff ) . ' éléments dans Sugar absents dans eZ' );
+				$cpt = 1;
+				foreach ( $diff as $diff_sugar_id ) {
+					$select_fields = array( 'name', 'deleted' );
+					$sugardata = $this->sugar_connector->get_entry( $this->module_name, $diff_sugar_id, $select_fields );
+					if ( isset( $sugardata['data'] ) && isset( $sugardata['data'][0] ) ) {
+						$this->cli->notice( '[' . $cpt . '] ' . $diff_sugar_id . ' - ' . $sugardata['data'][0]['value'] );
+					}
+					$cpt++;
+				}
+			}
+			
+			// Au cas où, check de l'existence d'objets dans eZ mais pas dans Sugar
+			$diff = array_diff( $ez_remote_ids, $sugar_ids );
+			if ( count( $diff ) ) {
+				$this->cli->warning( count( $diff ) . ' éléments dans eZ absents dans Sugar !!' );
+				$cpt = 1;
+				foreach ( $diff as $diff_remote_id ) {
+					$object_found = eZContentObject::fetchByRemoteID( $diff_remote_id );
+					if ( $object_found ) {
+						$this->cli->notice( '[' . $cpt . '] ' . $diff_remote_id . $object_found->Name );
+					} else {
+						$this->cli->notice( '[' . $cpt . '] ' . $diff_remote_id . ' Objet introuvable');
+					}
+					$cpt++;
+				}
 			}
 		}
 		
