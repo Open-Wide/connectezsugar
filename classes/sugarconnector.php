@@ -135,7 +135,7 @@ class SugarConnector
     {
     	if ( self::$session === FALSE ) { 
     		echo 'SugarConnector login - ' . $this->serverUrl . PHP_EOL;
-    		$this->logger->writeTimedString('Connexion à ' . $this->serverUrl);
+    		//$this->logger->writeTimedString('Connexion à ' . $this->serverUrl);
     		
 	    	if(is_null($login))
 	    		$login = $this->login;
