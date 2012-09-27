@@ -14,7 +14,7 @@ class Module extends Module_Object_Accessor {
 	public function __construct( $module_name, $cli, $simulation ) {
 		$this->module_name       = $module_name;
 		$this->cli               = $cli;
-		$this->simulation        = $simulation;
+		$this->simulation        = $simulation !== false ? true : false;
 		$this->cli->warning( '[' . $this->module_name . '] - mode Simulation : ' . ($this->simulation ? 'ON' : 'OFF') );
 		
 		parent::__construct( );
