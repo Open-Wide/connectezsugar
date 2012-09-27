@@ -20,7 +20,7 @@ if ( !isset( $arguments[ 1 ] ) || !isset( $arguments[ 2 ] ) ) {
 	$sugarConnector = new SugarConnector();
 	$connection     = $sugarConnector->login();
 	
-	$simulation     = ( $arguments[ 2 ] != 'sync' );
+	$simulation     = $arguments[ 2 ];
 	$all            = isset ( $arguments[ 3 ] );
 	
 	$cli->notice("*******************************************");
