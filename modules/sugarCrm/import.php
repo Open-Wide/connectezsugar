@@ -16,7 +16,7 @@ if( is_null( $sugar_module ) or is_null( $sugar_id ) ) {
 
 	$ez_identifier = Module_Schema::get_ez_class_identifier( $sugar_module );
 	
-	eZDebug::writeNotice( 'remote_id = ' . $ez_identifier . '_' . $sugar_id );
+	eZDebug::writeDebug( '[SugarCRM => eZ] remote_id = ' . $ez_identifier . '_' . $sugar_id );
 	
 	try {
 		$sugarConnector = new SugarConnector( );
@@ -39,6 +39,7 @@ if( is_null( $sugar_module ) or is_null( $sugar_id ) ) {
 			$object->import( $sugardata );
 			
 			$notice[ ] = implode( '<br />', $object->logs );
+			eZDebug::writeDebug( implode( "\n", array_merge( $object->logs, array('--------------') ) ) );
 			unset( $object, $sugardata );
 		} catch ( Exception $e ) {
 			$result[ ] = $e->getMessage( );
