@@ -28,12 +28,14 @@ if ( !isset( $arguments[ 1 ] ) || !isset( $arguments[ 2 ] ) ) {
 	$cli->notice("*******************************************");
 	
 	$module = new Module( $sugarmodule, $cli, $simulation );
-	if ( $all ) {
-		$cli->notice( '** Import all relations' );
-		$module->import_module_relations_all( );
-	} else {
-		$cli->notice( '** Import relations from last synchro' );
-		$module->import_module_relations( );
+	if ( $simulation != 'check' ) {
+		if ( $all ) {
+			$cli->notice( '** Import all relations' );
+			$module->import_module_relations_all( );
+		} else {
+			$cli->notice( '** Import relations from last synchro' );
+			$module->import_module_relations( );
+		}
 	}
 }
 
