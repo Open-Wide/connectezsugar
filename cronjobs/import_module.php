@@ -9,7 +9,16 @@ $cli = SmartCLI::instance();
 $cli->setIsQuiet(false);
 $cli->beginout('import_module.php');
 
-$arguments   = array_slice( $_SERVER['argv'], 1 );
+$arguments = array_slice( $_SERVER['argv'], 1 );
+
+if ( in_array($arguments[ 0 ], array('--debug', '--logfiles' ) ) ) {
+	$slice = 1;
+	if ( in_array($arguments[ 1 ], array('--debug', '--logfiles' ) ) ) {
+		$slice++;
+	}
+	$arguments = array_slice( $arguments, $slice );
+}
+
 $sugarmodule = $arguments[ 1 ];
 
 if ( !isset( $arguments[ 1 ] ) || !isset( $arguments[ 2 ] ) ) {
@@ -21,7 +30,7 @@ if ( !isset( $arguments[ 1 ] ) || !isset( $arguments[ 2 ] ) ) {
 	$connection     = $sugarConnector->login();
 	
 	$simulation = $arguments[ 2 ];
-	
+
 	$cli->notice('*******************************************');
 	$cli->notice("Sugar Module : $sugarmodule");
 	$cli->notice('*******************************************');

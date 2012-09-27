@@ -34,7 +34,7 @@ if ( !isset( $arguments[ 1 ] ) ) {
 	
 	foreach ( $modules_list as $sugarmodule ) {
 	    $cli->gnotice("Mémoire utilisée debut export module $sugarmodule : " . memory_get_usage_hr());
-	    exec("php runcronjobs.php exportmodule $sugarmodule $simulation");  
+	    exec("php runcronjobs.php --debug --logfiles exportmodule $sugarmodule $simulation");  
 	    gc_collect_cycles();
 	    $cli->gnotice("Mémoire utilisée fin export module : " . memory_get_usage_hr());
 	}
