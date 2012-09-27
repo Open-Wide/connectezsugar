@@ -18,6 +18,10 @@ class Module extends Module_Object_Accessor {
 		$this->cli->warning( '[' . $this->module_name . '] - mode Simulation : ' . ($this->simulation ? 'ON' : 'OFF') );
 		
 		parent::__construct( );
+		
+		if ( $simulation == 'check' ) {
+			$this->check( );
+		}
 	}
 
 	public function __destruct() {
@@ -77,6 +81,67 @@ class Module extends Module_Object_Accessor {
 		if ( !$this->simulation ) {
 			$this->set_last_synchro_date_time( 'import_module_relations' );
 		}
+	}
+	
+	// Check de la cohérence des data (différences entre eZ et Sugar)
+	public function check( ) {
+		
+		$this->cli->notice( 'Check de la cohérence des bases eZ et Sugar ... work in progress ...' );
+		
+		$sugar_ids 	   = array( ); // Tableau qui contiendra les ID SugarCRM modifiés, donc à récupérer côté eZ
+		$select_fields = array( 'id' );
+		$offset 	   = 0;
+		$max_results   = 99999;
+		$query 		   = '';
+		$order_by	   = '';
+		$deleted	   = false;
+		$sugardata     = $this->sugar_connector->get_entry_list( $this->module_name, $select_fields, $offset, $max_results, $query, $order_by, $deleted );
+		
+		if ( isset( $sugardata['data'] ) ) {
+			foreach ( $sugardata['data'] as $data ) {
+				$sugar_ids[ ] = $data['id'];
+			}
+		}
+		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' dans SugarCRM : ' . count($sugar_ids) );
+		
+		$ez_remote_ids 	  = array();
+		$ini 		   	  = eZIni::instance( 'otcp.ini' );
+		$class_identifier = Module_Schema::get_ez_class_identifier( $this->module_name );
+		
+		// Hack pour otcp_accommodation : la valeur de crmDirectories vaut acco au lieu de accomodation ?!?
+		if ( $this->module_name == 'otcp_accommodation' ) {
+			$identifier = 'acco';
+		} else {
+			$identifier = $class_identifier;
+		}
+		$params = array(
+			'parent_node_id'     => $ini->variable( 'crmDirectories', $identifier ),
+			'class_filter_type'  => 'include',
+			'class_filter_array' => array( $class_identifier ),
+		);
+		$nodes = eZFunctionHandler::execute( 'content', 'list', $params );
+		foreach ($nodes as $node) {
+			$remote_id = $node->object()->remoteID( );
+			// On a un ID du genre "room_e7bd0519-2802-69ce-1f2f-501941f1e8e0", on supprime le préfixe "room_" pour ne conserver que l'ID
+			list($ez_class_identifier, $sugar_id) = explode('_', $remote_id, 2);
+			$ez_remote_ids[ ] = $sugar_id;
+		}
+		
+		$this->cli->warning( 'Nb d\'objets ' . $this->module_name . ' dans eZPublish : ' . count( $ez_remote_ids ) );
+		
+		if ( count( $ez_remote_ids ) != count( $sugar_ids ) ) {
+			$diff = array_diff( $sugar_ids, $ez_remote_ids );
+			$this->cli->warning( count( $diff ) . ' éléments dans Sugar absents dans eZ' );
+			$cpt = 1;
+			foreach ( $diff as $diff_sugar_id ) {
+				$select_fields = array( 'name', 'deleted' );
+				$sugardata = $this->sugar_connector->get_entry( $this->module_name, $diff_sugar_id, $select_fields );
+				if ( isset( $sugardata['data'] ) && isset( $sugardata['data'][0] ) )
+				$this->cli->notice( '[' . $cpt . '] ' . $diff_sugar_id . ' - ' . $sugardata['data'][0]['value'] );
+				$cpt++;
+			}
+		}
+		
 	}
 	
 	/*
