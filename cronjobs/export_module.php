@@ -20,14 +20,16 @@ if ( !isset( $arguments[ 2 ] ) ) {
 	$sugarConnector = new SugarConnector();
 	$connection = $sugarConnector->login();
 	
-	$simulation = ( $arguments[ 2 ] != 'sync' );
+	$simulation = $arguments[ 2 ];
 	
 	$cli->notice('*******************************************');
 	$cli->notice("Sugar Module : $sugarmodule");
 	$cli->notice('*******************************************');
 	
 	$module = new Module( $sugarmodule, $cli, $simulation );
-	$module->export_module_objects( );
+	if ( $simulation != 'check' ) {
+		$module->export_module_objects( );
+	}
 }
 $cli->endout('export_module.php');
 ?>
