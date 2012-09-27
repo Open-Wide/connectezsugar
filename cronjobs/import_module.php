@@ -14,7 +14,7 @@ $sugarmodule = $arguments[ 1 ];
 
 if ( !isset( $arguments[ 1 ] ) || !isset( $arguments[ 2 ] ) ) {
 	$cli->error( "Usage:    php runcronjobs.php import_module <sugar_module> <mode> " );
-	$cli->error( "Example:  php runcronjobs.php import_module $sugarmodule [ sync | simul ]" );
+	$cli->error( "Example:  php runcronjobs.php import_module $sugarmodule [ sync | simul | check ]" );
 } else {
 	// connexion à SUGAR
 	$sugarConnector = new SugarConnector();
@@ -27,7 +27,9 @@ if ( !isset( $arguments[ 1 ] ) || !isset( $arguments[ 2 ] ) ) {
 	$cli->notice('*******************************************');
 	
 	$module = new Module( $sugarmodule, $cli, $simulation );
-	$module->import_module_objects( );
+	if ( $simulation != 'check' ) {
+		$module->import_module_objects( );
+	}
 }
 $cli->endout('import_module.php');
 ?>
