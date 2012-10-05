@@ -5,20 +5,20 @@ class Module_Object_Accessor {
 	protected $offset = 0;
 	protected $last_related_module;
 	protected $paquet = 500;
-	protected $sugar_connector;
+	protected $connector;
 	const INIPATH = 'extension/connectezsugar/settings/';
 	
 	public $logs = array();
 	
 	public function __construct( ) {
-		$this->sugar_connector = new SugarConnector();
-		if ( ! $this->sugar_connector->login() ) {
-			throw new Exception( 'Impossible de se connecter avec le Sugar Connector' );
+		$this->connector = new SugarConnector();
+		if ( ! $this->connector->login() ) {
+			throw new Exception( 'Connexion Impossible' );
 		}
 	}
 
 	public function __destruct( ) {
-		unset( $this->sugar_connector );
+		unset( $this->connector );
 	}
 	
 	protected function get_last_synchro_date_time( $block_name ) {
@@ -43,7 +43,7 @@ class Module_Object_Accessor {
 		}
 	}
 	
-	protected function get_sugar_ids( $relation, $timestamp = '' ) {
+	protected function get_remote_ids( $relation, $timestamp = '' ) {
 		
 		$related_module = $relation[ 'related_module_name' ];
 		
@@ -64,7 +64,7 @@ class Module_Object_Accessor {
 		$max_results = 99999;
 		$deleted = true;
 		
-		$entries = $this->sugar_connector->sync_get_relationships( $this->module_name, $related_module, $from_date, $to_date, $this->offset, $max_results, $deleted);
+		$entries = $this->connector->sync_get_relationships( $this->module_name, $related_module, $from_date, $to_date, $this->offset, $max_results, $deleted);
 		
 		// ERROR MANAGEMENT
 		if (
@@ -73,9 +73,9 @@ class Module_Object_Accessor {
 			( isset($entries['error'] ) && $entries['error']['number'] !== '0' )
 		) {
 			if (isset( $entries[ 'error' ] ) && $entries[ 'error' ][ 'number' ] !== '0' ) {
-				throw new Exception( 'Erreur du Sugar connecteur sur la liste des entrées du module ' . $this->module_name . ' : ' . $entries[ 'error' ][ 'number' ] . ' - ' . $entries[ 'error' ][ 'name' ] . ' - ' . $entries[ 'error' ][ 'description' ] );
+				throw new Exception( 'Erreur du connecteur sur la liste des entrées du module ' . $this->module_name . ' : ' . $entries[ 'error' ][ 'number' ] . ' - ' . $entries[ 'error' ][ 'name' ] . ' - ' . $entries[ 'error' ][ 'description' ] );
 			} else {
-				throw new Exception( 'Erreur du Sugar connecteur sur la liste des entrées du module ' . $this->module_name );
+				throw new Exception( 'Erreur du connecteur sur la liste des entrées du module ' . $this->module_name );
 			}
 		}
 		
@@ -83,19 +83,19 @@ class Module_Object_Accessor {
 		$relation_field_name = $this->get_relation_field_name( $relation[ 'name' ] );
 		
 		// TREATMENT
-		$sugar_ids = array( );
+		$remote_ids = array( );
 		foreach ( $entries_decoded as $entry ) {
 			if ( isset( $entry[ 'name_value_list' ] ) && isset( $entry[ 'name_value_list' ][ $relation_field_name ] ) && isset( $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ] ) ) {
-				if ( !in_array( $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ], $sugar_ids ) ) {
-					$sugar_ids[ ] = $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ];
+				if ( !in_array( $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ], $remote_ids ) ) {
+					$remote_ids[ ] = $entry[ 'name_value_list' ][ $relation_field_name ][ 'value' ];
 				}
 			} else {
 				$this->warning( 'Entry invalide' );
 			}
 		}
-		$this->notice( 'offset=' . $this->offset . ' - entries=' . count( $sugar_ids ) );
+		$this->notice( 'offset=' . $this->offset . ' - entries=' . count( $remote_ids ) );
 		$this->offset += $this->paquet;
-		return $sugar_ids;
+		return $remote_ids;
 	}
 	
 	
@@ -109,7 +109,7 @@ class Module_Object_Accessor {
 			$suffixe     = '_idb';
 		}
 		
-		if ( $this->sugar_connector->testFieldNameRelation == 'true' ) {
+		if ( $this->connector->testFieldNameRelation == 'true' ) {
 			// Nommage des champs de relation de la forme "many_visi_5019p_visit_ida"
 			return self::get_valid_db_name( $relation_name . $this->module_name . $suffixe, TRUE ); // Local / Recette
 		} else {
@@ -118,7 +118,7 @@ class Module_Object_Accessor {
 		}
 	}
 	
-	// cf fonction identique côté sugarCRM getValidDBName()
+	// cf fonction identique côté CRM getValidDBName()
 	static function get_valid_db_name($name, $ensureUnique = false, $maxLen = 30) {
 		
 	    // first strip any invalid characters - all but alphanumerics and -

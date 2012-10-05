@@ -30,8 +30,8 @@ class Module_Schema {
 	}
 	
 	public function load_relations( ) {
-		$this->load_relations_sugar_schema( );
-		$this->load_relations_ez_sugar_mapping( );
+		$this->load_relations_crm_schema( );
+		$this->load_relations_ez_crm_mapping( );
 		$this->valid_ez_attributes( );
 	}
 	
@@ -77,7 +77,7 @@ class Module_Schema {
 	
 	
 	/* PRIVATE METHODS */
-	private function load_relations_sugar_schema( ) {
+	private function load_relations_crm_schema( ) {
 		$ini = eZIni::instance( 'mappingezsugar.ini' );
 		if ( $ini->hasVariable( $this->module_name, 'relations_names' ) ) {
 			foreach( $ini->variable( $this->module_name, 'relations_names' ) as $related_module_name => $relation_name ) {
@@ -95,7 +95,7 @@ class Module_Schema {
 		}
 	}
 		
-	private function load_relations_ez_sugar_mapping( ) {
+	private function load_relations_ez_crm_mapping( ) {
 		$ini = eZIni::instance( 'mappingezsugarschema.ini' );
 		if ( $ini->hasVariable( $this->module_name, 'relation_to_attribute_type' ) ) {
 			$attribute_type = $ini->variable( $this->module_name, 'relation_to_attribute_type' );

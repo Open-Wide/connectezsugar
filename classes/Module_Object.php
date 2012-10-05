@@ -3,12 +3,12 @@
 class Module_Object {
 
 	private $module_name = '';
-	private $sugar_id;
+	private $remote_id;
 	private $schema;
 	private $cli;
 	private $ez_object_id;
 	private $ez_object;
-	private $sugar_connector;
+	private $connector;
 	private $num_item;
 	private $simulation;
 	
@@ -17,18 +17,18 @@ class Module_Object {
 	/**
 	 * Constructor
 	 */
-	public function __construct( $module_name, $sugar_id, $schema, $cli, $simulation, $num_item ) {
+	public function __construct( $module_name, $remote_id, $schema, $cli, $simulation, $num_item ) {
 		$this->module_name     = $module_name;
-		$this->sugar_id        = $sugar_id;
+		$this->remote_id       = $remote_id;
 		$this->schema          = $schema;
 		$this->cli             = $cli;
 		$this->simulation	   = $simulation;
 		$this->num_item		   = $num_item;
-		$this->sugar_connector = new SugarConnector();
+		$this->connector       = new SugarConnector();
 	}
 
 	public function __destruct() {
-		unset( $this->sugar_connector, $this->schema, $this->ez_object );
+		unset( $this->connector, $this->schema, $this->ez_object );
 		eZContentObject::clearCache();
 	}
 	
@@ -43,7 +43,7 @@ class Module_Object {
 	
 	private function charge_ez_object() {
 		if (!$this->ez_object_id) {
-			$this->ez_object_id = $this->get_ez_object_id( $this->schema->ez_class_identifier, $this->sugar_id );
+			$this->ez_object_id = $this->get_ez_object_id( $this->schema->ez_class_identifier, $this->remote_id );
 			$this->ez_object    = eZContentObject::fetch( $this->ez_object_id );
 			
 			//$this->notice( 'charge_ez_object ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' );
@@ -52,7 +52,7 @@ class Module_Object {
 
 	public function create_ez_object( $attributes ) {
 		$ini 			= eZINI::instance('owobjectsmaster.ini.append.php');
-		$remote_id		= $this->schema->ez_class_identifier . '_' . $this->sugar_id;
+		$remote_id		= $this->schema->ez_class_identifier . '_' . $this->remote_id;
 		$parent_node_id = $ini->variable( 'Tree', 'DefaultParentNodeID' );
 		
 		if ( $ini->hasVariable( 'Tree', 'ClassParentNodeID' ) ) {
@@ -129,7 +129,7 @@ class Module_Object {
 
 	public function update ( $datas ) {
 		if ( isset( $datas[ 'data' ] ) ) {
-			$remote_id    = $this->schema->ez_class_identifier . '_' . $this->sugar_id;
+			$remote_id    = $this->schema->ez_class_identifier . '_' . $this->remote_id;
 			$object_found = eZContentObject::fetchByRemoteID( $remote_id );
 			
 			$attributes_list = eZContentClass::fetchAttributes($this->schema->ez_class_id);
@@ -142,7 +142,7 @@ class Module_Object {
 			$attributes = array( );
 			foreach ( $datas [ 'data' ] as $data ) {
 				if ( isset($data_types[ $data[ 'name' ] ]) ) {
-					$value = $this->get_selected_value_sugar( $data, $data_types[ $data[ 'name' ] ] );
+					$value = $this->get_selected_value_remote( $data, $data_types[ $data[ 'name' ] ] );
 					$attributes[ $data[ 'name' ] ] = $value;
 					if ( $this->simulation ) {
 						// En mode Simulation, on affiche plus de logs
@@ -169,15 +169,15 @@ class Module_Object {
 				unset( $object_found );
 			}
 		} else {
-			throw new Exception( 'Pas de data envoyées pour ID=' . $this->sugar_id );
+			throw new Exception( 'Pas de data envoyées pour ID=' . $this->remote_id );
 		}
 	}
 
 	/**
 	 * Private Import
 	 */
-	private function get_ez_object_id($ez_class_identifier, $sugar_id) {
-		$remote_id    = $ez_class_identifier . "_" . $sugar_id;
+	private function get_ez_object_id($ez_class_identifier, $remote_id) {
+		$remote_id    = $ez_class_identifier . "_" . $remote_id;
 		$ez_object_id = owObjectsMaster::objectIDByRemoteID($remote_id);
 		
 		if ($ez_object_id === false) {
@@ -221,7 +221,7 @@ class Module_Object {
 	}
 
 	private function diff_relations_common( $relation ) {
-		$new_related_ez_object_ids     = $this->get_related_ez_object_ids_by_sugar( $relation );
+		$new_related_ez_object_ids     = $this->get_related_ez_object_ids_by_crm( $relation );
 		$current_related_ez_object_ids = $this->get_related_ez_object_ids_by_ez( $relation );
 		return array(
 			'to_add'    => array_diff( $new_related_ez_object_ids    , $current_related_ez_object_ids ),
@@ -229,15 +229,15 @@ class Module_Object {
 		);
 	}
 
-	private function get_related_ez_object_ids_by_sugar( $relation ) {
+	private function get_related_ez_object_ids_by_crm( $relation ) {
 		$related_ez_object_ids = array( );
 		try {
-			$values = $this->sugar_connector->get_relationships($this->module_name, $this->sugar_id, $relation[ 'related_module_name' ]);
+			$values = $this->connector->get_relationships($this->module_name, $this->remote_id, $relation[ 'related_module_name' ]);
 		} catch ( Exception $e ) {
-			throw new Exception( 'Exception du Sugar connecteur sur la liste des relations entre ' . $this->module_name . ' #' . $this->sugar_id .' et ' . $relation[ 'related_module_name' ] );
+			throw new Exception( 'Exception du connecteur sur la liste des relations entre ' . $this->module_name . ' #' . $this->remote_id .' et ' . $relation[ 'related_module_name' ] );
 		}
 		if ( ! is_array( $values ) || ( isset($values['error'] ) && $values['error']['number'] !== '0' ) ) {
-			throw new Exception( 'Erreur du Sugar connecteur sur la liste des relations entre ' . $this->module_name . ' #' . $this->sugar_id .' et ' . $relation[ 'related_module_name' ] );
+			throw new Exception( 'Erreur du connecteur sur la liste des relations entre ' . $this->module_name . ' #' . $this->remote_id .' et ' . $relation[ 'related_module_name' ] );
 		}
 		foreach ( $values[ 'data' ] as $value ) {
 			$related_ez_object_ids[ ] = $this->get_ez_object_id( $relation['related_class_identifier'], $value['id'] );
@@ -295,7 +295,7 @@ class Module_Object {
 	
 	/* On renvoie l'attribut dane le cas d'une relation Liste d'objets */
 	private function set_relation_attribute_list( $relation ) {
-		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
+		$related_ez_object_ids = $this->get_related_ez_object_ids_by_crm( $relation );
 		$attributes 		   = array(
 			$relation[ 'attribute_name' ] => implode( '-', $related_ez_object_ids ),
 		);
@@ -304,7 +304,7 @@ class Module_Object {
 	
 	/* On renvoie l'attribut dans le cas d'une relation d'objet simple */
 	private function set_relation_attribute_one( $relation ) {
-		$related_ez_object_ids = $this->get_related_ez_object_ids_by_sugar( $relation );
+		$related_ez_object_ids = $this->get_related_ez_object_ids_by_crm( $relation );
 		if ( count( $related_ez_object_ids ) > 1 ) {
 			$this->warning( 'Warning on va perdre des données de relation, many-many to one-many' );
 		}
@@ -353,7 +353,7 @@ class Module_Object {
 		if ( count ( $attributes ) > 0) {
 			
 			if ( is_null( $this->cli ) ) {
-				// On log la liste exhaustive des modifs uniquement lors d'une synchro manuelle d'une fiche côté Sugar
+				// On log la liste exhaustive des modifs uniquement lors d'une synchro manuelle d'une fiche côté CRM
 				foreach ( $attributes as $k => $v ) {
 					$this->notice( 'màj ' . $k . ' => ' . $v );
 				}
@@ -372,8 +372,8 @@ class Module_Object {
 		}
 	}
 
-	// Renvoie la valeur de l'élément sélectionné dans Sugar pour être récupérée dans eZ
-	private function get_selected_value_sugar( $data, $datatype ) {
+	// Renvoie la valeur de l'élément sélectionné dans le CRM pour être récupérée dans eZ
+	private function get_selected_value_remote( $data, $datatype ) {
 			
 		$value = $data[ 'value' ];
 			
@@ -432,12 +432,12 @@ class Module_Object {
 	}
 
 	/**
-	 * EXPORT SugarCRM
+	 * EXPORT CRM
 	 */
 
 	/**
 	 *
-	 * Synchro Ez Publish vers SugarCRM
+	 * Synchro Ez Publish vers CRM
 	 */
 	public function export() {
 		$this->export_data();
@@ -453,18 +453,18 @@ class Module_Object {
 			foreach ( $this->schema->editable_attributes as $field ) {
 				if ( isset( $dataMap[ $field ] ) ) {
 					$value = self::get_selected_value_ez($dataMap[ $field ]);
-					$entry[ $field ] = utf8_encode( $value ); // Pour la prise en compte des accents côté Sugar
+					$entry[ $field ] = utf8_encode( $value ); // Pour la prise en compte des accents côté CRM
 					if ( $this->simulation ) {
-						// En mode Simulation, on affiche la liste des champs envoyés à Sugar 
+						// En mode Simulation, on affiche la liste des champs envoyés au CRM 
 						//$this->notice( '- ' . $field . ' -> ' . $value );
 					}
 				}
 			}
 			if ( !$this->simulation ) {
-				$this->sugar_connector->set_entry( $this->module_name, $this->sugar_id, $entry );
+				$this->connector->set_entry( $this->module_name, $this->remote_id, $entry );
 			}
 		} else {
-			throw new Exception( 'ez_object_id vide pour ID=' . $this->sugar_id );
+			throw new Exception( 'ez_object_id vide pour ID=' . $this->remote_id );
 		}
 	}
 

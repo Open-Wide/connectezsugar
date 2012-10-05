@@ -37,12 +37,12 @@ class Module extends Module_Object_Accessor {
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_relations( );
 		
-		while ( $sugar_ids = $this->get_sugar_ids( $relation ) ) {
+		while ( $remote_ids = $this->get_remote_ids( $relation ) ) {
 			$i = 1;
-			$count_sugar_ids = count( $sugar_ids );
-			foreach ( $sugar_ids as $sugar_id ) {
+			$count_remote_ids = count( $remote_ids );
+			foreach ( $remote_ids as $remote_id ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
+					$object = new Module_Object( $this->module_name, $remote_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_remote_ids ) );
 					$object->import_relations( );
 					unset( $object );
 				} catch( Exception $e ) {
@@ -54,7 +54,7 @@ class Module extends Module_Object_Accessor {
 		eZDebug::writeDebug( implode( "\n", $this->logs ) );
 	}
 	
-	// Import des relations depuis la date de dernière modification côté SugarCRM
+	// Import des relations depuis la date de dernière modification côté CRM
 	public function import_module_relations() {
 		
 		$this->warning( 'import_module_relations [memory=' . memory_get_usage_hr() . ']' );
@@ -66,12 +66,12 @@ class Module extends Module_Object_Accessor {
 		
 		foreach ( $schema->get_relations() as $relation ) {
 			$this->warning( 'Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] );
-			while ( $sugar_ids = $this->get_sugar_ids( $relation, $timestamp ) ) {
+			while ( $remote_ids = $this->get_remote_ids( $relation, $timestamp ) ) {
 				$i = 1;
-				$count_sugar_ids = count( $sugar_ids );
-				foreach ( $sugar_ids as $sugar_id ) {
+				$count_remote_ids = count( $remote_ids );
+				foreach ( $remote_ids as $remote_id ) {
 					try {
-						$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
+						$object = new Module_Object( $this->module_name, $remote_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_remote_ids ) );
 						$object->import_relation( $relation );
 						unset( $object );
 					} catch( Exception $e ) {
@@ -87,21 +87,21 @@ class Module extends Module_Object_Accessor {
 		eZDebug::writeDebug( implode( "\n", $this->logs ) );
 	}
 	
-	// Check de la cohérence des data (différences entre eZ et Sugar)
+	// Check de la cohérence des data (différences entre eZ et le CRM)
 	public function check( ) {
 		
-		$this->notice( 'Check de la cohérence des bases eZ et Sugar ... work in progress ...' );
+		$this->notice( 'Check de la cohérence des bases eZ et le CRM ... work in progress ...' );
 		
-		$sugar_ids 	   = array( ); // Tableau qui contiendra les ID SugarCRM modifiés, donc à récupérer côté eZ
+		$remote_ids    = array( ); // Tableau qui contiendra les ID CRM modifiés, donc à récupérer côté eZ
 		$select_fields = array( 'id' );
 		$offset 	   = 0;
 		$max_results   = 99999;
 		$query 		   = '';
 		$order_by	   = '';
 		$deleted	   = false;
-		$sugardata     = $this->sugar_connector->get_entry_list( $this->module_name, $select_fields, $offset, $max_results, $query, $order_by, $deleted );
+		$remotedata     = $this->connector->get_entry_list( $this->module_name, $select_fields, $offset, $max_results, $query, $order_by, $deleted );
 		
-		$this->warning( 'Nb d\'objets ' . $this->module_name . ' dans SugarCRM : ' . count( $sugardata[ 'data' ] ) );
+		$this->warning( 'Nb d\'objets ' . $this->module_name . ' dans le CRM : ' . count( $remotedata[ 'data' ] ) );
 		
 		$ez_remote_ids 	  = array();
 		$ini 		   	  = eZIni::instance( 'otcp.ini' );
@@ -122,38 +122,38 @@ class Module extends Module_Object_Accessor {
 		
 		$this->warning( 'Nb d\'objets ' . $this->module_name . ' dans eZPublish : ' . count( $nodes ) );
 		
-		if ( count( $nodes ) != count( $sugardata[ 'data' ] ) ) {
+		if ( count( $nodes ) != count( $remotedata[ 'data' ] ) ) {
 			
 			$this->notice( 'Chargement des nodes eZ ...' );
 			foreach ( $nodes as $node ) {
 				$remote_id = $node->object()->remoteID( );
 				// On a un ID du genre "room_e7bd0519-2802-69ce-1f2f-501941f1e8e0", on supprime le préfixe "room_" pour ne conserver que l'ID
-				list($ez_class_identifier, $sugar_id) = explode('_', $remote_id, 2);
-				$ez_remote_ids[ ] = $sugar_id;
+				list($ez_class_identifier, $remote_id) = explode('_', $remote_id, 2);
+				$ez_remote_ids[ ] = $remote_id;
 			}
-			$this->notice( 'Chargement des remote_ids Sugar ...' );
-			foreach ( $sugardata[ 'data' ] as $data ) {
-				$sugar_ids[ ] = $data[ 'id' ];
+			$this->notice( 'Chargement des remote_ids CRM ...' );
+			foreach ( $remotedata[ 'data' ] as $data ) {
+				$remote_ids[ ] = $data[ 'id' ];
 			}
 			
-			$diff = array_diff( $sugar_ids, $ez_remote_ids );
+			$diff = array_diff( $remote_ids, $ez_remote_ids );
 			if ( count( $diff ) ) {
-				$this->warning( count( $diff ) . ' éléments dans Sugar absents dans eZ' );
+				$this->warning( count( $diff ) . ' éléments dans le CRM absents dans eZ' );
 				$cpt = 1;
-				foreach ( $diff as $diff_sugar_id ) {
+				foreach ( $diff as $diff_remote_id ) {
 					$select_fields = array( 'name', 'deleted' );
-					$sugardata = $this->sugar_connector->get_entry( $this->module_name, $diff_sugar_id, $select_fields );
-					if ( isset( $sugardata['data'] ) && isset( $sugardata['data'][0] ) ) {
-						$this->notice( '[' . $cpt . '] ' . $diff_sugar_id . ' - ' . $sugardata['data'][0]['value'] );
+					$remotedata = $this->connector->get_entry( $this->module_name, $diff_remote_id, $select_fields );
+					if ( isset( $remotedata['data'] ) && isset( $remotedata['data'][0] ) ) {
+						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' - ' . $remotedata['data'][0]['value'] );
 					}
 					$cpt++;
 				}
 			}
 			
-			// Au cas où, check de l'existence d'objets dans eZ mais pas dans Sugar
-			$diff = array_diff( $ez_remote_ids, $sugar_ids );
+			// Au cas où, check de l'existence d'objets dans eZ mais pas dans le CRM
+			$diff = array_diff( $ez_remote_ids, $remote_ids );
 			if ( count( $diff ) ) {
-				$this->warning( count( $diff ) . ' éléments dans eZ absents dans Sugar !!' );
+				$this->warning( count( $diff ) . ' éléments dans eZ absents dans le CRM !!' );
 				$cpt = 1;
 				foreach ( $diff as $diff_remote_id ) {
 					$object_found = eZContentObject::fetchByRemoteID( $diff_remote_id );
@@ -170,14 +170,14 @@ class Module extends Module_Object_Accessor {
 	}
 	
 	/*
-	 * EXPORT vers SugarCRM
+	 * EXPORT vers le CRM
 	 */
 	
 	protected function get_ez_remote_ids_since_last_sync( $mode ) {
 		return $this->get_ez_remote_ids( $this->get_last_synchro_date_time( $mode ) );
 	}
 	
-	// Liste des ID SugarCRM dont l'objet eZ a été modifié => à envoyer à Sugar
+	// Liste des ID CRM dont l'objet eZ a été modifié => à envoyer au CRM
 	protected function get_ez_remote_ids( $timestamp = false ) {
 		
 		$ez_remote_ids 	  = array();
@@ -205,22 +205,22 @@ class Module extends Module_Object_Accessor {
 		foreach ($nodes as $node) {
 			$remote_id = $node->object()->remoteID( );
 			// On a un ID du genre "room_e7bd0519-2802-69ce-1f2f-501941f1e8e0", on supprime le préfixe "room_" pour ne conserver que l'ID
-			list($ez_class_identifier, $sugar_id) = explode('_', $remote_id, 2);
-			$ez_remote_ids[ ] = $sugar_id;
+			list($ez_class_identifier, $remote_id) = explode('_', $remote_id, 2);
+			$ez_remote_ids[ ] = $remote_id;
 		}
 		$this->warning( 'Nb d\'objets ' . $class_identifier . ' modifiés dans eZ depuis le ' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . ' : ' . count($ez_remote_ids) );
 		
 		return $ez_remote_ids;
 	}
 	
-	// Export des objets eZ vers SugarCRM (valeurs des champs éditables)
+	// Export des objets eZ vers le CRM (valeurs des champs éditables)
 	public function export_module_objects() {
 		
 		$this->warning( 'export_module_objects [memory=' . memory_get_usage_hr() . ']' );
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_editable_attributes( );
-		// Liste des remote_ids dont l'objet eZ a été modifié depuis le dernier import des données Sugar
+		// Liste des remote_ids dont l'objet eZ a été modifié depuis le dernier import des données du CRM
 		// Pas depuis le dernier export, sinon on exporterait toujours toute la liste des objets importées lors de la précédente synchro, l'export étant lancé à chaque fois juste avant l'import
 		$ez_remote_ids = $this->get_ez_remote_ids_since_last_sync( 'import_module' );
 		
@@ -243,7 +243,7 @@ class Module extends Module_Object_Accessor {
 	}
 	
 	/*
-	 * IMPORT depuis SugarCRM
+	 * IMPORT depuis le CRM
 	 */
 	
 	public function import_module_objects() {
@@ -264,40 +264,40 @@ class Module extends Module_Object_Accessor {
 		eZDebug::writeDebug( implode( "\n", $this->logs ) );
 	}
 	
-	// Ajout / Mises à jour des objets modifiés/ajoutés dans Sugar
+	// Ajout / Mises à jour des objets modifiés/ajoutés dans le CRM
 	private function import_module_objects_update( $schema ) {
-		$sugar_ids 		 = $this->get_sugar_ids_since_last_sync( 'import_module' );
+		$remote_ids  	 = $this->get_remote_ids_since_last_sync( 'import_module' );
 		$select_fields   = self::load_include_fields( $this->module_name );
 		$select_fields[] = 'deleted';
 		
 		$i = 1;
-		$count_sugar_ids = count( $sugar_ids );
-		foreach ( $sugar_ids as $sugar_id ) {
-			$sugardata = $this->sugar_connector->get_entry( $this->module_name, $sugar_id, $select_fields );
-			if (isset ( $sugardata[ 'data' ] ) ) {
+		$count_remote_ids = count( $remote_ids );
+		foreach ( $remote_ids as $remote_id ) {
+			$remotedata = $this->connector->get_entry( $this->module_name, $remote_id, $select_fields );
+			if (isset ( $remotedata[ 'data' ] ) ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
-					$object->update( $sugardata );
+					$object = new Module_Object( $this->module_name, $remote_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_remote_ids ) );
+					$object->update( $remotedata );
 					$this->logs = array_merge( $this->logs, $object->logs );
-					unset( $object, $sugardata );
+					unset( $object, $remotedata );
 				} catch ( Exception $e) {
 					$this->error( $e->getMessage( ) );
 				}
 			} else {
-				$this->error('Aucune donnée récupérée par get_entry() pour ID=' . $sugar_id);
+				$this->error('Aucune donnée récupérée par get_entry() pour ID=' . $remote_id);
 			}
 		}
 	}
 	
-	// Suppression des objets supprimés dans Sugar
+	// Suppression des objets supprimés dans le CRM
 	private function import_module_objects_delete( $schema ) {
-		$sugar_ids_deleted = $this->get_sugar_ids_since_last_sync( 'import_module', true );
-		if ( count ( $sugar_ids_deleted ) ) {
+		$remote_ids_deleted = $this->get_remote_ids_since_last_sync( 'import_module', true );
+		if ( count ( $remote_ids_deleted ) ) {
 			$i = 1;
-			$count_sugar_ids = count( $sugar_ids_deleted );
-			foreach ( $sugar_ids_deleted as $sugar_id_deleted ) {
+			$count_remote_ids = count( $remote_ids_deleted );
+			foreach ( $remote_ids_deleted as $remote_id_deleted ) {
 				try {
-					$object = new Module_Object( $this->module_name, $sugar_id_deleted, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_sugar_ids ) );
+					$object = new Module_Object( $this->module_name, $remote_id_deleted, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_remote_ids ) );
 					$this->logs = array_merge( $this->logs, $object->logs );
 					$object->delete( );
 					unset( $object );
@@ -308,7 +308,7 @@ class Module extends Module_Object_Accessor {
 		}
 	}
 	
-	// Chargement de la liste des champs à synchroniser SugarCRM vers eZ
+	// Chargement de la liste des champs à synchroniser CRM vers eZ
 	public static function load_include_fields( $module_name ) {
 		$ini = eZIni::instance( 'mappingezsugar.ini' );
 		$include_fields = array( );
@@ -320,29 +320,29 @@ class Module extends Module_Object_Accessor {
 		return $include_fields;
 	}
 	
-	protected function get_sugar_ids_since_last_sync( $mode, $deleted = false ) {
-		return $this->get_sugar_ids_from_updated_attributes( $this->get_last_synchro_date_time( $mode ), $deleted );
+	protected function get_remote_ids_since_last_sync( $mode, $deleted = false ) {
+		return $this->get_remote_ids_from_updated_attributes( $this->get_last_synchro_date_time( $mode ), $deleted );
 	}
 	
-	// Liste des IDs SugarCRM dont l'objet a été modifié depuis la dernière synchro
-	protected function get_sugar_ids_from_updated_attributes( $timestamp, $deleted ) {
-		$sugar_ids 	   = array( ); // Tableau qui contiendra les ID SugarCRM modifiés, donc à récupérer côté eZ
+	// Liste des IDs CRM dont l'objet a été modifié depuis la dernière synchro
+	protected function get_remote_ids_from_updated_attributes( $timestamp, $deleted ) {
+		$remote_ids	   = array( ); // Tableau qui contiendra les ID CRM modifiés, donc à récupérer côté eZ
 		$select_fields = array( 'id' );
 		$offset 	   = 0;
 		$max_results   = 99999;
 		$query 		   = $this->module_name . '.date_modified >= "' . strftime( '%Y-%m-%d %H:%M:%S', $timestamp ) . '"';
 		$order_by	   = '';
-		$sugardata     = $this->sugar_connector->get_entry_list( $this->module_name, $select_fields, $offset, $max_results, $query, $order_by, $deleted );
+		$remotedata    = $this->connector->get_entry_list( $this->module_name, $select_fields, $offset, $max_results, $query, $order_by, $deleted );
 		
-		if ( isset( $sugardata['data'] ) ) {
-			foreach ( $sugardata['data'] as $data ) {
-				$sugar_ids[ ] = $data['id'];
+		if ( isset( $remotedata['data'] ) ) {
+			foreach ( $remotedata['data'] as $data ) {
+				$remote_ids[ ] = $data['id'];
 			}
 		}
 		
-		$this->warning( 'Nb d\'objets ' . $this->module_name . ' ' . ( $deleted ? 'supprimés' : 'modifiés' ) . ' dans SugarCRM depuis le ' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . ' : ' . count($sugar_ids) );
+		$this->warning( 'Nb d\'objets ' . $this->module_name . ' ' . ( $deleted ? 'supprimés' : 'modifiés' ) . ' dans le CRM depuis le ' . strftime('%Y-%m-%d %H:%M:%S', $timestamp) . ' : ' . count($remote_ids) );
 		
-		return $sugar_ids;
+		return $remote_ids;
 	}
 }
 ?>
