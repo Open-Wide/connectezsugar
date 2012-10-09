@@ -25,7 +25,7 @@ last_synchro_otcp_restaurant=2012-09-26 06:00:00
 last_synchro_otcp_room=2012-09-26 06:00:00
 last_synchro_otcp_shopping=2012-09-26 06:00:00
 last_synchro_otcp_transport=2012-09-26 06:00:00
-last_synchro_otcp_visit=2012-09-26 06:00:00
+last_synchro_otcp_visit=2012-10-09 09:24:06
 
 [import_module_relations]
 last_synchro_otcp_accommodation=2012-09-26 06:00:00
