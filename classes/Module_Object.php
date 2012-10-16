@@ -322,12 +322,12 @@ class Module_Object {
 
 	/* Lancement de la requête de màj d'eZ */
 	private function import_relation_attribute_list( $relation ) {
-		$this->update_ez_attribute_value( $this->set_relation_attribute_list( $relation ) );
+		$this->update_ez_attribute_value( $this->set_relation_attribute_list( $relation ), true );
 	}
 
 	/* Lancement de la requête de màj d'eZ */
 	private function import_relation_attribute_one( $relation ) {
-		$this->update_ez_attribute_value( $this->set_relation_attribute_one( $relation ) );
+		$this->update_ez_attribute_value( $this->set_relation_attribute_one( $relation ), true );
 	}
 	
 	private function get_ez_attribute_value( $attributes ) {
@@ -348,7 +348,7 @@ class Module_Object {
 		return $paramsUpdate;
 	}
 
-	private function update_ez_attribute_value( $attributes ) {
+	private function update_ez_attribute_value( $attributes, $check_modifications = false ) {
 		
 		if ( count ( $attributes ) > 0) {
 			
@@ -359,17 +359,41 @@ class Module_Object {
 				}
 			}
 			
-			if ( !$this->simulation ) {
-				$return = eZContentFunctions::updateAndPublishObject( $this->ez_object, array( 'attributes' => $attributes ) );
-				if ( ! $return ) {
-					throw new Exception( 'Erreur de eZ Publish, impossible de mettre à jour ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id );
+			// $check_modifications : avant de vouloir mettre à jour l'objet, on vérifie que la valeur a bel et bien changé (uniquement pour les relations attributes)
+			// Sinon, on met à jour
+			$is_modified = $check_modifications ? $this->is_object_modified( $attributes ) : true;
+			
+			if ( $is_modified ) {
+				if ( !$this->simulation ) {
+					$return = eZContentFunctions::updateAndPublishObject( $this->ez_object, array( 'attributes' => $attributes ) );
+					if ( ! $return ) {
+						throw new Exception( 'Erreur de eZ Publish, impossible de mettre à jour ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id );
+					}
+					unset($return);
 				}
-				unset($return);
-			} 
-			$this->notice( '[' . $this->num_item . '] Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+				$this->notice( '[' . $this->num_item . '] Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+			} else {
+				$this->notice( '[' . $this->num_item . '] Attributs inchangés pour ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+			}
 		} else {
 			$this->notice( '[' . $this->num_item . '] Pas de modification de ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id . ' - ' . $this->ez_object->Name );
 		}
+	}
+	
+	private function is_object_modified( $attributes ) {
+		// Check les modifs
+		
+		$return = false;
+		$dataMap = $this->ez_object->dataMap( );
+		foreach ( $attributes as $field_name => $new_value ) {
+			$old_value = is_object( $dataMap[ $field_name ] ) ? $dataMap[ $field_name ]->toString() : null;
+			if ( $new_value != $old_value ) {
+				//$this->notice( 'UPDATE : ' . $field_name . ' - ' . $old_value . ' => ' . $new_value );
+				$return = true;
+			}
+		}
+		
+		return $return;
 	}
 
 	// Renvoie la valeur de l'élément sélectionné dans le CRM pour être récupérée dans eZ
