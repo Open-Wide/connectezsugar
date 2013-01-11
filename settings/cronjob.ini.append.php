@@ -17,7 +17,7 @@ Scripts[]=import_module.php
 
 
 [CronjobPart-synchro]
-Scripts[]=export.php
+#Scripts[]=export.php
 Scripts[]=import.php
 Scripts[]=synchronize_relations.php
 
