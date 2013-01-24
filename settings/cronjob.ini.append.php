@@ -1,19 +1,18 @@
 <?php /* #?ini charset="utf-8"?
 
-
-[CronjobSettings]
-ExtensionDirectories[]=connectezsugar
-Scripts[]=synchronize_ezsugar.php
-Scripts[]=synchronize_module.php
-Scripts[]=cleanup_dev.php
-Scripts[]=cleanup_module.php
-Scripts[]=synchronize_relations.php
-Scripts[]=synchro_relations_module.php
-Scripts[]=update_classes.php
-Scripts[]=export.php
-Scripts[]=export_module.php
-Scripts[]=import.php
-Scripts[]=import_module.php
+#[CronjobSettings]
+#ExtensionDirectories[]=connectezsugar
+#Scripts[]=synchronize_ezsugar.php
+#Scripts[]=synchronize_module.php
+#Scripts[]=cleanup_dev.php
+#Scripts[]=cleanup_module.php
+#Scripts[]=synchronize_relations.php
+#Scripts[]=synchro_relations_module.php
+#Scripts[]=update_classes.php
+#Scripts[]=export.php
+#Scripts[]=export_module.php
+#Scripts[]=import.php
+#Scripts[]=import_module.php
 
 
 [CronjobPart-synchro]
