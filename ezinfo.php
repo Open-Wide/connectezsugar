@@ -28,7 +28,7 @@ class connectEzSugar
     {
         return array( 'Name' => "Connecteur avec SugarCRM",
                       'Version' => "1.0.0",
-                      'Copyright' => "Openwide. Christophe Brun & Massimiliano Pasquesi",
+                      'Copyright' => "Openwide. Christophe Brun, Massimiliano Pasquesi & Fabien Jarnet",
                       'License' => "GNU General Public License v2.0",
                       );
     }
