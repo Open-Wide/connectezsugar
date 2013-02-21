@@ -199,7 +199,7 @@ class Module_Object {
 
 	private function import_relation_common($relation) {
 		$diff_related_ids = $this->diff_relations_common( $relation );
-		$this->notice( '[' . $this->num_item . '] Relations common : à ajouter : ' . count( $diff_related_ids[ 'to_add' ] ) . ' - à supprimer : ' . count( $diff_related_ids[ 'to_remove' ] ) );
+		//$this->notice( '[' . $this->num_item . '] Relations common : à ajouter : ' . count( $diff_related_ids[ 'to_add' ] ) . ' - à supprimer : ' . count( $diff_related_ids[ 'to_remove' ] ) );
 		$i = 1;
 		foreach ( $diff_related_ids[ 'to_add' ] as $related_ez_object_id ) {
 			if ( !$this->simulation ) {
