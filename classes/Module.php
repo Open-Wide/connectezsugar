@@ -95,13 +95,25 @@ class Module extends Module_Object_Accessor {
 		$remote_ids    = array( ); // Tableau qui contiendra les ID CRM modifiés, donc à récupérer côté eZ
 		$select_fields = array( 'id' );
 		$offset 	   = 0;
-		$max_results   = 99999;
+		$max_results   = 7500;
 		$query 		   = '';
 		$order_by	   = '';
 		$deleted	   = false;
 		$remotedata     = $this->connector->get_entry_list( $this->module_name, $select_fields, $offset, $max_results, $query, $order_by, $deleted );
 		
-		$this->warning( 'Nb d\'objets ' . $this->module_name . ' dans le CRM : ' . count( $remotedata[ 'data' ] ) );
+		$count_remote_data = 0;
+		if (is_array($remotedata) && isset($remotedata[ 'data' ])) {
+			$count_remote_data = count( $remotedata[ 'data' ] );
+		} else {
+			$this->warning(print_r($remotedata));
+		}
+		
+		if ( $count_remote_data == 0) {
+			$this->error( 'arret de la fonction check() => nb objets = 0  avec max_results = ' . $max_results );
+			return false;
+		}
+		
+		$this->warning( 'Nb d\'objets ' . $this->module_name . ' dans le CRM : ' . $count_remote_data );
 		
 		$ez_remote_ids 	  = array();
 		$ini 		   	  = eZIni::instance( 'otcp.ini' );
@@ -122,7 +134,7 @@ class Module extends Module_Object_Accessor {
 		
 		$this->warning( 'Nb d\'objets ' . $this->module_name . ' dans eZPublish : ' . count( $nodes ) );
 		
-		if ( count( $nodes ) != count( $remotedata[ 'data' ] ) ) {
+		if ( count( $nodes ) != $count_remote_data ) {
 			
 			$this->notice( 'Chargement des nodes eZ ...' );
 			foreach ( $nodes as $node ) {
@@ -156,11 +168,12 @@ class Module extends Module_Object_Accessor {
 				$this->warning( count( $diff ) . ' éléments dans eZ absents dans le CRM !!' );
 				$cpt = 1;
 				foreach ( $diff as $diff_remote_id ) {
-					$object_found = eZContentObject::fetchByRemoteID( $diff_remote_id );
+					$object_found = eZContentObject::fetchByRemoteID( $class_identifier.'_'.$diff_remote_id );
 					if ( $object_found ) {
-						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . $object_found->Name );
+						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' | Suppression de ' . $object_found->mainNodeID() . ' - ' . $object_found->Name );
+						//$object_found->mainNode()->removeThis();
 					} else {
-						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' Objet introuvable');
+						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' Objet introuvable dans le CRM');
 					}
 					$cpt++;
 				}
