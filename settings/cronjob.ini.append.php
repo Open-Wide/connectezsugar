@@ -1,7 +1,7 @@
 <?php /* #?ini charset="utf-8"?
 
-#[CronjobSettings]
-#ExtensionDirectories[]=connectezsugar
+[CronjobSettings]
+ExtensionDirectories[]=connectezsugar
 #Scripts[]=synchronize_ezsugar.php
 #Scripts[]=synchronize_module.php
 #Scripts[]=cleanup_dev.php
