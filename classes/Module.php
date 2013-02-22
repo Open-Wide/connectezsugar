@@ -369,11 +369,12 @@ class Module extends Module_Object_Accessor {
 		$remotedata = array('data' => array());
 		for ( $offset = 0; $offset < $max_results; $offset += $nb_par_lot) {
 			$data = $this->connector->get_entry_list( $this->module_name, $select_fields, $offset, $nb_par_lot, $query, $order_by, $deleted );
+			
 			if ( is_array( $data ) && is_array( $data[ 'data' ] ) && count( $data[ 'data' ] ) > 0 ) {
 				$this->notice('[OFFSET ' . $offset . '] get_entry_list [memory=' . memory_get_usage_hr() . ']');
 				$remotedata['data'] = array_merge( $remotedata['data'], $data['data'] );
 			} else {
-				if ( !is_array( $data ) || is_array( $data['data'] ) ) {
+				if ( !is_array( $data ) || !is_array( $data['data'] ) ) {
 					$this->error( 'arret de la fonction check() avec offset = ' . $offset . ' [memory=' . memory_get_usage_hr() . ']');
 					return false;
 				}
