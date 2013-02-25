@@ -375,7 +375,7 @@ class Module extends Module_Object_Accessor {
 				$remotedata['data'] = array_merge( $remotedata['data'], $data['data'] );
 			} else {
 				if ( !is_array( $data ) || !is_array( $data['data'] ) ) {
-					$this->error( 'arret de la fonction check() avec offset = ' . $offset . ' [memory=' . memory_get_usage_hr() . ']');
+					$this->error( 'arret de la fonction get_remote_ids_from_updated_attributes() avec offset = ' . $offset . ' [memory=' . memory_get_usage_hr() . ']');
 					return false;
 				}
 				$this->notice('get_entry_list terminé');
