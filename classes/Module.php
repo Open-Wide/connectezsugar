@@ -190,7 +190,7 @@ class Module extends Module_Object_Accessor {
 					$object_found = eZContentObject::fetchByRemoteID( $class_identifier.'_'.$diff_remote_id );
 					if ( $object_found ) {
 						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' | Suppression de ' . $object_found->mainNodeID() . ' - ' . $object_found->Name );
-						$object_found->mainNode()->removeThis();
+						$object_found->purge();
 					} else {
 						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' Objet introuvable dans le CRM');
 					}
