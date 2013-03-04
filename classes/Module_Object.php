@@ -375,10 +375,10 @@ class Module_Object {
 				}
 				$this->notice( '[' . $this->num_item . '] Mise à jour des attributs de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 			} else {
-				$this->notice( '[' . $this->num_item . '] Attributs inchangés pour ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
+				//$this->notice( '[' . $this->num_item . '] Attributs inchangés pour ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object_id . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 			}
 		} else {
-			$this->notice( '[' . $this->num_item . '] Pas de modification de ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id . ' - ' . $this->ez_object->Name );
+			//$this->notice( '[' . $this->num_item . '] Pas de modification de ' . $this->schema->ez_class_identifier . '#' . $this->ez_object_id . ' - ' . $this->ez_object->Name );
 		}
 	}
 	
