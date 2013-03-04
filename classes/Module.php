@@ -21,6 +21,8 @@ class Module extends Module_Object_Accessor {
 		
 		if ( $simulation == 'check' ) {
 			$this->check( );
+		} elseif ($simulation == 'check_relations' ) {
+			$this->check_relations();
 		}
 	}
 
@@ -46,7 +48,7 @@ class Module extends Module_Object_Accessor {
 					$object->import_relations( );
 					unset( $object );
 				} catch( Exception $e ) {
-					$this->error( $e->getMessage( ) );
+					$this->error( $e->getMessage( ), $e->getCode() );
 				}
 			}
 		}
@@ -75,7 +77,7 @@ class Module extends Module_Object_Accessor {
 						$object->import_relation( $relation );
 						unset( $object );
 					} catch( Exception $e ) {
-						$this->error( $e->getMessage( ) );
+						$this->error( $e->getMessage( ), $e->getCode() );
 					}
 				}
 			}
@@ -201,6 +203,54 @@ class Module extends Module_Object_Accessor {
 		
 	}
 	
+	public function check_relations_module( $relation, $schema ) {
+		$this->warning( 'Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] . ' type ' . $relation[ 'type' ] . ' work in progress ...');
+		
+		$i = 1;
+		while ( $remote_ids = $this->get_remote_ids( $relation, '' ) ) {
+			$count_remote_ids = count( $remote_ids );
+			$to_add = array();
+			$to_remove = array();
+			foreach ( $remote_ids as $remote_id ) {
+				try {
+					$object = new Module_Object( $this->module_name, $remote_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_remote_ids ) );
+					$diff_relations = $object->check_relation( $relation );
+					if ($diff_relations !== false) {
+						$to_add = array_merge($to_add, $diff_relations['to_add']);
+						$to_remove = array_merge($to_remove, $diff_relations['to_remove']);
+					}
+					unset( $object );
+				} catch( Exception $e ) {
+					$this->error( $e->getMessage( ), $e->getCode() );
+				}
+			}
+		}
+		$this->warning( count($to_add) . ' items à ajouter ');
+		foreach ($to_add as $k => $item) {
+			$this->notice('['.($k+1).'] #' . $item['related_object_id'] . ' ' . $item['related_object_name'] . ' (' . $item['related_module_name'] . ') <=> ' . '#' . $item['object_id'] . ' ' . $item['object_name'] . ' (' . $item['module_name'] . ') - ' . $item['object_remote_id']);
+		}
+		
+		$this->warning( count($to_remove) . ' items à supprimer ');
+		foreach ($to_remove as $k => $item) {
+			$this->notice('['.($k+1).'] #' . $item['related_object_id'] . ' ' . $item['related_object_name'] . ' (' . $item['related_module_name'] . ') <=> ' . '#' . $item['object_id'] . ' ' . $item['object_name'] . ' (' . $item['module_name'] . ') - ' . $item['object_remote_id']);
+		}
+	}
+	
+	// Check de la cohérence des data (différences entre eZ et le CRM) au niveau des relations
+	public function check_relations( ) {
+		
+		$schema = new Module_Schema( $this->module_name, $this->cli );
+		$schema->load_relations( );
+		foreach ( $schema->get_relations() as $relation ) {
+			if ($relation[ 'type' ] == 'relation') {
+				$this->check_relations_module( $relation, $schema );
+			} else {
+				$this->warning('Relations ' . $this->module_name . ' / ' . $relation[ 'related_module_name' ] . ' - pas de check relation : type ' . $relation[ 'type' ]);
+			}
+		}
+		
+	}
+	
 	/*
 	 * EXPORT vers le CRM
 	 */
@@ -264,7 +314,7 @@ class Module extends Module_Object_Accessor {
 				$object->export( );
 				unset( $object );
 			} catch( Exception $e ) {
-				$this->error( $e->getMessage( ) );
+				$this->error( $e->getMessage( ), $e->getCode() );
 			}
 		}
 		if ( !$this->simulation ) {
@@ -313,7 +363,7 @@ class Module extends Module_Object_Accessor {
 					$this->logs = array_merge( $this->logs, $object->logs );
 					unset( $object, $remotedata );
 				} catch ( Exception $e) {
-					$this->error( $e->getMessage( ) );
+					$this->error( $e->getMessage( ), $e->getCode() );
 				}
 			} else {
 				$this->error('Aucune donnée récupérée par get_entry() pour ID=' . $remote_id);
@@ -334,7 +384,7 @@ class Module extends Module_Object_Accessor {
 					$object->delete( );
 					unset( $object );
 				} catch ( Exception $e) {
-					$this->error( $e->getMessage( ) );
+					$this->error( $e->getMessage( ), $e->getCode() );
 				}
 			}
 		}

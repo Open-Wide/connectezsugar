@@ -12,6 +12,8 @@ class Module_Object {
 	private $num_item;
 	private $simulation;
 	
+	const EXCEPTION_OBJECT_INTROUVABLE = 999;
+	
 	public $logs = array();
 	
 	/**
@@ -181,7 +183,7 @@ class Module_Object {
 		$ez_object_id = owObjectsMaster::objectIDByRemoteID($remote_id);
 		
 		if ($ez_object_id === false) {
-			throw new Exception( '[' . $this->num_item . '] object_id introuvable pour remote_id=' . $remote_id);
+			throw new Exception( '[' . $this->num_item . '] object_id introuvable pour remote_id=' . $remote_id, self::EXCEPTION_OBJECT_INTROUVABLE);
 		}
 		return $ez_object_id;
 	}
@@ -534,5 +536,54 @@ class Module_Object {
 			$this->cli->error( $str );
 		}
 	}
+	
+	public function check_relation( $relation ) {
+	
+		$this->charge_ez_object( );
+	
+		return $this->check_relation_common( $relation );
+	}
+	
+	private function check_relation_common($relation) {
+		$diff_related_ids = $this->diff_relations_common( $relation );
+		$count_to_add = count( $diff_related_ids[ 'to_add' ] );
+		$count_to_remove = count( $diff_related_ids[ 'to_remove' ] );
+		$return_array = array(
+			'to_add' => array(),
+			'to_remove' => array(),
+		);
+		if ($count_to_add + $count_to_remove > 0) {
+			foreach ($diff_related_ids['to_add'] as $related_ez_object_id) {
+				$related_object = eZContentObject::fetch( $related_ez_object_id );
+				$item = array(
+					'related_module_name' => $relation[ 'related_module_name' ],
+					'related_object_id' => $related_ez_object_id,
+					'related_object_name' => $related_object->Name,
+					'module_name' => $this->module_name,
+					'object_id' => $this->ez_object->ID,
+					'object_name' => $this->ez_object->Name,
+					'object_remote_id' => $this->remote_id,
+				);
+				$return_array['to_add'][] = $item;
+				$this->notice('#' . $item['related_object_id'] . ' ' . $item['related_object_name'] . ' (' . $item['related_module_name'] . ') <=> ' . '#' . $item['object_id'] . ' ' . $item['object_name'] . ' (' . $item['module_name'] . ') - ' . $item['object_remote_id']);
+			}
+			foreach ($diff_related_ids['to_remove'] as $ez_object_id) {
+				$related_object = eZContentObject::fetch( $related_ez_object_id );
+				$item = array(
+					'related_module_name' => $relation[ 'related_module_name' ],
+					'related_object_id' => $related_ez_object_id,
+					'related_object_name' => $related_object->Name,
+					'module_name' => $this->module_name,
+					'object_id' => $this->ez_object->ID,
+					'object_name' => $this->ez_object->Name,
+					'object_remote_id' => $this->remote_id,
+				);
+				$return_array['to_remove'][] = $item;
+				$this->notice('#' . $item['related_object_id'] . ' ' . $item['related_object_name'] . ' (' . $item['related_module_name'] . ') <=> ' . '#' . $item['object_id'] . ' ' . $item['object_name'] . ' (' . $item['module_name'] . ') - ' . $item['object_remote_id']);
+			}
+		}
+		return $return_array;
+	}
+	
 }
 ?>

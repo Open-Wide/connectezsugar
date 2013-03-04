@@ -4,7 +4,7 @@ class Module_Object_Accessor {
 	
 	protected $offset = 0;
 	protected $last_related_module;
-	protected $paquet = 500;
+	protected $paquet = 250;
 	protected $connector;
 	const INIPATH = 'extension/connectezsugar/settings/';
 	
@@ -152,7 +152,10 @@ class Module_Object_Accessor {
 		}
 	}
 	
-	protected function error( $str ) {
+	protected function error( $str, $error_code = '' ) {
+		if ($error_code == Module_Object::EXCEPTION_OBJECT_INTROUVABLE) {
+			return false;
+		}
 		$this->logs[ ] = 'ERROR : ' . $str;
 		if ( !is_null( $this->cli ) ) {
 			$this->cli->error( $str );
