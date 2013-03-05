@@ -16,7 +16,9 @@ ExtensionDirectories[]=connectezsugar
 
 
 [CronjobPart-synchro]
-${SugarConnexion.CronjobPart-synchro}
+#Scripts[]=export.php
+#Scripts[]=import.php
+#Scripts[]=synchronize_relations.php
 
 [CronjobPart-synchrosugartoez]
 Scripts[]=synchronize_ezsugar.php
