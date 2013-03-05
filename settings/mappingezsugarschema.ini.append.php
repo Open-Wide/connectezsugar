@@ -5,6 +5,14 @@ relation_to_attribute[]
 
 [otcp_company]
 relation_to_attribute[]
+relation_to_attribute[many_cult_one_comp]=comp_contact_contact
+relation_to_attribute_type[many_cult_one_comp]=one
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[comp_contact_contact_id_c]=comp_contact_contact
+attribute_to_attribute_class[comp_contact_contact]=otcp_contact
+attribute_to_attribute[comp_company_group_id_c]=comp_company_group
+attribute_to_attribute_class[comp_company_group]=otcp_company
 
 [otcp_culture]
 relation_to_attribute[]
@@ -13,6 +21,10 @@ relation_to_attribute_type[many_cult_one_comp]=one
 specific_attribute[]=medias
 specific_attribute_medias[type]=ezobjectrelationlist
 specific_attribute_medias[name]=Médias
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[acti_main_contact_id_c]=acti_main_contact
+attribute_to_attribute_class[acti_main_contact]=otcp_contact
 
 [otcp_accommodation]
 relation_to_attribute[]
@@ -21,6 +33,10 @@ relation_to_attribute_type[many_acco_one_comp]=one
 specific_attribute[]=medias
 specific_attribute_medias[type]=ezobjectrelationlist
 specific_attribute_medias[name]=Médias
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[acti_main_contact_id_c]=acti_main_contact
+attribute_to_attribute_class[acti_main_contact]=otcp_contact
 
 [otcp_transport]
 relation_to_attribute[]
@@ -29,6 +45,10 @@ relation_to_attribute_type[many_tran_one_comp]=one
 specific_attribute[]=medias
 specific_attribute_medias[type]=ezobjectrelationlist
 specific_attribute_medias[name]=Médias
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[acti_main_contact_id_c]=acti_main_contact
+attribute_to_attribute_class[acti_main_contact]=otcp_contact
 
 [otcp_shopping]
 relation_to_attribute[]
@@ -37,6 +57,10 @@ relation_to_attribute_type[many_shop_one_comp]=one
 specific_attribute[]=medias
 specific_attribute_medias[type]=ezobjectrelationlist
 specific_attribute_medias[name]=Médias
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[acti_main_contact_id_c]=acti_main_contact
+attribute_to_attribute_class[acti_main_contact]=otcp_contact
 
 [otcp_visit]
 relation_to_attribute[]
@@ -45,6 +69,10 @@ relation_to_attribute_type[many_visi_one_comp]=one
 specific_attribute[]=medias
 specific_attribute_medias[type]=ezobjectrelationlist
 specific_attribute_medias[name]=Médias
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[acti_main_contact_id_c]=acti_main_contact
+attribute_to_attribute_class[acti_main_contact]=otcp_contact
 
 [otcp_otherpro]
 relation_to_attribute[]
@@ -53,6 +81,10 @@ relation_to_attribute_type[many_othe_one_comp]=one
 specific_attribute[]=medias
 specific_attribute_medias[type]=ezobjectrelationlist
 specific_attribute_medias[name]=Médias
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[acti_main_contact_id_c]=acti_main_contact
+attribute_to_attribute_class[acti_main_contact]=otcp_contact
 
 [otcp_restaurant]
 relation_to_attribute[]
@@ -61,8 +93,13 @@ relation_to_attribute_type[many_rest_one_comp]=one
 specific_attribute[]=medias
 specific_attribute_medias[type]=ezobjectrelationlist
 specific_attribute_medias[name]=Médias
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[acti_main_contact_id_c]=acti_main_contact
+attribute_to_attribute_class[acti_main_contact]=otcp_contact
 
 [otcp_room]
 relation_to_attribute[]
+attribute_to_attribute[]
 
 */ ?>

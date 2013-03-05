@@ -451,7 +451,14 @@ class Module_Object {
 				$time_array     = explode( ':', $datetime_array[1] );
 				$ezdatetime     = eZDateTime::create( $time_array[0], $time_array[1], $time_array[2], $date_array[1], $date_array[2], $date_array[0] );
 				return (string)$ezdatetime->timeStamp();
-					
+
+			case 'ezobjectrelation' :
+				$object = ezContentObject::fetchByRemoteID($value);
+				if ($object && $node = $object->mainNode()) {
+					return $node->NodeID;
+				}
+				break;
+				
 			default :
 				return str_replace('&#039;', '\'', html_entity_decode( $value ) ); // Remplacement de l'apostrophe de Word
 		}

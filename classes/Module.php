@@ -351,12 +351,37 @@ class Module extends Module_Object_Accessor {
 		$remote_ids  	 = $this->get_remote_ids_since_last_sync( 'import_module' );
 		$select_fields   = self::load_include_fields( $this->module_name );
 		$select_fields[] = 'deleted';
+
+		$specific_fields   = $this->load_relations_specific_attributes( );
+		foreach ($specific_fields as $specific_field) {
+			$select_fields[] = $specific_field['related_attribute_name'];
+		}
 		
 		$i = 1;
 		$count_remote_ids = count( $remote_ids );
 		foreach ( $remote_ids as $remote_id ) {
 			$remotedata = $this->connector->get_entry( $this->module_name, $remote_id, $select_fields );
 			if (isset ( $remotedata[ 'data' ] ) ) {
+				
+				foreach ( $specific_fields as $specific_field ) {
+					$indice = null;
+					$indice_to_replace = null;
+					$prefix_remote_id = null;
+					foreach ( $remotedata[ 'data' ] as $k => $data ) {
+						if ( $data[ 'name' ] == $specific_field[ 'name' ] ) {
+							$indice = $k;
+						}
+						if ( $data[ 'name' ] == $specific_field[ 'related_attribute_name' ] ) {
+							$indice_to_replace = $k;
+							$prefix_remote_id = $specific_field[ 'related_class_identifier' ].'_';
+						}
+					}
+					if ($indice != null && $indice_to_replace != null) {
+						// Remplacement de la valeur textuelle par l'ID
+						$remotedata[ 'data' ][ $indice ][ 'value' ] = $prefix_remote_id . $remotedata[ 'data' ][ $indice_to_replace ][ 'value' ];
+					}
+				}
+				
 				try {
 					$object = new Module_Object( $this->module_name, $remote_id, $schema, $this->cli, $this->simulation, ( $i++ . '/' . $count_remote_ids ) );
 					$object->update( $remotedata );
@@ -400,6 +425,32 @@ class Module extends Module_Object_Accessor {
 			}
 		}
 		return $include_fields;
+	}
+	
+	public function load_relations_specific_attributes( ) {
+		$ini = eZIni::instance( 'mappingezsugarschema.ini' );
+		$attributes = array();
+		if ( $ini->hasVariable( $this->module_name, 'attribute_to_attribute' ) ) {
+			foreach( $ini->variable( $this->module_name, 'attribute_to_attribute' ) as $related_attribute_name => $attribute_name ) {
+	
+				if ( $ini->hasVariable( $this->module_name, 'attribute_to_attribute_class' ) ) {
+					$class_names = $ini->variable( $this->module_name, 'attribute_to_attribute_class' );
+					$related_module_name = $class_names[ $attribute_name ];
+					$related_class_name       = Module_Schema::get_ez_class_name( $related_module_name );
+					$related_class_identifier = Module_Schema::get_ez_class_identifier( $related_module_name );
+					$attributes[ $attribute_name ] = array(
+							'related_attribute_name'   => $related_attribute_name,
+							'related_module_name'      => $related_module_name,
+							'related_class_name'       => $related_class_name,
+							'related_class_identifier' => $related_class_identifier,
+							'related_class_id'		   => eZContentClass::classIDByIdentifier( $related_class_identifier ),
+							'type' 		     		   => 'relation',
+							'name' 			      	   => $attribute_name,
+					);
+				}
+			}
+		}
+		return $attributes;
 	}
 	
 	protected function get_remote_ids_since_last_sync( $mode, $deleted = false ) {
