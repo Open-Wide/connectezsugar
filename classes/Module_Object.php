@@ -454,8 +454,8 @@ class Module_Object {
 
 			case 'ezobjectrelation' :
 				$object = ezContentObject::fetchByRemoteID($value);
-				if ($object && $node = $object->mainNode()) {
-					return $node->NodeID;
+				if ( $object ) {
+					return $object->ID;
 				}
 				break;
 				
