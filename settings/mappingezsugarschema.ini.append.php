@@ -1,7 +1,12 @@
 <?php /* 
 
 [otcp_contact]
-relation_to_attribute[]
+attribute_to_attribute[]
+attribute_to_attribute_class[]
+attribute_to_attribute[cont_otcp_contact_id_c]=cont_otcp_contact
+attribute_to_attribute_class[cont_otcp_contact]=otcp_contact
+attribute_to_attribute[cont_contact_company_id_c]=cont_contact_company
+attribute_to_attribute_class[cont_contact_company]=otcp_company
 
 [otcp_company]
 relation_to_attribute[]
