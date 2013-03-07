@@ -10,8 +10,6 @@ attribute_to_attribute_class[cont_contact_company]=otcp_company
 
 [otcp_company]
 relation_to_attribute[]
-relation_to_attribute[many_cult_one_comp]=comp_contact_contact
-relation_to_attribute_type[many_cult_one_comp]=one
 attribute_to_attribute[]
 attribute_to_attribute_class[]
 attribute_to_attribute[comp_contact_contact_id_c]=comp_contact_contact
