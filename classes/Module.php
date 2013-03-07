@@ -102,6 +102,17 @@ class Module extends Module_Object_Accessor {
 		$order_by	   = '';
 		$deleted	   = false;
 		
+		$check_relations_common = false;
+		
+		if ($check_relations_common) {
+			$specific_fields   = $this->load_relations_specific_attributes( );
+			$remote_specific_fields = array();
+			foreach ($specific_fields as $specific_field) {
+				$remote_specific_fields[] = $specific_field['related_attribute_name'];
+			}
+			$select_fields = array_merge($remote_specific_fields, $select_fields);
+		}
+		
 		$nb_par_lot = 250;
 		$remotedata = array('data' => array());
 		for ( $offset = 0; $offset < $max_results; $offset += $nb_par_lot) {
@@ -162,14 +173,54 @@ class Module extends Module_Object_Accessor {
 				$remote_id = $node->object()->remoteID( );
 				// On a un ID du genre "room_e7bd0519-2802-69ce-1f2f-501941f1e8e0", on supprime le préfixe "room_" pour ne conserver que l'ID
 				list($ez_class_identifier, $remote_id) = explode('_', $remote_id, 2);
-				$ez_remote_ids[ ] = $remote_id;
-			}
-			$this->notice( 'Chargement des remote_ids CRM ...' );
-			foreach ( $remotedata[ 'data' ] as $data ) {
-				$remote_ids[ ] = $data[ 'id' ];
+				$ez_remote_ids[ $remote_id ] = array();
+				
+				if ($check_relations_common) {
+					// Chargement des remote_ids des relations common
+					$data_map = $node->object()->dataMap();
+					$item_remote_id = null;
+					foreach ($specific_fields as $specific_field) {
+						$ezContentObjectAttribute = $data_map[ $specific_field[ 'name' ] ];
+						if ($ezContentObjectAttribute->hasContent()) {
+							$ezContentObject = $ezContentObjectAttribute->content();
+							if ($ezContentObject->remoteID()) {
+								$item_remote_id = $ezContentObject->remoteID();
+							}
+						}
+						$ez_remote_ids[ $remote_id ][ $specific_field['related_attribute_name'] ] = $item_remote_id;
+					}
+				}
 			}
 			
-			$diff = array_diff( $remote_ids, $ez_remote_ids );
+			$this->notice( 'Chargement des remote_ids CRM ...' );
+			foreach ( $remotedata[ 'data' ] as $data ) {
+				$remote_ids[ $data[ 'id' ] ] = array();
+				
+				if ($check_relations_common) {
+					foreach ( $data[ 'name_value_list' ] as $field) {
+						if ( in_array($field[ 'name' ],  $remote_specific_fields ) ) {
+							$remote_ids[ $data[ 'id' ] ][ $field[ 'name' ] ] = $field[ 'value' ];
+						}
+					}
+				}
+			}
+			
+			if ($check_relations_common && count($specific_fields) > 0) {
+				$nb_relations_errors = 0;
+				foreach ($ez_remote_ids as $ez_remote_id => $specific_datas) {
+					foreach ($specific_fields as $specific_field) {
+						if ( isset( $specific_datas[ $specific_field[ 'related_attribute_name' ] ] ) && !isset( $remote_ids[ $ez_remote_id ][ $specific_field[ 'related_attribute_name' ] ] ) ) {
+							$this->notice( '- Relation différente sur ' . $ez_class_identifier.'_'.$ez_remote_id . ' avec ' . $specific_field[ 'name' ] . ' : ' . $specific_datas[ $specific_field[ 'related_attribute_name' ] ] );
+							$nb_relations_errors++;
+						}
+					}
+				}
+				if ( $nb_relations_errors > 0) {
+					$this->warning($nb_relations_errors . ' erreurs de relations');
+				}
+			}
+			
+			$diff = array_diff( array_keys($remote_ids), array_keys($ez_remote_ids) );
 			if ( count( $diff ) ) {
 				$this->warning( count( $diff ) . ' éléments dans le CRM absents dans eZ' );
 				$cpt = 1;
@@ -184,14 +235,14 @@ class Module extends Module_Object_Accessor {
 			}
 			
 			// Au cas où, check de l'existence d'objets dans eZ mais pas dans le CRM
-			$diff = array_diff( $ez_remote_ids, $remote_ids );
+			$diff = array_diff( array_keys($ez_remote_ids), array_keys($remote_ids) );
 			if ( count( $diff ) ) {
 				$this->warning( count( $diff ) . ' éléments dans eZ absents dans le CRM !!' );
 				$cpt = 1;
 				foreach ( $diff as $diff_remote_id ) {
 					$object_found = eZContentObject::fetchByRemoteID( $class_identifier.'_'.$diff_remote_id );
 					if ( $object_found ) {
-						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' | Suppression de ' . $object_found->mainNodeID() . ' - ' . $object_found->Name );
+						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' | Suppression de #' . $object_found->mainNodeID() . ' - ' . $object_found->Name );
 						$object_found->purge();
 					} else {
 						$this->notice( '[' . $cpt . '] ' . $diff_remote_id . ' Objet introuvable dans le CRM');
