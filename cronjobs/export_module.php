@@ -39,13 +39,6 @@ if ( !isset( $arguments[ 2 ] ) ) {
 	if ( $simulation != 'check' ) {
 		$module->export_module_objects( );
 	}
-	
-	// H19873 : Pour éviter de boucler chaque jour sur les mêmes fiches à resynchroniser, on affecte la date d'import du module
-	if ( $simulation == 'sync' ) {
-		$ini_synchro = eZINI::instance( 'synchro.ini.append.php' );
-		$date_import_module = $ini_synchro->variable('import_module', 'last_synchro_' . $sugarmodule);
-		$module->set_last_synchro_date_time( 'export_module', $date_import_module );
-	}
 }
 $cli->endout('export_module.php');
 ?>
