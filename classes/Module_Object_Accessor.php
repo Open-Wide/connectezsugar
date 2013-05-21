@@ -28,8 +28,10 @@ class Module_Object_Accessor {
 		return strtotime( $datetime );
 	}
 	
-	protected function set_last_synchro_date_time( $block_name ) {
-		$datetime    = date("Y-m-d H:i:s", time());
+	public function set_last_synchro_date_time( $block_name, $datetime = '' ) {
+		if (!$datetime) {
+			$datetime = date("Y-m-d H:i:s", time());
+		}
 		$ini_synchro = eZINI::instance( 'synchro.ini.append.php', self::INIPATH );
 		
 		$ini_synchro->setVariable($block_name, 'last_synchro_' . $this->module_name, $datetime);

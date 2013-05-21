@@ -353,9 +353,8 @@ class Module extends Module_Object_Accessor {
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_editable_attributes( );
-		// Liste des remote_ids dont l'objet eZ a été modifié depuis le dernier import des données du CRM
-		// Pas depuis le dernier export, sinon on exporterait toujours toute la liste des objets importées lors de la précédente synchro, l'export étant lancé à chaque fois juste avant l'import
-		$ez_remote_ids = $this->get_ez_remote_ids_since_last_sync( 'import_module' );
+		// Liste des remote_ids dont l'objet eZ a été modifié depuis le dernier export des données du CRM
+		$ez_remote_ids = $this->get_ez_remote_ids_since_last_sync( 'export_module' );
 		
 		$i = 1;
 		$count_ez_remote_ids = count( $ez_remote_ids );

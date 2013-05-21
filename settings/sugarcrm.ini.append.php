@@ -141,6 +141,21 @@ modulesListToSynchro[]=otcp_visit
 modulesListToSynchro[]=otcp_otherpro
 modulesListToSynchro[]=otcp_room
 
+modulesListToExport[]
+modulesListToExport[]=otcp_contact
+
+modulesListToImport[]
+modulesListToImport[]=otcp_contact
+modulesListToImport[]=otcp_company
+modulesListToImport[]=otcp_accommodation
+modulesListToImport[]=otcp_restaurant
+modulesListToImport[]=otcp_culture
+modulesListToImport[]=otcp_transport
+modulesListToImport[]=otcp_shopping
+modulesListToImport[]=otcp_visit
+modulesListToImport[]=otcp_otherpro
+modulesListToImport[]=otcp_room
+
 #####################################################################################
 
 

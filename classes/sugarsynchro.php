@@ -79,6 +79,8 @@ class SugarSynchro
 								'prefixRemove'			=> array( 'block' => "Names", 'var' => "prefixRemove" ),
 								'prefixString'			=> array( 'block' => "Names", 'var' => "prefixString" ),
 								'modulesListToSynchro'	=> array( 'block' => "Synchro", 'var' => "modulesListToSynchro" ),
+								'modulesListToImport'	=> array( 'block' => "Synchro", 'var' => "modulesListToImport" ),
+								'modulesListToExport'	=> array( 'block' => "Synchro", 'var' => "modulesListToExport" ),
 							); 
 		self::$inidata_list = $inidata_list;
 		
@@ -215,6 +217,24 @@ class SugarSynchro
 			self::getIniData();
 			
 		return self::$inidata['modulesListToSynchro'];
+	}
+	
+	
+	public static function getModuleListToImport()
+	{
+		if( !isset(self::$inidata) or count(self::$inidata == 0) )
+			self::getIniData();
+			
+		return self::$inidata['modulesListToImport'];
+	}
+	
+	
+	public static function getModuleListToExport()
+	{
+		if( !isset(self::$inidata) or count(self::$inidata == 0) )
+			self::getIniData();
+			
+		return self::$inidata['modulesListToExport'];
 	}
 	
 	

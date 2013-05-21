@@ -18,7 +18,7 @@ $connection     = $sugarConnector->login();
 $simulation 	= isset($arguments[ 1 ]) ? $arguments[ 1 ] : 'sync';
  
 // modules SUGAR à synchroniser
-$modules_list = SugarSynchro::getModuleListToSynchro();
+$modules_list = SugarSynchro::getModuleListToImport();
 $cli->gnotice("Mémoire utilisée avant boucle sur les modules : " . memory_get_usage_hr());
 	
 foreach ( $modules_list as $sugarmodule ) {
