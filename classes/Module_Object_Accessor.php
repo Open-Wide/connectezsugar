@@ -63,10 +63,8 @@ class Module_Object_Accessor {
 			$to_date   = date('Y-m-d H:i:s');
 		}
 		
-		$max_results = 99999;
 		$deleted = true;
-		
-		$entries = $this->connector->sync_get_relationships( $this->module_name, $related_module, $from_date, $to_date, $this->offset, $max_results, $deleted);
+		$entries = $this->connector->sync_get_relationships( $this->module_name, $related_module, $from_date, $to_date, $this->offset, $this->paquet, $deleted);
 		
 		// ERROR MANAGEMENT
 		if (
