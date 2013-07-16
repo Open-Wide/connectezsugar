@@ -39,7 +39,8 @@ class Module_Object {
 		
 		$this->warning( '[' . $this->num_item . '] Suppression de ' . $this->schema->ez_class_identifier . ' #' . $this->ez_object->ID . ' - ' . $this->ez_object->Name . ' [memory=' . memory_get_usage_hr() . ']' . ( $this->simulation ? ' [SIMULATION]' : '' ) );
 		if ( !$this->simulation ) {
-			$this->ez_object->removeThis( ); // add to trash
+			//$this->ez_object->removeThis( ); // add to trash
+			$this->ez_object->purge(); // remove definitively
 		}
 	}
 	
