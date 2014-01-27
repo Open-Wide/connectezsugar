@@ -48,7 +48,8 @@ class Module extends Module_Object_Accessor {
 					$object->import_relations( );
 					unset( $object );
 				} catch( Exception $e ) {
-					$this->error( $e->getMessage( ), $e->getCode() );
+					$this->error( 'relations_error::' . $e->getMessage( ), $e->getCode() );
+					$GLOBALS['partial_cr'] = 1;
 				}
 			}
 		}
@@ -77,13 +78,16 @@ class Module extends Module_Object_Accessor {
 						$object->import_relation( $relation );
 						unset( $object );
 					} catch( Exception $e ) {
-						$this->error( $e->getMessage( ), $e->getCode() );
+						$this->error( 'relations_error::' . $e->getMessage( ), $e->getCode() );
+						$GLOBALS['partial_cr'] = 1;
 					}
 				}
 			}
 		}
 		if ( !$this->simulation ) {
-			$this->set_last_synchro_date_time( 'import_module_relations' );
+			if ( !$this->set_last_synchro_date_time( 'import_module_relations' ) ) {
+				$GLOBALS['partial_cr'] = 1;
+			}			
 		}
 		$this->logs[ ] = '------------------';
 		eZDebug::writeDebug( implode( "\n", $this->logs ) );
@@ -349,7 +353,7 @@ class Module extends Module_Object_Accessor {
 	// Export des objets eZ vers le CRM (valeurs des champs éditables)
 	public function export_module_objects() {
 		
-		$this->warning( 'export_module_objects [memory=' . memory_get_usage_hr() . ']' );
+		$this->warning( 'mem_test::export_module_objects [memory=' . memory_get_usage_hr() . ']' );
 		
 		$schema = new Module_Schema( $this->module_name, $this->cli );
 		$schema->load_editable_attributes( );
@@ -364,11 +368,15 @@ class Module extends Module_Object_Accessor {
 				$object->export( );
 				unset( $object );
 			} catch( Exception $e ) {
-				$this->error( $e->getMessage( ), $e->getCode() );
+				$this->error( 'export_error::' . $e->getMessage( ), $e->getCode() );
+				$GLOBALS['partial_cr'] = 1;
 			}
 		}
 		if ( !$this->simulation ) {
-			$this->set_last_synchro_date_time( 'export_module' );
+			$cli->notice( 'export_properties_update::Synchronisation de la date' );
+			if ( !$this->set_last_synchro_date_time( 'export_module' ) ) {
+				$GLOBALS['partial_cr'] = 1;
+			}
 		}
 		$this->logs[ ] = '------------------';
 		eZDebug::writeDebug( implode( "\n", $this->logs ) );
@@ -390,7 +398,9 @@ class Module extends Module_Object_Accessor {
 		$this->import_module_objects_delete( $schema );
 		
 		if ( !$this->simulation ) {
-			$this->set_last_synchro_date_time( 'import_module' );
+			if ( !$this->set_last_synchro_date_time( 'import_module' ) ) {
+				$GLOBALS['partial_cr'] = 1;
+			}			
 		}
 		$this->logs[ ] = '------------------';
 		eZDebug::writeDebug( implode( "\n", $this->logs ) );
@@ -438,10 +448,12 @@ class Module extends Module_Object_Accessor {
 					$this->logs = array_merge( $this->logs, $object->logs );
 					unset( $object, $remotedata );
 				} catch ( Exception $e) {
-					$this->error( $e->getMessage( ), $e->getCode() );
+					$this->error( 'import_error::' . $e->getMessage( ), $e->getCode() );
+					$GLOBALS['partial_cr'] = 1;
 				}
 			} else {
-				$this->error('Aucune donnée récupérée par get_entry() pour ID=' . $remote_id);
+				$this->error('import_error::Aucune donnée récupérée par get_entry() pour ID=' . $remote_id);
+				$GLOBALS['partial_cr'] = 1;
 			}
 		}
 	}
@@ -459,7 +471,8 @@ class Module extends Module_Object_Accessor {
 					$object->delete( );
 					unset( $object );
 				} catch ( Exception $e) {
-					$this->error( $e->getMessage( ), $e->getCode() );
+					$this->error( 'import_error::' . $e->getMessage( ), $e->getCode() );
+					$GLOBALS['partial_cr'] = 1;
 				}
 			}
 		}

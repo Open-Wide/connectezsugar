@@ -36,11 +36,12 @@ class Module_Object_Accessor {
 		
 		$ini_synchro->setVariable($block_name, 'last_synchro_' . $this->module_name, $datetime);
 		if ( $ini_synchro->save() ) {
-			$this->notice( 'Sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name . ' : ' . $datetime );
+			$this->notice( 'export_info::Sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name . ' : ' . $datetime );
 			$ini_synchro->resetCache(); // Plusieurs scripts sont lancés successivement, on vide donc le cache à chaque sauvegarde pour ne pas réécrire des valeurs incorrectes
 			return $datetime;
 		} else {
-			$this->error( 'Erreur lors de la sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name );
+			$this->error( 'export_error::Erreur lors de la sauvegarde de la date de synchro pour ' . $block_name . '_' . $this->module_name );
+			$GLOBALS['cr'] = 1;
 			return false;
 		}
 	}
