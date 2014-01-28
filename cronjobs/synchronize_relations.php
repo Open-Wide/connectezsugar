@@ -44,6 +44,8 @@
 	$script->exitCode();
 	print "return_code::synchronize_relations::$date::" . $GLOBALS['cr']."\n";
 	
+	OWMonitoringStatus::writeCR( "synchronize_relations::$date::", $GLOBALS['cr']);
+	
 	
 	// fin du script	
 	$cli->endout("synchronize_relations.php");

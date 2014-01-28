@@ -50,6 +50,8 @@
 	$script->exitCode();
 	print "return_code::import::$date::" . $GLOBALS['cr']."\n";
 	
+	OWMonitoringStatus::writeCR( "import::$date::", $GLOBALS['cr']);
+	
 	
 	// fin du script
 	$cli->endout("import.php");

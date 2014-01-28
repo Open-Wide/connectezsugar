@@ -51,6 +51,8 @@
 	$script->exitCode();
 	print "return_code::export::$date::" . $GLOBALS['cr']."\n";
 	
+	OWMonitoringStatus::writeCR( "export::$date::", $GLOBALS['cr']);
+	
 	
 	// fin du script
 	$cli->endout("export.php");
