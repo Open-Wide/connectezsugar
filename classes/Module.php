@@ -373,7 +373,7 @@ class Module extends Module_Object_Accessor {
 			}
 		}
 		if ( !$this->simulation ) {
-			$cli->notice( 'export_properties_update::Synchronisation de la date' );
+			$this->notice( 'export_properties_update::Synchronisation de la date' );
 			if ( !$this->set_last_synchro_date_time( 'export_module' ) ) {
 				$GLOBALS['partial_cr'] = 1;
 			}
